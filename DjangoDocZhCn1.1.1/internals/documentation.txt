@@ -1,43 +1,40 @@
 .. _internals-documentation:
 
-How the Django documentation works
+如何使用 Django 文档
 ==================================
 
-\... and how to contribute.
+\... 还关于文档是如何写作的。
 
-Django's documentation uses the Sphinx__ documentation system, which in turn is
-based on docutils__. The basic idea is that lightly-formatted plain-text
-documentation is transformed into HTML, PDF, and any other output format.
+Django's 文档使用基于 docutils__ 的 Sphinx__ 文档系统。
+基本的思路是撰写轻度格式化的文本，通过这些文体可以转换成 HTML 、 PDF 和其他
+格式的文档。
 
-__ http://sphinx.pocoo.org/
 __ http://docutils.sf.net/
+__ http://sphinx.pocoo.org/
 
-To actually build the documentation locally, you'll currently need to install
-Sphinx -- ``easy_install Sphinx`` should do the trick.
+要生成本地文档则需要先安装 Sphinx 。 ``easy_install Sphinx`` 命令比较方便。
 
-Then, building the html is easy; just ``make html`` from the ``docs`` directory.
+安装完后，生成 html 就容易了，只要使用对``doc`` 使用 ``make html`` 命令就行了。
 
-To get started contributing, you'll want to read the `ReStructuredText
-Primer`__. After that, you'll want to read about the `Sphinx-specific markup`__
-that's used to manage metadata, indexing, and cross-references.
+如果要帮助撰写文档，需要先阅读 `ReStructuredText 入门`__ 。然后还需要阅读
+`Sphinx 标记说明`__ ，学习如何使用 metadata 、 indexing 和
+cross-references 。
 
 __ http://sphinx.pocoo.org/rest.html
 __ http://sphinx.pocoo.org/markup/
 
-The main thing to keep in mind as you write and edit docs is that the more
-semantic markup you can add the better. So::
+当撰写或修改文档时应当牢记：尽可能多多使用语义标记。所以::
 
     Add ``django.contrib.auth`` to your ``INSTALLED_APPS``...
 
-Isn't nearly as helpful as::
+不如下句有用::
 
     Add :mod:`django.contrib.auth` to your :setting:`INSTALLED_APPS`...
 
-This is because Sphinx will generate proper links for the latter, which greatly
-helps readers. There's basically no limit to the amount of useful markup you can
-add.
+这是因为 Sphinx 会根据语义标记自动生成正确的链接，这样对读者十分有帮助。语义标
+记基本上没有数量限制。
 
-Django-specific markup
+Django 特有标记
 ----------------------
 
 Besides the `Sphinx built-in markup`__, Django's docs defines some extra description units:
