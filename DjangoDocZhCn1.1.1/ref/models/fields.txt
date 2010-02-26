@@ -1,0 +1,877 @@
+.. _ref-models-fields:
+
+=====================
+Model field 参考
+=====================
+
+.. module:: django.db.models.fields
+   :synopsis: Built-in field types.
+
+.. currentmodule:: django.db.models
+
+这篇文档包含所有 Django 可以提供的关于 `field options`_ 和 `field types`_ 的
+细节。
+
+.. seealso::
+
+    如果内置的 field 无法满足你的需求，那么你可以轻松 :ref:`撰写你自己的
+    model fields <howto-custom-model-fields>`.
+
+.. note::
+
+    从技术上说，这些 model 是在 :mod:`django.db.models.fields` 中定义的，但是为
+    方便它们已经导入了 :mod:`django.db.models` ；通常的用法是使用
+    ``from django.db import models`` 并用 ``models.<Foo>Field`` 指向 field 。
+
+.. _common-model-field-options:
+
+Field options
+=============
+
+以下参数可用于所有的 field ，而且都是可选项。
+
+``null``
+--------
+
+.. attribute:: Field.null
+
+如果值为 ``True`` ，那么 Django 在数据库中储存空值，即 ``NULL`` 。
+缺省值为 ``False`` 。
+
+注意空字符串与 ``NULL`` 是不同的。 ``null=True`` 应当只用于非字符类 field ，
+如 integers 、 booleans 和 dates 。如果你既要储存 ``NULL`` ,也要储存空字符
+串，那么你应当同时设置 ``blank=True`` 。 :attr:`~Field.null` 参数只影响数据库
+的储存。（另见 :attr:`~Field.blank` ）。
+
+除非你有很好的理由，你应当避免在字符类 field （如 :class:`CharField` 和
+:class:`TextField` ）上使用 :attr:`~Field.null` 。如果字符类 field 有
+``null=True`` 参数，那就会允许出现两种表示“无数据”的值： ``NULL`` 和空字符串。
+多数情况下，这样是多余的。 Django 的惯例是使用空字符串而不是 ``NULL`` 。
+
+.. note::
+
+    当使用 Oracle 数据库后台时， ``null=True`` 选项会被强迫用于字符类
+    field 。 ``NULL`` 和空字符串都有可能被储存在数据库中。
+
+``blank``
+---------
+
+.. attribute:: Field.blank
+
+如果值为 ``True`` ，那么 field 允许为空。缺省值为 ``False`` 。
+
+注意这个参数与 :attr:`~Field.null` 是不同的。 :attr:`~Field.null` 是与数据库相
+关的，而 :attr:`~Field.blank` 是与验证相关的。如果一个 field 设置为
+``blank=True`` ，那么在 Django's admin site 中允许输入项为空；如果设置为
+``blank=False``, 那么这个 field 为必填项。
+
+``choices``
+-----------
+
+.. attribute:: Field.choices
+
+一个用于该 field 的选择项的可迭代对象（例如 list 或 tuple ），由二元 tuple 组成。
+
+如果有这个参数，那么 Django's admin site 中这个 field 的输入会用一个选择框来
+代替文本框。
+
+一个 choices 列表例子如下::
+
+    YEAR_IN_SCHOOL_CHOICES = (
+        ('FR', 'Freshman'),
+        ('SO', 'Sophomore'),
+        ('JR', 'Junior'),
+        ('SR', 'Senior'),
+        ('GR', 'Graduate'),
+    )
+
+每个 tuple 第一个元素该选项是要储存的实际值，第二个元素是选项的说明。
+
+choices 列表也定义定义成 model 类的一部分::
+
+    class Foo(models.Model):
+        GENDER_CHOICES = (
+            ('M', 'Male'),
+            ('F', 'Female'),
+        )
+        gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+
+也可以在类外面定义然后与 model 类放在一起::
+
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+    class Foo(models.Model):
+        gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+
+你也可以把选择项分组以便于管理::
+
+    MEDIA_CHOICES = (
+        ('Audio', (
+                ('vinyl', 'Vinyl'),
+                ('cd', 'CD'),
+            )
+        ),
+        ('Video', (
+                ('vhs', 'VHS Tape'),
+                ('dvd', 'DVD'),
+            )
+        ),
+        ('unknown', 'Unknown'),
+    )
+
+每个 tuple 的第一个元素是组的名称。第二个元素是一个由二元 tuple 组成的
+可迭代对象。每个二元 tuple 包含一个选项值和选项说明。未分组的选项可以以
+一个单一列表的形式和已分组的选项放在一起（例如上面例子中的 `unknown` 选项）。
+
+对于每个有 :attr:`~Field.choices` 设置的 model field ，Django 会增加一个
+method ，用于得到选项值的相应说明。参见数据库 API 文档中的 
+:meth:`~django.db.models.Model.get_FOO_display` 。
+
+最后，请注意 choices 可以是任何可迭代对象，不一定必须是一个 list 或 tuple 。
+这样你就就可以动态创建 choices 。但是如果你需要动态的 choices ，那么你最好使用
+:class:`ForeighKey` 来代替 :attr:`~Field.choices` 。因为 :attr:`~Field.choices`
+是为静态数据准备的。 
+
+``db_column``
+-------------
+
+.. attribute:: Field.db_column
+
+field 在数据库中相应的列名。如果没有设置这个参数，那么 Django 会使用该
+field 的名称。
+
+如果你的数据库列名是一个SQL保留字，或包含了 Python 变量名不允许的字符
+（尤其是连字符），那么 Django 会自动引用列名和表名。
+
+``db_index``
+------------
+
+.. attribute:: Field.db_index
+
+如果值为 ``True`` ，那么 djadmin:`django-admin.py sqlindexes <sqlindexes>` 会
+为这个 field 输出一个 ``CREATE INDEX`` 语句。
+
+``db_tablespace``
+-----------------
+
+.. attribute:: Field.db_tablespace
+
+.. versionadded:: 1.0
+
+用于已索引 field 的索引的数据库表空间名称。缺省值是项目的
+:setting:`DEFAULT_INDEX_TABLESPACE` 值（如果有的话）或者
+model 的 :attr:`~Field.db_tablespace` 的值。如果数据库后台不支持表空间，那么
+这个选项将被忽略。
+
+``default``
+-----------
+
+.. attribute:: Field.default
+
+field 的缺省值。可以是一个值或一个可调用的对象。如果是一个可调用的对象，那么
+每次创建一个新对象时都会调用这个对象一次。
+
+``editable``
+------------
+
+.. attribute:: Field.editable
+
+如果值为 ``False`` 那么这个 field 在通过 model 类自动创建的 admin 或表单中
+将不可编辑。缺省值为 ``True`` 。
+
+``help_text``
+-------------
+
+.. attribute:: Field.help_text
+
+显示在对象的 admin 表单中的 field 下的额外的“帮助”文本。即使你不使用 admin
+表单，这个对于程序说明也有很大帮助。
+
+注意这个选项值在 admin 界面 *不是* HTML转义的。如果你需要的话，你可以
+在 :attr:`~Field.help_text` 中使用 HTML。例如::
+
+    help_text="Please use the following format: <em>YYYY-MM-DD</em>."
+
+或者你可以使用 ``django.utils.html.escape()`` 来转义 HTML 字符。
+
+``primary_key``
+---------------
+
+.. attribute:: Field.primary_key
+
+如果值为 ``True`` ，那么这个 field 就是 model 的 primary key 。
+
+如果你不在任何一个 field 定义 ``primary_key=True`` ，那么 Django 自动添加一个
+:class:`IntegerField` 作为 primary key 。所以除非你想重载缺省的 primary-key ，
+你不必在任何一个 field 设置 ``primary_key=True`` 。
+更多内容参见 :ref:`automatic-primary-key-fields` 。
+
+``primary_key=True`` 意味着 :attr:`null=False <Field.null>` 和
+:attr:`unique=True <Field.unique>` 。一个对象只允许有一个 primary key 。
+
+``unique``
+----------
+
+.. attribute:: Field.unique
+
+如果值为 ``True`` ，那么这个 field 在表中只能有唯一值。
+
+在数据库级别和 admin 表单级别会强迫唯一值。如果试图保存重复值，那么
+:meth:`~django.db.models.Model.save` 方法会引发
+:exc:`django.db.IntegrityError` 。
+
+
+除了 :class:`ManyToManyField` 和 :class:`FileField` 之外都可以使用这个选项。
+
+``unique_for_date``
+-------------------
+
+.. attribute:: Field.unique_for_date
+
+通过对 :class:`DateField` 或 :class:`DateTimeField` 设置这个选项，可以实现
+日期关联的唯一值。
+
+例如，如果你有一个 ``title`` field 设置了 ``unique_for_date="pub_date"`` ,
+那么 Django 就不会允许两有相同 ``title`` 和 ``pub_date`` 的记录。
+
+这只在 Django admin-form 级别中强迫，不在数据库级别中强迫。
+
+``unique_for_month``
+--------------------
+
+.. attribute:: Field.unique_for_month
+
+与 :attr:`~Field.unique_for_date` 类似，但只关联月份。
+
+``unique_for_year``
+-------------------
+
+.. attribute:: Field.unique_for_year
+
+与 :attr:`~Field.unique_for_date` 和 :attr:`~Field.unique_for_month` 类似，
+但只关联到年份。
+
+``verbose_name``
+-------------------
+
+.. attribute:: Field.verbose_name
+
+一个可读名称，如果没有设置， Django 会自动使用 field 的属性名来创建。自动
+创建时会会把下划线转换为空格。
+参见 :ref:`Verbose field names <verbose-field-names>` 。
+
+.. _model-field-types:
+
+Field types
+===========
+
+.. currentmodule:: django.db.models
+
+``AutoField``
+-------------
+
+.. class:: AutoField(**options)
+
+这是一个自动增长的 :class:`IntegerField` 。通常你不必直接使用这个，因为如果
+你不定义 primary key field ， Django 会自动为你创建一个。
+参见 :ref:`automatic-primary-key-fields` 。
+
+``BooleanField``
+----------------
+
+.. class:: BooleanField(**options)
+
+一个真/假 field 。
+
+在 admin 表现为一个勾选框。 checkbox.
+
+.. admonition:: MySQL users..
+
+    在 MySQL 中一个布尔 field 被储存为一个 ``TINYINT`` 列，其值为 0 或者 1
+    （多数数据库有相应的 ``BOOLEAN`` 类型）。所以，对于 MySQL 数据库来说，
+    当且仅当布尔 field 从数据库中取回值时后并保存到 model 的属性时，保存的
+    值是 1 或 0 ，而不是 ``True`` or ``False`` 。通常，这不会是个问题，因
+    在 Python 中 ``1 == True`` ，而 ``0 == False`` 。只是要小心，如果你的
+    程序中 ``obj`` 是一个 model 的布尔属性的值并且有类似 ``obj is True``
+    语句时，而你又使用 MySQL 数据库，那么这个 "``is``" 测试会失败。这时，
+    最好使用 equality 测试（使用 "``==``" ）。
+
+``CharField``
+-------------
+
+.. class:: CharField(max_length=None, [**options])
+
+一个字符串 field ，用于小型或大型字符串。
+
+大量文本请使用 :class:`~django.db.models.TextField` 。
+
+在 admin 中表现为一个 ``<input type="text">`` （一个单行文本输入框）。
+
+:class:`CharField` 有一个额外的参数：
+
+.. attribute:: CharField.max_length
+
+    这个参数指定 field 中字符串的最大长度。这个限制应用到数据库级别和
+    Django 验证级别。
+
+.. note::
+
+    如果你的应用要适合多种数据库，那么你要研究不同数据库对 ``max_length``
+    的不同限制。详见 :ref:`database backend notes <ref-databases>` 。
+
+.. admonition:: MySQL users
+
+    如果你使用 MySQLdb 1.2.2 并且使用 ``utf8_bin`` collation （这 *不是*
+    缺省的），那你要注意了。
+    详见 :ref:`MySQL database notes <mysql-collation>` 。
+
+
+``CommaSeparatedIntegerField``
+------------------------------
+
+.. class:: CommaSeparatedIntegerField(max_length=None, [**options])
+
+以逗号分隔的整数。就像 :class:`CharField` ， :attr:`~CharField.max_length`
+是必须的，关于数据库的注意事项也类似。
+
+``DateField``
+-------------
+
+.. class:: DateField([auto_now=False, auto_now_add=False, **options])
+
+日期 field ，对应 Python 中的 ``datetime.date`` 实例。有一些可选参数：
+
+.. attribute:: DateField.auto_now
+
+    每次保存时自动设置 field 值为当前日期。常用于记录“最后一次修改”的日期。
+    *总是* 保存前日期，无法重载。
+
+.. attribute:: DateField.auto_now_add
+
+    当对象创建时自动设置 field 值为当前日期。常用于记录创建日期。
+    *总是* 保存前日期，无法重载。
+
+admin 中会表现为一个带有 JavaScript 日历的 ``<input type="text">`` ，还有
+一个输入“今天”日期的快捷键。 JavaScript 日历总是把星期天作为一个星期的第
+一天。
+
+``DateTimeField``
+-----------------
+
+.. class:: DateTimeField([auto_now=False, auto_now_add=False, **options])
+
+一个日期和时间 field ，对应 Python 中的 ``datetime.datetime`` 实例。
+有与 :class:`DateField` 相同的额外参数。
+
+admin 中表现为两个带有 JavaScript 快捷键的 ``<input type="text">`` 。
+
+``DecimalField``
+----------------
+
+.. versionadded:: 1.0
+
+.. class:: DecimalField(max_digits=None, decimal_places=None, [**options])
+
+一个固定精度的十进制数，对应 Python 中的 :class:`~decimal.Decimal` 实例。
+有两个 **必选** 参数:
+
+.. attribute:: DecimalField.max_digits
+
+    允许的最大位数
+
+.. attribute:: DecimalField.decimal_places
+
+    小数位数
+
+例如要储存最大为 999 ，有 2 位小数的数字，可以这样写::
+
+    models.DecimalField(..., max_digits=5, decimal_places=2)
+
+要储存不超过十亿，有十位小数的数字可以这样写::
+
+    models.DecimalField(..., max_digits=19, decimal_places=10)
+
+在 admin 中会表现为 ``<input type="text">`` （一个单行输入框）。
+
+``EmailField``
+--------------
+
+.. class:: EmailField([max_length=75, **options])
+
+一个检查值是否是 e-mail 的 :class:`CharField` 。
+
+``FileField``
+-------------
+
+.. class:: FileField(upload_to=None, [max_length=100, **options])
+
+一个文件上传 field 。
+
+.. note::
+    不支持 ``primary_key`` 和 ``unique`` 参数，如果使用这两个参数会引发
+    ``TypeError`` 。
+
+有一个 **必选** 参数:
+
+.. attribute:: FileField.upload_to
+
+    这个参数的值应该是一个本地文件系统的路径。 :setting:`MEDIA_ROOT` 的值加上
+    这个路径成为 :attr:`~django.core.files.File.url` 属性的值。
+
+    这个路径可以包含 `strftime formatting`_ ，这样路径就可以根据日期或时间变化，
+    以避免文件塞满这个路径。
+
+    .. versionchanged:: 1.0
+
+    这个参数还可以是一个可调用对象，如一个函数。通过这个对象可以得到包括文件名的
+    上传路径。这个对象必须接受两个参数，返回一个 Unix 式样的路径（使用 \ 符号）。
+    传递的两个参数是:
+
+        ======================  ===============================================
+        参数                    说明
+        ======================  ===============================================
+        ``instance``            ``FileField`` 所在的 model 的实例。更确切的说这
+                                是储存要上传文件的对象的实例。
+
+                                多数情况下，这个对象还没有储存到数据库，所以如
+                                果使用缺省的 ``AutoField`` ， 那么
+                                *primary key field 可能还没有值* 。
+
+        ``filename``            上传文件的原本文件名。可用于产生目的路径。
+        ======================  ===============================================
+
+另外还有一个可选参数:
+
+.. attribute:: FileField.storage
+
+    .. versionadded:: 1.0
+
+    这个参数是可选的，它是一个用于处理文件存储和读取的对象。如何使用这个对象另见
+    :ref:`topics-files` 。
+
+admin 中这个 field 表现为 ``<input type="file">`` （一个文件上传控件）。
+
+在 model 中使用 :class:`FileField` 或 :class:`ImageField` （详见下文）需要以下
+步骤:
+
+    1. 在设置文件中，首先要通过 :setting:`MEDIA_ROOT` 定义一个用于文件上传的根
+       路径。根路径定义时应使用绝对路径。接着要通过 :setting:`MEDIA_URL` 定义根
+       路径对应的 URL 。应当确保 Web 服务器用户对这个路径有写入权限。
+
+    2. 把 :class:`FileField` 或 :class:`ImageField` 加入到你的 model ，并定义
+       :attr:`~FileField.upload_to` 参数。这个参数用于确定相对于根路径的子目
+       录，上传文件最终会储存到这个子目录中。
+
+    3. 最终储存到数据库中的是上传的文件的相对路径（相对于
+       :setting:`Media_ROOT` ）。Django 提供了一个方便的函数
+       :attr:`~django.core.files.File.url` 。假设有一个名为 ``mug_shot`` 的
+       :class:`ImageField` ，在模板中你可以通过 ``{{ object.mug_shot.url }}``
+       得到 URL。
+
+例如， :setting:`MEDIA_ROOT` 设置为 ``'/home/media'`` ，
+:attr:`~FileField.upload_to` 设置为 ``'photos/%Y/%m/%d'`` 。 ``'%Y/%m/%d'`` 是
+`strftime formatting`_ ， ``'%Y'`` 代表以四位数字表示的年份， ``'%m'`` 代表两位
+数字表示的月份， ``'%d'`` 代表两位数字表示的天。如果上传文件的日期是 2007 年
+1 月 15 日，上传的文件会被储存在 ``/home/media/photos/2007/01/15`` 目录下。
+
+上传文件的磁盘文件名、 URL 和文件尺寸可以通过
+:attr:`~django.core.files.File.name` 、 :attr:`~django.core.files.File.url`
+和 :attr:`~django.core.files.File.size` 属性来得到。参见 :ref:`topics-files` 。
+
+注意，为了避免安全漏洞，应当非常注意上传文件的类型和储存目录。为了确保上传文件
+符合要求，请 *验证所有上传文件* 。假如你盲目地，不加以验证地允许上传文件到你的
+Web 服务器的文档根目录，那么就可能会有人上传一个 CGI 或 PHP 代码，并通过这些代码
+来访问你的网站。这是非常危险的。
+
+.. versionadded:: 1.0
+   这个版本增加了 ``max_length`` 参数。
+
+缺省情况下， :class:`FileField` 实例在数据库中创建 ``varchar(100)`` 字段。
+对于其他类型的 field ，可以通过 :attr:`~CharField.max_length` 参数来改变最大
+长度。
+
+.. _`strftime formatting`: http://docs.python.org/lib/module-time.html#l2h-1941
+
+``FilePathField``
+-----------------
+
+.. class:: FilePathField(path=None, [match=None, recursive=False, max_length=100, **options])
+
+一个 :class:`CharField` ，用于储存一个文件系统中指定目录下符合一定规则的文件
+名。有以下三个参数，其中第一个是*必选*的:
+
+.. attribute:: FilePathField.path
+
+    这个参数是必选的，它指定一个绝对路径。例如: ``"/home/images"`` 。
+
+.. attribute:: FilePathField.match
+
+    这个参数是可选的，它是一个正则表达式，用于过滤文件名。注意这里的正则表达式
+    只作用于基本的文件名，而不作用于路径。例如: ``"foo.*\.txt$"`` 只匹配名为
+    ``foo23.txt`` 的文件，而不匹配 ``foo/bar.txt`` 或 ``foo23.gif`` 。
+
+.. attribute:: FilePathField.recursive
+
+    这个参数是可选的，其值不是 ``True`` 就是 ``False`` 。缺省的是 ``False`` 。
+    这个参数定义是否包括 :attr:`~FilePathField.path` 所有子路径。
+
+当然，这三个参数可以一起使用。
+
+有点难理解的可能是 :attr:`~FilePathField.match` 只作用于基本的文件名，而不作
+用于路径。例如::
+
+    FilePathField(path="/home/images", match="foo.*", recursive=True)
+
+...会匹配 ``/home/images/foo.gif`` 而不是 ``/home/images/foo/bar.gif``，因为
+:attr:`~FilePathField.match` 只作用于基本文件名，即 ``foo.gif`` 和
+``bar.gif`` ）。
+
+.. versionadded:: 1.0
+   这个版本增加了 ``max_length`` 参数。
+
+缺省情况下， :class:`FileField` 实例在数据库中创建 ``varchar(100)`` 字段。
+对于其他类型的 field ，可以通过 :attr:`~CharField.max_length` 参数来改变最大
+长度。
+
+``FloatField``
+--------------
+
+.. class:: FloatField([**options])
+
+.. versionchanged:: 1.0
+
+浮点数，对应 Python 中的 ``float`` 实例。
+
+在 admin 中表现为 ``<input type="text">`` （单行输入框）。
+
+``ImageField``
+--------------
+
+.. class:: ImageField(upload_to=None, [height_field=None, width_field=None, max_length=100, **options])
+
+与 :class:`FileField` 基本相同，但会验证上传对象是否为一个图像。
+有两个可选参数:
+
+.. attribute:: ImageField.height_field
+
+    一个 model field 。每次 model 实例保存时这个 field 会预设图像高度。
+
+.. attribute:: ImageField.width_field
+
+    一个 model field 。每次 model 实例保存时这个 field 会预设图像宽度。
+
+除了 :class:`FileField` 的属性外， :class:`ImageField` 还有 ``File.height`` 和
+``File.width`` 属性。参见 :ref:`topics-files` 。
+
+需要 `Python Imaging Library`_.
+
+.. _Python Imaging Library: http://www.pythonware.com/products/pil/
+
+.. versionadded:: 1.0
+   这个版本增加了 ``max_length`` 参数。
+
+缺省情况下， :class:`FileField` 实例在数据库中创建 ``varchar(100)`` 字段。
+对于其他类型的 field ，可以通过 :attr:`~CharField.max_length` 参数来改变最大
+长度。
+
+``IntegerField``
+----------------
+
+.. class:: IntegerField([**options])
+
+一个整数，在 admin 中表现为 ``<input type="text">`` （一个单行输入框）。
+
+``IPAddressField``
+------------------
+
+.. class:: IPAddressField([**options])
+
+一个 IP 地址，字符串格式（如： "192.0.2.30" ）。在 admin 中表现为
+``<input type="text">`` （一个单行输入框）。
+
+``NullBooleanField``
+--------------------
+
+.. class:: NullBooleanField([**options])
+
+和 :class:`BooleanField` 类型，但多一个 ``NULL`` 作为可选值。即带有
+``null=True`` 的 :class:`BooleanField` 。在 admin 中表现为 ``<select>`` ，
+选项为 "Unknown" 、 "Yes" 和 "No" 。
+
+``PositiveIntegerField``
+------------------------
+
+.. class:: PositiveIntegerField([**options])
+
+和 :class:`IntegerField` 一样，但只能是正整数。
+
+``PositiveSmallIntegerField``
+-----------------------------
+
+.. class:: PositiveSmallIntegerField([**options])
+
+和 :class:`PositiveIntegerField` 一样，但是有上限（取决于数据库）限制。
+
+``SlugField``
+-------------
+
+.. class:: SlugField([max_length=50, **options])
+
+:term:`Slug` 是一个新闻报纸业术语。一个 slug 是一个东本的小标签，它只可以包含
+字母、数字下划线和连字符。一般用于 URLs 。
+
+象 CharField 一样，你可以定义 :attr:`~CharField.max_length` （同时请阅读
+:class:`CharField` 那节关于数据库移植的注意事项和 :attr:`~CharField.max_length` ）
+。如果不定义 :attr:`~CharField.max_length` ， Django 使用缺省值 50 。
+
+这种 field 隐式设置 :attr:`Field.db_index` 为 ``True`` 。
+
+这种 field 经常用做自动预置其他值的基础值。可以通过使用
+:attr:`~django.contrib.admin.ModelAdmin.prepopulated_fields` 来实现自动预设。
+
+``SmallIntegerField``
+---------------------
+
+.. class:: SmallIntegerField([**options])
+
+和 :class:`IntegerField` 一样，但是有上限（取决于数据库）限制。
+
+``TextField``
+-------------
+
+.. class:: TextField([**options])
+
+一个大文本 field 。在 admin 中表现为 ``<textarea>`` （一个多行文本输入框）
+
+.. admonition:: MySQL users
+
+    如果你使用 MySQLdb 1.2.1p2 并且使用 ``utf8_bin`` collation （这 *不是*
+    缺省的），那你要注意了。
+    详见 :ref:`MySQL database notes <mysql-collation>` 。
+
+``TimeField``
+-------------
+
+.. class:: TimeField([auto_now=False, auto_now_add=False, **options])
+
+时间，对应  Python 中的 ``datetime.time`` 实例。
+Accepts the same auto-population options as :class:`DateField`.
+
+在 admin 中表现为 ``<input type="text">`` ，并带有一些 JavaScript 快捷键。
+
+``URLField``
+------------
+
+.. class:: URLField([verify_exists=True, max_length=200, **options])
+
+一个用于 URL 的 :class:`CharField` 。有一个可选参数:
+
+.. attribute:: URLField.verify_exists
+
+    缺省值为 ``True`` 。如果值为 ``True`` ，那么会验证 URL 是否存在。
+    （例如： URL 真正载入并没有给出 404 回应）。要注意一点，开发服务器是单线程
+    的，验证同一个 URL 会挂起服务器。而在多线程的服务器上就不会有这个问题。
+
+在 admin 中表现为 ``<input type="text">`` （一个单行输入框）。
+
+就像所有 :class:`CharField` 的子类一样， :class:`URLField` 有一个可选参数
+:attr:`~CharField.max_length` 。如果不设置这个参数会使用缺省值 200 。
+
+``XMLField``
+------------
+
+.. class:: XMLField(schema_path=None, [**options])
+
+一个根据给定的 schema 来验证是否为有效的 XML 的 :class:`TextField` 。
+需要一个参数:
+
+.. attribute:: schema_path
+
+    用于验证的 RelaxNG_ schema 的路径。
+
+.. _RelaxNG: http://www.relaxng.org/
+
+Relationship fields
+===================
+
+.. module:: django.db.models.fields.related
+   :synopsis: Related field types
+
+.. currentmodule:: django.db.models
+
+Django 还定义了一套表现关系的 field 。
+
+.. _ref-foreignkey:
+
+``ForeignKey``
+--------------
+
+.. class:: ForeignKey(othermodel, [**options])
+
+一个多对一的关系。需要一个位置参数：与这个 model 有关的 class 。
+
+.. _recursive-relationships:
+
+如果要创建一个递归的关系——指向对象本身的多对一关系，那么可以
+使用 ``models.ForeignKey('self')`` 。
+
+.. _lazy-relationships:
+
+如果你要创建一个还没定义的 model 的关系，那么你可以使用 model 的名称，而不是
+model 对象本身::
+
+    class Car(models.Model):
+        manufacturer = models.ForeignKey('Manufacturer')
+        # ...
+
+    class Manufacturer(models.Model):
+        # ...
+
+.. versionadded:: 1.0
+
+要指向另一应用中的 model ，可以用应用名来显式的定义 model 。例如，如果上述的
+``Manufacturer`` model 是在另一个名为 ``production`` 应用中定义的，那么你可以这
+样引用::
+
+    class Car(models.Model):
+        manufacturer = models.ForeignKey('production.Manufacturer')
+
+当需要在两个应用间混合使用时这种引用非常用用。
+
+Database Representation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+在后台， Django 会在数据库中创建列，列名为 field 名称后面添加 ``"_id"`` 。在上
+面的例子中， ``Car`` model 对应的数据库表中会有一个 ``manufacturer_id`` 列（你
+可以通过定义 :attr:`~Field.db_column` 来改变这个规则）。然而你的代码不用处理列
+名，除非你要写自定义 SQL 。你只需要处理你的 model 对象的 field 名称就行了。
+
+.. _foreign-key-arguments:
+
+Arguments
+~~~~~~~~~
+
+:class:`ForeignKey` 接收一些额外的参数，这些参数定义了关系运作的细节。
+所有的参数都是可选的。
+
+.. attribute:: ForeignKey.limit_choices_to
+
+    这个参数用于限制 admin 中的可选项，是一个由参数和值组成的 dictionary 实例。
+    （参见 :ref:`topics-db-queries` ）。这个参数和 Python 的 ``datetime``
+    model 配合可以根据日期/时间来限制对象。例如::
+
+        limit_choices_to = {'pub_date__lte': datetime.now}
+
+    这样就只可选择相关对象 ``pub_date`` 值早于当前时间/时间的记录了。
+
+    也可以使用一个  :class:`~django.db.models.Q` 对象来代替 dictionary 实例。
+    更多内容详见 :ref:`complex queries <complex-lookups-with-q>` 。
+
+    ``limit_choices_to`` 对用于在 admin 中显示关系对象的 inline FormSets 不起作
+    作。
+
+.. attribute:: ForeignKey.related_name
+
+    这个参数用于定义关系对象的返回名称。详细的说明和例子参见
+    :ref:`related objects documentation <backwards-related-objects>` 。注意，
+    当在 :ref:`抽象基类 <abstract-base-classes>` 上定义关系时你必须设置这个参数，
+    只有这样才可以使用 :ref:`一些特殊语法 <abstract-related-name>` 。
+
+.. attribute:: ForeignKey.to_field
+
+    这个参数定义关系对象关联的 field 。缺省的， Django 使用关系对象的
+    primary key 。
+
+.. _ref-manytomany:
+
+``ManyToManyField``
+-------------------
+
+.. class:: ManyToManyField(othermodel, [**options])
+
+一个多对多的关系。需要一个位置参数：与这个 model 有关的 class 。这个类和
+:class:`ForeignKey` 运作方式差不多，包括所有与 :ref:`递归
+<recursive-relationships>` 和 :ref:`惰性 <lazy-relationships>` 关系的选项。
+
+Database Representation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+在后台， Django 会创建一个 intermediary join 表来表现多对多关系。缺省的，这个表名
+由两个要联合的表的表名联结而成。一些数据库对表名长度有限制，因此创建的表名长度会
+自动小于 64 位。表名中还会添加一个唯一的哈希值。也就是说你会看见一个像
+``author_books_9cdf4`` 的表名，这是正常的。也可通过
+:attr:`~ManyToManyField.db_table` 选项来人工定义一个联合表的表名。
+
+.. _manytomany-arguments:
+
+Arguments
+~~~~~~~~~
+
+:class:`ManyToMangField` 接收一些额外的参数，这些参数定义了关系运作的细节。
+
+.. attribute:: ManyToManyField.related_name
+
+    与 :attr:`ForeignKey.related_name` 相同。
+
+.. attribute:: ManyToManyField.limit_choices_to
+
+    与 :attr:`ForeignKey.limit_choices_to` 相同。
+
+    当使用 :attr:`~ManyToManyField.through` 参数创建自定义中间表时，
+    ``limit_choices_to`` 参数对 ``ManyToManyField`` 失效。
+
+.. attribute:: ManyToManyField.symmetrical
+
+    这个参数仅用于递归的 ManyToManyFields 。请看下面的例子::
+
+        class Person(models.Model):
+            friends = models.ManyToManyField("self")
+
+    当 Django 处理这个 model 时，认为这个 :class:`ManyToManyField` 有一个递归的
+    多对多关系，所以就不会为 ``Person`` class 增加一个 ``person_set`` 属性。
+    反而，这个 :class:`ManyToManyField` 会被假设为对称的，也就是说如果我是你的
+    朋友，那么你也必定是我的朋友。
+
+    如果在递归多对多关系中不希望这个关系是对称的，那么应当把这个参数设置为
+    ``False`` 。
+
+.. attribute:: ManyToManyField.through
+
+    这个参数用于创建多对多关系的自定义中间表。
+
+    自定义中间表通常用于关联 :ref:`多对多关系中的额外数据
+    <intermediary-manytomany>`.
+
+.. attribute:: ManyToManyField.db_table
+
+    多对多关系中间表的表名。缺省的是两个表的表名的联结。
+
+.. _ref-onetoone:
+
+``OneToOneField``
+-----------------
+
+.. class:: OneToOneField(othermodel, [parent_link=False, **options])
+
+一对一的关系。相当于有 :attr:`unique=True <Field.unique>` 属性的
+:class:`ForeignKey` ，区别是关系对方只会直接返回一个单一对象。
+
+这种关系最有用的地方是通过 primary key 来“扩展”一个 model 。
+:ref:`multi-table-inheritance` 就是一个很好的例子，它通过增加一个隐式
+的一对一的关系来关联父 model 和 子 model 。
+
+需要一个位置参数：与这个 model 有关的 class 。这个类和
+:class:`ForeignKey` 运作方式差不多，包括所有与 :ref:`递归
+<recursive-relationships>` 和 :ref:`惰性 <lazy-relationships>` 关系的选项。
+
+.. _onetoone-arguments:
+
+除了 :class:`ForeignKey` 的参数外 ``OneToOneField`` 多了一个参数:
+
+.. attribute:: OneToOneField.parent_link
+
+    当这个参数值为 ``True`` ，并且用于一个从其他 model 继承而来的 model 是时，
+    就表示这的 field 就当被用作父 model 的反向链接，而不是一个通常被子类隐式创建的
+    额外的 ``OneToOneField`` 。
