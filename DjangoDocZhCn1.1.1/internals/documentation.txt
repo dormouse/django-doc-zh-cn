@@ -37,7 +37,7 @@ __ http://sphinx.pocoo.org/markup/
 Django 特有标记
 ----------------------
 
-Besides the `Sphinx built-in markup`__, Django's docs defines some extra description units:
+除了 `Sphinx 内置标记`__, Django 文档还定义了一些额外的描述单元：
 
 __ http://sphinx.pocoo.org/markup/desc.html
 
@@ -45,39 +45,39 @@ __ http://sphinx.pocoo.org/markup/desc.html
 
             .. setting:: INSTALLED_APPS
 
-      To link to a setting, use ``:setting:`INSTALLED_APPS```.
+      要链接这个标记，请使用 ``:setting:`INSTALLED_APPS``` 。
 
     * Template tags::
 
             .. templatetag:: regroup
 
-      To link, use ``:ttag:`regroup```.
+      要链接这个标记，请使用 ``:ttag:`regroup``` 。
 
     * Template filters::
 
             .. templatefilter:: linebreaksbr
 
-      To link, use ``:tfilter:`linebreaksbr```.
+      要链接这个标记，请使用 ``:tfilter:`linebreaksbr``` 。
 
     * Field lookups (i.e. ``Foo.objects.filter(bar__exact=whatever)``)::
 
             .. fieldlookup:: exact
 
-      To link, use ``:lookup:`exact```.
+      要链接这个标记，请使用 ``:lookup:`exact``` 。
 
     * ``django-admin`` commands::
 
             .. django-admin:: syncdb
 
-      To link, use ``:djadmin:`syncdb```.
+      要链接这个标记，请使用 ``:djadmin:`syncdb``` 。
 
     * ``django-admin`` command-line options::
 
             .. django-admin-option:: --traceback
 
-      To link, use ``:djadminopt:`--traceback```.
+      要链接这个标记，请使用 ``:djadminopt:`--traceback``` 。
 
-An example
+一个例子
 ----------
 
 For a quick example of how it all fits together, check this out:
