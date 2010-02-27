@@ -80,9 +80,9 @@ __ http://sphinx.pocoo.org/markup/desc.html
 一个例子
 ----------
 
-For a quick example of how it all fits together, check this out:
+下面通过一个简洁的例子来说明标记的工作方式：
 
-    * First, the ``ref/settings.txt`` document starts out like this::
+    * 首先， ``ref/settings.txt`` 文档开头是这样的::
 
         .. _ref-settings:
 
@@ -91,8 +91,8 @@ For a quick example of how it all fits together, check this out:
 
         ...
 
-    * Next, if you look at the ``topics/settings.txt`` document, you can see how
-      a link to ``ref/settings`` works::
+    * 然后，如果查看 ``topics/settings.txt`` 文档，可以看到指向
+      ``ref/settings`` 的链接是如何写的::
 
         Available settings
         ==================
@@ -100,7 +100,7 @@ For a quick example of how it all fits together, check this out:
         For a full list of available settings, see the :ref:`settings reference
         <ref-settings>`.
 
-    * Next, notice how the settings (right now just the top few) are annotated::
+    * 接下来，注意如果声明 settings （现在只少量高级别的）::
 
         .. setting:: ADMIN_FOR
 
@@ -116,81 +116,71 @@ For a quick example of how it all fits together, check this out:
         The admin site uses this in its automatically-introspected
         documentation of models, views and template tags.
 
-      This marks up the following header as the "canonical" target for the
-      setting ``ADMIN_FOR`` This means any time I talk about ``ADMIN_FOR``, I
-      can reference it using ``:setting:`ADMIN_FOR```.
+      上述内容把第一行以后的内容作为 ``ADMIN_FOR`` setting 的目标。如果要引用
+       ``ADMIN_FOR`` ，可以使用 ``:setting:`ADMIN_FOR``` 。
 
-That's basically how everything fits together.
+以上就是标记的基本用法。
 
 TODO
 ----
 
-The work is mostly done, but here's what's left, in rough order of priority.
+大多数工作已经完。但还有一些剩下的工作，按重要性大约排列如下：
 
-    * Change the "Added/changed in development version" callouts to proper
-      Sphinx ``.. versionadded::`` or ``.. versionchanged::`` directives.
+    * 更改 "Added/changed in development version" 翻译方式为适当的
+      Sphinx ``.. versionadded::`` or ``.. versionchanged::`` 调用。
 
-    * Check for and fix malformed links. Do this by running ``make linkcheck``
-      and fix all of the 300+ errors/warnings.
+    * 检查并修正有缺陷的链接。运行 ``make linkcheck`` 并修正所有 300 个以上的
+      错误或警告。
 
-      In particular, look at all the relative links; these need to be
-      changed to proper references.
+      尤其要检查所有引用链接，这些链接应当修正到正确的引用内容。
 
-    * Most of the various ``index.txt`` documents have *very* short or even
-      non-existent intro text. Each of those documents needs a good short intro
-      the content below that point.
+    * 所有不同的 ``index.txt`` 文档都 **非常** 短，甚至没有。每一部分的内容都应
+      当有一个优秀的简短的介绍。
 
-    * The glossary is very perfunctory. It needs to be filled out.
+    * 词汇表内容太少，需要充实。
 
-    * Add more metadata targets: there's lots of places that look like::
+    * 增加更多的元数据目标：比如象这样的::
 
             ``File.close()``
             ~~~~~~~~~~~~~~~~
 
-      \... these should be::
+      \... 应当改成这样::
 
             .. method:: File.close()
 
-      That is, use metadata instead of titles.
+      也就是说，用元数据代替标题。
 
-    * Add more links -- nearly everything that's an inline code literal
-      right now can probably be turned into a xref.
+    * 增加更多的链接。几乎所有内联语法现在可以正确地转换为一个外部链接。
 
-      See the ``literals_to_xrefs.py`` file in ``_ext`` -- it's a shell script
-      to help do this work.
+      请查看 ``_ext`` 目录下的 ``literals_to_xrefs.py`` 文件。这个文件就是用于
+      这项工作的。
 
-      This will probably be a continuing, never-ending project.
+      这可能是一项长期的，不会停止的工作。
 
-    * Add `info field lists`__ where appropriate.
+    * 在适当的地方增加 `info field lists`__ 。
 
       __ http://sphinx.pocoo.org/markup/desc.html#info-field-lists
 
-    * Add ``.. code-block:: <lang>`` to literal blocks so that they get
-      highlighted.
+    * 在语法块中增加 ``.. code-block:: <lang>`` 来实现语法高亮。
 
-Hints
+提示
 -----
 
-Some hints for making things look/read better:
+这里是一些使文档看起来更赏心悦目的提示：
 
-    * Whenever possible, use links. So, use ``:setting:`ADMIN_FOR``` instead of
-      ````ADMIN_FOR````.
+    * 尽可能使用链接。比如使用 ``:setting:`ADMIN_FOR``` 代替
+      ````ADMIN_FOR```` 。
 
-    * Some directives (``.. setting::``, for one) are prefix-style directives;
-      they go *before* the unit they're describing. These are known as
-      "crossref" directives. Others (``.. class::``, e.g.) generate their own
-      markup; these should go inside the section they're describing. These are
-      called "description units".
+    * 一些指令是（如 ``.. setting::`` ）是前置型指令，我们称为“交叉引用”指令。
+      这种指令必须放在指令定义之前。其他指令（如 ``.. class::`` ）会产生它们
+      自己的标记，所以应当放在描述它们的小节之内。这称为“描述单元”。
 
-      You can tell which are which by looking at in :file:`_ext/djangodocs.py`;
-      it registers roles as one of the other.
+      可以通过查看 :file:`_ext/djangodocs.py` 来确定指定的不同类型。这个文件中
+      定义了规则。
 
-    * When referring to classes/functions/modules, etc., you'll want to use the
-      fully-qualified name of the target
-      (``:class:`django.contrib.contenttypes.models.ContentType```).
+    * 当指向 classes 、 functions 或 modules 等等时，将会使用目标的全名（如
+      ``:class:`django.contrib.contenttypes.models.ContentType``` ）。
 
-      Since this doesn't look all that awesome in the output -- it shows the
-      entire path to the object -- you can prefix the target with a ``~``
-      (that's a tilde) to get just the "last bit" of that path. So
-      ``:class:`~django.contrib.contenttypes.models.ContentType``` will just
-      display a link with the title "ContentType".
+      可以象 ``:class:`~django.contrib.contenttypes.models.ContentType```
+      一样在前面加一个 ``~`` 符号，这样就只会显示最后一小段内容。象这个例子就只
+      会显示 "ContentType" 。
