@@ -1,83 +1,71 @@
 .. _intro-tutorial01:
 
 =====================================
-Writing your first Django app, part 1
+编写你的第一个 Django 程序，第一部分
 =====================================
 
-Let's learn by example.
+让我们通过例子来学习。
 
-Throughout this tutorial, we'll walk you through the creation of a basic
-poll application.
+在整个教程中，我们将循序渐进地创建一个基本的投票应用程序。
 
-It'll consist of two parts:
+这个应用程序这将包括两部分：
 
-    * A public site that lets people view polls and vote in them.
-    * An admin site that lets you add, change and delete polls.
+    * 一个公共网站，用于查看投票内容和投票。
+    * 一个管理员的网站，用于添加、修改和删除投票。
 
-We'll assume you have :ref:`Django installed <intro-install>` already. You can
-tell Django is installed by running the Python interactive interpreter and
-typing ``import django``. If that command runs successfully, with no errors,
-Django is installed.
+我们将假定您 :ref:`已经安装了Django <intro-install>` 。你可以通过在 Pyhton 解释
+器中输入 ``import django`` 来测试 Django 是否已经安装。如果该命令运行成功，没有
+错误，那就表明 Django 已经安装好了。
 
-.. admonition:: Where to get help:
+.. admonition:: 从哪里得到帮助:
 
-    If you're having trouble going through this tutorial, please post a message
-    to `django-users`__ or drop by `#django on irc.freenode.net`__ to chat
-    with other Django users who might be able to help.
+    如果您在学习本教程中遇到问题，请在  `django-users`__ 上发贴或在
+    `#django on irc.freenode.net`__ 与其他可能会帮助您的 Django 用户交流。
 
 __ http://groups.google.com/group/django-users
 __ irc://irc.freenode.net/django
 
-Creating a project
+创建一个项目
 ==================
 
-If this is your first time using Django, you'll have to take care of some
-initial setup. Namely, you'll need to auto-generate some code that establishes a
-Django :term:`project` -- a collection of settings for an instance of Django,
-including database configuration, Django-specific options and
-application-specific settings.
+如果这是你第一次使用 Django ，那么必须进行一些初始设置。可以通过自动创建代码来
+建立一个项目（ :term:`project` ）。一个 Django 项目是一个 Django 实例的设置的
+集合，包括数据库配置， Django 的定义选项和程序定义的设置。
 
-From the command line, ``cd`` into a directory where you'd like to store your
-code, then run the command ``django-admin.py startproject mysite``. This will
-create a ``mysite`` directory in your current directory.
+让我们通过命令行来进行。使用 ``cd`` 命令进入你要存放代码的目录，然后运行命令
+``django-admin.py startproject mysite`` 。这样就会在当前目录中创建一个名为
+``mysite`` 的目录。
 
-.. admonition:: Mac OS X permissions
+.. admonition:: Mac OS X 权限问题
 
-   If you're using Mac OS X, you may see the message "permission denied" when
-   you try to run ``django-admin.py startproject``. This is because, on
-   Unix-based systems like OS X, a file must be marked as "executable" before it
-   can be run as a program. To do this, open Terminal.app and navigate (using
-   the ``cd`` command) to the directory where :ref:`django-admin.py
-   <ref-django-admin>` is installed, then run the command
-   ``chmod +x django-admin.py``.
+
+    如果你使用的是 Mac OS X 操作系统，当你运行 ``django-admin.py startproject``
+    命令时你可能会看到“无权运行”字样。这是因为象 OS X 这样以 Unix 为基础的系统
+    中，一个文件只有在被赋予可执行权限后才能执行。要赋予执行权限的话，首先打开
+    终端程序，使用 ``cd`` 命令进入 :ref:`django-admin.py <ref-django-admin>`
+    所在的目录，然后执行 ``chmod +x django-admin.py`` 命令。
 
 .. note::
 
-    You'll need to avoid naming projects after built-in Python or Django
-    components. In particular, this means you should avoid using names like
-    ``django`` (which will conflict with Django itself) or ``test`` (which
-    conflicts with a built-in Python package).
+    项目名称不能使用 python 或 Django 的保留字，如 ``django`` （这是 Django
+    的保留字）或 ``test`` （与 Python 内建包重名）。
 
-:ref:`django-admin.py <ref-django-admin>` should be on your system path if you
-installed Django via ``python setup.py``. If it's not on your path, you can find
-it in ``site-packages/django/bin``, where ```site-packages``` is a directory
-within your Python installation. Consider symlinking to :ref:`django-admin.py
-<ref-django-admin>` from some place on your path, such as
-:file:`/usr/local/bin`.
+如果通过 ``python setup.py`` 命令安装 Django 的话，那么
+:ref:`django-admin.py <ref-django-admin>` 应当在你的系统路径中。如果不在，那么
+可以在 ``site-packages/django/bin`` 下找到。这里的 ``site-packages`` 是你的系统
+中 Python 安装路径下的一个子目录。建议在你的路径中(如 :file:`/usr/local/bin` )
+作一个 :ref:`django-admin.py <ref-django-admin>` 的链结。
 
-.. admonition:: Where should this code live?
+.. admonition:: 代码应该放在哪里？
 
-    If your background is in PHP, you're probably used to putting code under the
-    Web server's document root (in a place such as ``/var/www``). With Django,
-    you don't do that. It's not a good idea to put any of this Python code
-    within your Web server's document root, because it risks the possibility
-    that people may be able to view your code over the Web. That's not good for
-    security.
+    如果你会PHP语言的话，你可能习惯于把代码放在 Web 服务器的文档根目录
+    (如 ``/var/www`` )。而对于 Django ，你不应当这样把任何 Python 代码放 Web 服
+    务器的文档根目录，因为这样做增加了人们窥视代码的风险，对系统安全不利。
+    
+    你应当把代码放在Web服务器的文档根目录 **之外** 的目录，如
+    :file:`/home/mycode` 。
 
-    Put your code in some directory **outside** of the document root, such as
-    :file:`/home/mycode`.
-
-Let's look at what :djadmin:`startproject` created::
+让我们来看看 :djadmin:`startproject` 创建了什么::
 
     mysite/
         __init__.py
@@ -85,31 +73,28 @@ Let's look at what :djadmin:`startproject` created::
         settings.py
         urls.py
 
-These files are:
+文件说明：
 
-    * :file:`__init__.py`: An empty file that tells Python that this directory
-      should be considered a Python package. (Read `more about packages`_ in the
-      official Python docs if you're a Python beginner.)
+    * :file:`__init__.py`: 一个空文件，用来告诉 Python 这个目录应该被当作一个
+      Python包来看待。（如果你是一个 Python 新手请阅读 Python 官方文档中的
+      `more about packages`_ 。）
 
-    * :file:`manage.py`: A command-line utility that lets you interact with this
-      Django project in various ways. You can read all the details about
-      :file:`manage.py` in :ref:`ref-django-admin`.
+    * :file:`manage.py`: 一个用于和 Django 项目交互的命令行工具。关于
+      :file:`manage.py` 的详细说明参见 :ref:`ref-django-admin` 。
 
-    * :file:`settings.py`: Settings/configuration for this Django project.
-      :ref:`topics-settings` will tell you all about how settings work.
+    * settings.py: 这个 Django 项目的设置或配置文件。
+      :ref:`topics-settings` 一章可以告诉你所有设置如何工作。
 
-    * :file:`urls.py`: The URL declarations for this Django project; a "table of
-      contents" of your Django-powered site. You can read more about URLs in
-      :ref:`topics-http-urls`.
+    * urls.py: 这个 Django 项目的 URL 声明，好比一个 Django 项目网站的目录。
+      更多关于 URL 的内容请看 :ref:`topics-http-urls` 。
 
 .. _more about packages: http://docs.python.org/tut/node8.html#packages
 
-The development server
+开发服务器
 ----------------------
 
-Let's verify this worked. Change into the :file:`mysite` directory, if you
-haven't already, and run the command ``python manage.py runserver``. You'll see
-the following output on the command line::
+让我们来试试能不能运行了。进入 :file:`mysite` 目录，
+运行 ``python manage.py runserver`` 命令，你会看到如下输出::
 
     Validating models...
     0 errors found.
@@ -118,189 +103,159 @@ the following output on the command line::
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
-You've started the Django development server, a lightweight Web server written
-purely in Python. We've included this with Django so you can develop things
-rapidly, without having to deal with configuring a production server -- such as
-Apache -- until you're ready for production.
+这表明你启动了 Django 开发服务器。开发服务器是一个纯 Python 编写的轻型 Web
+服务器。在正式发布前可以在开发服务器上便捷地进行程序开发工作，免去了配置生产器
+（如 Apache ）的麻烦。
 
-Now's a good time to note: DON'T use this server in anything resembling a
-production environment. It's intended only for use while developing. (We're in
-the business of making Web frameworks, not Web servers.)
+这里特别要提醒一点：不要在任何生产环境使用开发服务器。开发服务器只是为开
+发而准备的。（我们这里专注于 Web 框架，而不是 Web 服务器。）
 
-Now that the server's running, visit http://127.0.0.1:8000/ with your Web
-browser. You'll see a "Welcome to Django" page, in pleasant, light-blue pastel.
-It worked!
+现在开发服务器正在运行，在浏览器中访问 http://127.0.0.1:8000/ 。你会看到一个赏
+心悦目的淡蓝色的有 “ Welcome to Django” 字样的欢迎页面。这说明第一步成功了！
 
-.. admonition:: Changing the port
+.. admonition:: 改变端口
 
-    By default, the :djadmin:`runserver` command starts the development server
-    on the internal IP at port 8000.
-
-    If you want to change the server's port, pass
-    it as a command-line argument. For instance, this command starts the server
-    on port 8080:
-
+    缺省情况下， :djadmin:`runserver` 命令使用内部IP和端口8000启动开发服务器。
+    
+    你可以通过命令行参数来改变端口。例如下面的命令在端口8080启动服务器:
+    
     .. code-block:: bash
-
+        
         python manage.py runserver 8080
-
-    If you want to change the server's IP, pass it along with the port. So to
-    listen on all public IPs (useful if you want to show off your work on other
-    computers), use:
+        
+    如果你要改变服务器的IP，可以把IP和端口一起作为参数传递。如果要开放给所有IP
+    （当你要在别人电脑展示的工作时），你可以使用：
 
     .. code-block:: bash
 
         python manage.py runserver 0.0.0.0:8000
+        
+    开发服务器的全部文档请请访问  :djadmin:`runserver` 。
 
-    Full docs for the development server can be found in the
-    :djadmin:`runserver` reference.
+数据库设置
+------------------
 
-Database setup
---------------
+现在编辑 :file:`settings.py` 。这是一个 Python 模块文件，含有一些设置 Django
+的模块变量。你可以改变如下的设置来匹配你的数据库连接参数：
 
-Now, edit :file:`settings.py`. It's a normal Python module with module-level
-variables representing Django settings. Change these settings to match your
-database's connection parameters:
+    * :setting:`DATABASE_ENGINE` -- 可以是 'postgresql_psycopg2' 、 'mysql' 或
+      'sqlite3' 。其他类型请访问 :setting:`also available <DATABASE_ENGINE>` 。
 
-    * :setting:`DATABASE_ENGINE` -- Either 'postgresql_psycopg2', 'mysql' or
-      'sqlite3'. Other backends are :setting:`also available <DATABASE_ENGINE>`.
+    * :setting:`DATABASE_NAME` -- 数据库名称。如果你使用 SQLite ，那么数据库就
+      是电脑中的一个文件， DATABASE_NAME 就应当是包含文件名的绝对路径。如果文件
+      不存在，在第 一次同步数据库的时候会创建这个文件（下面有详细介绍）。
+      
+      在填写路径的时候，永远都要使用斜杠符号（“/”），就算是在Windows上也是如此
+      （比如 ``C:/homes/user/mysite/sqlite3.db`` ）。
 
-    * :setting:`DATABASE_NAME` -- The name of your database. If you're using
-      SQLite, the database will be a file on your computer; in that case,
-      ``DATABASE_NAME`` should be the full absolute path, including filename, of
-      that file. If the file doesn't exist, it will automatically be created
-      when you synchronize the database for the first time (see below).
+    * :setting:`DATABASE_USER` -- 访问数据库的用户名（ SQLite 下不使用）。
 
-      When specifying the path, always use forward slashes, even on Windows
-      (e.g. ``C:/homes/user/mysite/sqlite3.db``).
+    * :setting:`DATABASE_PASSWORD` -- 访问数据库的密码（ SQLite 下不使用）。
 
-    * :setting:`DATABASE_USER` -- Your database username (not used for SQLite).
+    * :setting:`DATABASE_HOST` -- 数据库所在主机。如果你的数据库在同一台物理机
+      器上这里留空（ SQLite 下不使用）。
 
-    * :setting:`DATABASE_PASSWORD` -- Your database password (not used for
-      SQLite).
-
-    * :setting:`DATABASE_HOST` -- The host your database is on. Leave this as an
-      empty string if your database server is on the same physical machine (not
-      used for SQLite).
-
-If you're new to databases, we recommend simply using SQLite (by setting
-:setting:`DATABASE_ENGINE` to ``'sqlite3'``). SQLite is included as part of
-Python 2.5 and later, so you won't need to install anything else.
+如果你是个数据库新手，我们建议你使用SQLite（设置 :setting:`DATABASE_ENGINE` 为
+``'sqlite3'`` ）。 SQLite 包含在 Python2.5 及其后续版本中，所以你不用再安装其他
+的任何东西。
 
 .. note::
 
-    If you're using PostgreSQL or MySQL, make sure you've created a database by
-    this point. Do that with "``CREATE DATABASE database_name;``" within your
-    database's interactive prompt.
+    如果你使用 PostgreSQL 或 MySQL ，请确认你已经创建了一个数据库。在你的数据库
+    命令行下使用命令 "``CREATE DATABASE database_name;``" 即可。
 
-    If you're using SQLite, you don't need to create anything beforehand - the
-    database file will be created automatically when it is needed.
+    如果你使用SQLite，就什么都不用创建了,因为—数据库文件在需要的时候会自动创建。
 
-While you're editing :file:`settings.py`, take note of the
-:setting:`INSTALLED_APPS` setting towards the bottom of the file. That variable
-holds the names of all Django applications that are activated in this Django
-instance. Apps can be used in multiple projects, and you can package and
-distribute them for use by others in their projects.
+在编辑 :file:`settings.py` 时，注意一下文件底部的 :setting:`INSTALLED_APPS`
+设置。这个变量保存了在当前 Django 项目中可用的 Django 程序的名称。 Django 程序
+可以在多个项目中复用，而且你可以把这些程序打包部署以供其他的程序调用。
 
-By default, :setting:`INSTALLED_APPS` contains the following apps, all of which
-come with Django:
+默认情况下， :setting:`INSTALLED_APPS` 包含了以下的程序 ，都是 Django 自带的：
 
-    * :mod:`django.contrib.auth` -- An authentication system.
+    * :mod:`django.contrib.auth` -- 认证系统
 
-    * :mod:`django.contrib.contenttypes` -- A framework for content types.
+    * :mod:`django.contrib.contenttypes` -- 内容类型框架
 
-    * :mod:`django.contrib.sessions` -- A session framework.
+    * :mod:`django.contrib.sessions` -- session 框架
+    
+    * :mod:`django.contrib.sites` -- 使用一个Django项目来管理多个站点的框架
+      作为常用程序，它们都默认包含在配置文件中。
 
-    * :mod:`django.contrib.sites` -- A framework for managing multiple sites
-      with one Django installation.
-
-These applications are included by default as a convenience for the common case.
-
-Each of these applications makes use of at least one database table, though,
-so we need to create the tables in the database before we can use them. To do
-that, run the following command:
+因为以上每个程序都至少用到了一个数据表，所以在使用这些程序之前我们要在数据库中
+创建对应的数据表。执行下面的命令：
 
 .. code-block:: bash
 
     python manage.py syncdb
 
-The :djadmin:`syncdb` command looks at the :setting:`INSTALLED_APPS` setting and
-creates any necessary database tables according to the database settings in your
-:file:`settings.py` file. You'll see a message for each database table it
-creates, and you'll get a prompt asking you if you'd like to create a superuser
-account for the authentication system. Go ahead and do that.
+:djadmin:`syncdb` 命令会查找 :file:`settings.py` 文件中的
+:setting:`INSTALLED_APPS` 设置并根据该文件中的数据库设置创建所有必须的数据表。
+每创建一个数据表的时候你都能看到对应的提示信息，并且系统还会提示你是否为认证系
+统创建一个超级用户。请按照提示创建超级用户。
 
-If you're interested, run the command-line client for your database and type
-``\dt`` (PostgreSQL), ``SHOW TABLES;`` (MySQL), or ``.schema`` (SQLite) to
-display the tables Django created.
+如果你感兴趣，可以进入到数据库命令行内，输入
+``\dt`` （ PostgreSQL ） 、 ``SHOW TABLES;`` （ MySQL ） 
+或者 ``.schema`` （ SQLite ）来显示 Django 创建的数据表。
 
-.. admonition:: For the minimalists
+.. admonition:: 为最低要求者所准备
 
-    Like we said above, the default applications are included for the common
-    case, but not everybody needs them. If you don't need any or all of them,
-    feel free to comment-out or delete the appropriate line(s) from
-    :setting:`INSTALLED_APPS` before running :djadmin:`syncdb`. The
-    :djadmin:`syncdb` command will only create tables for apps in
-    :setting:`INSTALLED_APPS`.
+    上面说道，默认的程序是为了方便共用包含进来的，但是不是所有人都需要它们。
+    如果你一个都不需要，就在执行 :djadmin:`syncdb` 前将
+    :setting:`INSTALLED_APPS` 内的这些程序注释掉或者直接删除。
+    :djadmin:`syncdb` 只会为 :setting:`INSTALLED_APPS` 内的程序创建数据表。
 
 .. _creating-models:
 
-Creating models
-===============
+创建模型
+==============
 
-Now that your environment -- a "project" -- is set up, you're set to start
-doing work.
+现在你的环境 -- 一个“项目” -- 就建立好了，可以开始正式的工作了。
 
-Each application you write in Django consists of a Python package, somewhere
-on your `Python path`_, that follows a certain convention. Django comes with a
-utility that automatically generates the basic directory structure of an app,
-so you can focus on writing code rather than creating directories.
+每个用 Django 写成的程序都是由 Python 包组成的，这些包位于 `Python Path`_ 中
+并遵循一定的命名规范。 Django 有个工具能够自动生成程序的基本目录结构，所以你可以
+专注于写代码而不是去创建目录。
 
-.. admonition:: Projects vs. apps
+.. admonition:: 项目 vs. 程序
 
-    What's the difference between a project and an app? An app is a Web
-    application that does something -- e.g., a weblog system, a database of
-    public records or a simple poll app. A project is a collection of
-    configuration and apps for a particular Web site. A project can contain
-    multiple apps. An app can be in multiple projects.
+    项目和程序之间有什么不同？一个程序是指一个实现一定功能的 Web 应用程序，
+    如一个博客系统、一个公共记录的数据库或非常简单的投票程序。一个项目是一个
+    特定 Web 网站的配置和应用程序的集合。一个项目可以包含多个程序，而一个程序
+    可以在多个项目中使用。
 
-In this tutorial, we'll create our poll app in the :file:`mysite` directory,
-for simplicity. As a consequence, the app will be coupled to the project --
-that is, Python code within the poll app will refer to ``mysite.polls``.
-Later in this tutorial, we'll discuss decoupling your apps for distribution.
+在这个教程中，为了简便，我们会在 :file:`mysite` 目录下创建投票程序。这样，这个
+程序就会耦合到这个项目中。也就是说，投票程序内的所有 Python 代码可以通过
+``mysite.polls`` 来进行引用。在后面的部分中，我们会讨论怎样在部署的时解耦程序。
 
-To create your app, make sure you're in the :file:`mysite` directory and type
-this command:
+要创建程序，请确定现在位于 :file:`mysite` 目录下并输入以下命令：
 
 .. code-block:: bash
 
     python manage.py startapp polls
 
-That'll create a directory :file:`polls`, which is laid out like this::
+这样做会创建一个 :file:`polls` 目录，结构如下所示::
 
     polls/
         __init__.py
         models.py
         views.py
 
-This directory structure will house the poll application.
+这就是我们的投票程序的目录结构。
 
-The first step in writing a database Web app in Django is to define your models
--- essentially, your database layout, with additional metadata.
+要在 Django 中开发一个有数据库的 Web 程序，第一步就是定义模型，即用元数据定义
+数据库。
 
-.. admonition:: Philosophy
+.. admonition:: 哲学
 
-   A model is the single, definitive source of data about your data. It contains
-   the essential fields and behaviors of the data you're storing. Django follows
-   the :ref:`DRY Principle <dry>`. The goal is to define your data model in one
-   place and automatically derive things from it.
+    模型是数据唯一的源头，它包含要保存的数据的最重要的东西：字段和行为。
+    Django 遵循 :ref:`DRY 原则 <dry>` 。其目标是只在一处地方定义数据模型，而
+    其他地方的相应东西会自动随之改变。
 
-In our simple poll app, we'll create two models: polls and choices. A poll has
-a question and a publication date. A choice has two fields: the text of the
-choice and a vote tally. Each choice is associated with a poll.
+在我们简单的投票程序中，要创建两个模型：polls（投票）和choices（选择项）。每个
+投票由一个问题和一个发布日期组成。每个选项包含两个字段：选择项的文本内容和得票
+数。每个选择项都和一个投票相关联。
 
-These concepts are represented by simple Python classes. Edit the
-:file:`polls/models.py` file so it looks like this::
+上述内容由一个简单的 Python 类来表现。编辑 :file:`polls/models.py` 文件，使它
+成为如下内容::
 
     from django.db import models
 
@@ -313,75 +268,62 @@ These concepts are represented by simple Python classes. Edit the
         choice = models.CharField(max_length=200)
         votes = models.IntegerField()
 
-.. admonition:: Errors about :attr:`~django.db.models.Field.max_length`
+.. admonition:: 关于 :attr:`~django.db.models.Field.max_length` 错误
 
-   If Django gives you an error message saying that
-   :attr:`~django.db.models.Field.max_length` is not a valid argument, you're
-   most likely using an old version of Django. (This version of the tutorial is
-   written for the latest development version of Django.) If you're using a
-   Subversion checkout of Django's development version (see :ref:`the
-   installation docs <topics-install>` for more information), you shouldn't have
-   any problems.
+    如果 Django 给出一个 :attr:`~django.db.models.Field.max_length` 不是一个合
+    法参数的出错信息，那么你很可能是使用了一个旧版本的 Django （这个教程是针对
+    最新的开发版本 Django 所写的）。如果使用 Subversion 工具获得 Django 开发版
+    本（安装方法详见 :ref:`安装文档 <topics-install>` ），就不会出现这个问题。
 
-   If you want to stick with an older version of Django, you'll want to switch
-   to `the Django 0.96 tutorial`_, because this tutorial covers several features
-   that only exist in the Django development version.
+    如果你坚持使用旧版本的 Django ，那么应当学习 `Django 0.96 教程`__ ，因为这个
+    教程会用到一些开发版本中才有的功能。
 
-.. _the Django 0.96 tutorial: http://www.djangoproject.com/documentation/0.96/tutorial01/
+__ http://www.djangoproject.com/documentation/0.96/tutorial01/
 
-The code is straightforward. Each model is represented by a class that
-subclasses :class:`django.db.models.Model`. Each model has a number of class
-variables, each of which represents a database field in the model.
+上面的代码简单明了。每个模型都是继承自 :class:`django.db.models.Model` 的子类。
+每个模型都有一些的类变量，每个类变量都对应一个数据库字段。
 
-Each field is represented by an instance of a :class:`~django.db.models.Field`
-class -- e.g., :class:`~django.db.models.CharField` for character fields and
-:class:`~django.db.models.DateTimeField` for datetimes. This tells Django what
-type of data each field holds.
+每个字段表现为一个 :class:`~django.db.models.Field` 的实例，例如：字符串型字段
+表现为 :class:`~django.db.models.CharField` ，日期时间型字符表现为
+:class:`~django.db.models.DateTimeField` 。这样定义后， Django 就会知道每个字段
+会保存何种类型的数据。
 
-The name of each :class:`~django.db.models.Field` instance (e.g. ``question`` or
-``pub_date`` ) is the field's name, in machine-friendly format. You'll use this
-value in your Python code, and your database will use it as the column name.
+字段实例的名字（例如question或pub_date）就是这个字段名的值，这个名字是机器式的。
+你会在 Python 代码中用到这个值，而在数据库中会把这个值作为表的列名。
 
-You can use an optional first positional argument to a
-:class:`~django.db.models.Field` to designate a human-readable name. That's used
-in a couple of introspective parts of Django, and it doubles as documentation.
-If this field isn't provided, Django will use the machine-readable name. In this
-example, we've only defined a human-readable name for ``Poll.pub_date``. For all
-other fields in this model, the field's machine-readable name will suffice as
-its human-readable name.
+可以使用字段实例的第一个参数来指定一个可读性名称。这个名称会用于 Django
+的自省，并且用于代码的文档化。如果不设置这个这个参数， Django 就会使用机器式
+名称。在本例中，我们只为 ``Poll.pub_date`` 定义了一个可读性名称。而模型中的
+其他字段，机器式名称足以让人们理解它表示什么含义了。
 
-Some :class:`~django.db.models.Field` classes have required elements.
-:class:`~django.db.models.CharField`, for example, requires that you give it a
-:attr:`~django.db.models.Field.max_length`. That's used not only in the database
-schema, but in validation, as we'll soon see.
+有些字段类有必选参数。比如 :class:`~django.db.models.CharField` ，就必须指定
+:attr:`~django.db.models.Field.max_length` 参数。这种参数不仅用于创建数据库，
+同时也用于数据验证，稍后你就会看到。
 
-Finally, note a relationship is defined, using
-:class:`~django.db.models.ForeignKey`. That tells Django each Choice is related
-to a single Poll. Django supports all the common database relationships:
-many-to-ones, many-to-manys and one-to-ones.
+最后，注意我们使用 :class:`~django.db.models.ForeignKey` 定义了一个关系。这会
+告诉 Django 每个选择项只关联一个投票。 Django 支持所有数据库的关系：多对一、
+多对多和一对一。
 
 .. _`Python path`: http://docs.python.org/tut/node8.html#SECTION008110000000000000000
 
-Activating models
-=================
+启用模型
+=========
 
-That small bit of model code gives Django a lot of information. With it, Django
-is able to:
+刚才的一小段模型代码给了 Django 许多信息。有了这些代码，Django能够：
 
-    * Create a database schema (``CREATE TABLE`` statements) for this app.
-    * Create a Python database-access API for accessing Poll and Choice objects.
+    * 为程序创建数据库构造语句（ ``CREATE TABLE`` 语句）。
+    * 给 Poll 和 Choice 对象创建数据库访问 API 。
 
-But first we need to tell our project that the ``polls`` app is installed.
+但是，首先需要告诉我们的项目， ``polls`` 程序已经安装了。
 
-.. admonition:: Philosophy
+.. admonition:: 哲学
 
-    Django apps are "pluggable": You can use an app in multiple projects, and
-    you can distribute apps, because they don't have to be tied to a given
-    Django installation.
+    Django 程序是“插件式”的，即一个程序可以在多个项目中使用，并且还可以将程序
+    打包分发，因为这些程序并不是被绑定到一个特定 Django 的安装环境中的。
 
-Edit the :file:`settings.py` file again, and change the
-:setting:`INSTALLED_APPS` setting to include the string ``'mysite.polls'``. So
-it'll look like this::
+再次编辑 :file:`settings.py` 文件，在 :setting:`INSTALLED_APPS` 中加入
+``'mysite.polls'`` 。就像下面所显示的一样::
+
 
     INSTALLED_APPS = (
         'django.contrib.auth',
@@ -391,15 +333,14 @@ it'll look like this::
         'mysite.polls'
     )
 
-Now Django knows ``mysite`` includes the ``polls`` app. Let's run another
-command:
+这样 Django 就知道 ``mysite`` 项目中包含了 ``polls`` 程序了。让我们执行另一条
+命令：
 
 .. code-block:: bash
 
     python manage.py sql polls
 
-You should see something similar to the following (the ``CREATE TABLE`` SQL
-statements for the polls app):
+你应该能够看到类似于下面的输出（ polls 程序的创建数据库表创建语句）：
 
 .. code-block:: sql
 
@@ -417,151 +358,136 @@ statements for the polls app):
     );
     COMMIT;
 
-Note the following:
+注意以下几点：
 
-    * The exact output will vary depending on the database you are using.
+    * 实际输出的内容会根据你所使用的数据库有所不同。
 
-    * Table names are automatically generated by combining the name of the app
-      (``polls``) and the lowercase name of the model -- ``poll`` and
-      ``choice``. (You can override this behavior.)
+    * 数据表的名字由程序的名字（ ``polls`` ）和模型的小写名字（ ``poll`` 和
+      ``choice`` ）组成。（你可以重载这个行为。）
 
-    * Primary keys (IDs) are added automatically. (You can override this, too.)
+    * 主键（ ID ）是自动添加的（这个也可以重载）。
 
-    * By convention, Django appends ``"_id"`` to the foreign key field name.
-      Yes, you can override this, as well.
+    * 根据命名规范， Django 会给外键字段加上 ``"_id"`` 。当然，你也可以重载这个
+      行为。
 
-    * The foreign key relationship is made explicit by a ``REFERENCES``
-      statement.
+    * 外键关系由 ``REFERENCES`` 语句显式声明。
 
-    * It's tailored to the database you're using, so database-specific field
-      types such as ``auto_increment`` (MySQL), ``serial`` (PostgreSQL), or
-      ``integer primary key`` (SQLite) are handled for you automatically. Same
-      goes for quoting of field names -- e.g., using double quotes or single
-      quotes. The author of this tutorial runs PostgreSQL, so the example
-      output is in PostgreSQL syntax.
+    * 生成的语句会根据所使用的数据库不同而自动改变，所以对于数据库不同类型的
+      字段，如 ``auto_increment`` （ MySQL ）、 ``serial`` （ PostgreSQL ）或
+      ``integer primary key`` （ SQLite ）都会自动进行处理。在引用字段名称的
+      时候也是自适应的——会使用双引号或单引号。本文的作者使用的是 PostgreSQL
+      数据库，所以例子中输出的 是PostgreSQL 语法。
 
-    * The :djadmin:`sql` command doesn't actually run the SQL in your database -
-      it just prints it to the screen so that you can see what SQL Django thinks
-      is required. If you wanted to, you could copy and paste this SQL into your
-      database prompt. However, as we will see shortly, Django provides an
-      easier way of committing the SQL to the database.
+    * :djadmin:`sql` 命令并不会在数据库内执行 SQL 语句，而只是在屏幕上打印
+      出来，以便让你了解 Django 认为应该执行什么样的 SQL 语句。如果你要执行，
+      只需要复制一下，在数据库命令行下执行就可以了。但是，我们等会就能看到，
+      Django 有更简单的方法来执行 SQL 。
 
-If you're interested, also run the following commands:
+如果你有兴趣，也可以执行以下命令：
 
-    * :djadmin:`python manage.py validate <validate>` -- Checks for any errors
-      in the construction of your models.
+    * :djadmin:`python manage.py validate <validate>` -- 检测在生成模型的时候
+      是否有错误。
 
-    * :djadmin:`python manage.py sqlcustom polls <sqlcustom>` -- Outputs any
-      :ref:`custom SQL statements <initial-sql>` (such as table modifications or
-      constraints) that are defined for the application.
+    * :djadmin:`python manage.py sqlcustom polls <sqlcustom>` -- 输出程序中定义
+      的 :ref:`custom SQL statements <initial-sql>` 语句（比如表修改或表约束）。
 
-    * :djadmin:`python manage.py sqlclear polls <sqlclear>` -- Outputs the
-      necessary ``DROP TABLE`` statements for this app, according to which
-      tables already exist in your database (if any).
+    * :djadmin:`python manage.py sqlclear polls <sqlclear>` -- 根据有哪些表存在
+      于数据库中，输出必要的 ``DROP TABLE`` 语句。
 
-    * :djadmin:`python manage.py sqlindexes polls <sqlindexes>` -- Outputs the
-      ``CREATE INDEX`` statements for this app.
+    * :djadmin:`python manage.py sqlindexes polls <sqlindexes>` -- 输出
+      ``CREATE INDEX`` 语句。
 
-    * :djadmin:`python manage.py sqlall polls <sqlall>` -- A combination of all
-      the SQL from the :djadmin:`sql`, :djadmin:`sqlcustom`, and
-      :djadmin:`sqlindexes` commands.
+    * :djadmin:`python manage.py sqlall polls <sqlall>` -- 组合输出所有
+      :djadmin:`sql` 、 :djadmin:`sqlcustom` 、和 :djadmin:`sqlindexes` 命令
+      的结果。
 
-Looking at the output of those commands can help you understand what's actually
-happening under the hood.
+这些命令的输出结果能够帮助你理解在程序底层到底做了些什么工作。
 
-Now, run :djadmin:`syncdb` again to create those model tables in your database:
+现在，再次执行 :djadmin:`syncdb` 命令来创建模型对应的数据表：
 
 .. code-block:: bash
 
     python manage.py syncdb
 
-The :djadmin:`syncdb` command runs the sql from 'sqlall' on your database for
-all apps in :setting:`INSTALLED_APPS` that don't already exist in your database.
-This creates all the tables, initial data and indexes for any apps you have
-added to your project since the last time you ran syncdb. :djadmin:`syncdb` can
-be called as often as you like, and it will only ever create the tables that
-don't exist.
+:djadmin:`syncdb` 命令会针对 :setting:`INSTALLED_APPS` 中所有的在数据库里没有
+对应数据表的程序执行“ sqlall ”操作。这个操作根据你上一次执行 syncdb 的结果，为
+项目中所有的程序创建对应的表、初始化数据并创建索引。 :djadmin:`syncdb` 你想调用
+多少次就能调用多少次，而它只会创建数据库里还不存在的表。
 
-Read the :ref:`django-admin.py documentation <ref-django-admin>` for full
-information on what the ``manage.py`` utility can do.
+想了解 ``manage.py`` 工具更多的功能，请阅读
+:ref:`django-admin.py documentation <ref-django-admin>` 文档。
 
-Playing with the API
+玩味 API
 ====================
 
-Now, let's hop into the interactive Python shell and play around with the free
-API Django gives you. To invoke the Python shell, use this command:
+现在，进入到 Python 的命令行环境中，开始玩味一下 Django 免费提供的 API 吧。要进
+入命令行，输入下面的命令：
 
 .. code-block:: bash
 
     python manage.py shell
 
-We're using this instead of simply typing "python", because ``manage.py`` sets
-up the project's environment for you. "Setting up the environment" involves two
-things:
+我们没有直接使用“ python ”命令进入命令行，因为 ``manage.py`` 会为你配置项目
+环境。“配置环境”包括以下两点：
 
-    * Putting ``mysite`` on ``sys.path``. For flexibility, several pieces of
-      Django refer to projects in Python dotted-path notation (e.g.
-      ``'mysite.polls.models'``). In order for this to work, the ``mysite``
-      package has to be on ``sys.path``.
 
-      We've already seen one example of this: the :setting:`INSTALLED_APPS`
-      setting is a list of packages in dotted-path notation.
+    * 在 ``sys.path`` 中加入 ``mysite`` 。便捷起见，项目中所引用的模块都是以
+      Python 的“点路径”的方式来表示（比如 ``'mysite.polls.models'`` ）。
+      为了这个目的， ``mysite`` 包就必须在包含在 ``sys.path`` 内。
 
-    * Setting the ``DJANGO_SETTINGS_MODULE`` environment variable, which gives
-      Django the path to your ``settings.py`` file.
+      我们已经看到了一个例子： :setting:`INSTALLED_APPS` 就是一组用“点路径”方式
+      表示的包的集合。
 
-.. admonition:: Bypassing manage.py
+    * 设置 ``DJANGO_SETTINGS_MODULE`` 环境变量，这个变量会将 ``settings.py`` 的
+      路径告诉 Django 。
 
-    If you'd rather not use ``manage.py``, no problem. Just make sure ``mysite``
-    is at the root level on the Python path (i.e., ``import mysite`` works) and
-    set the ``DJANGO_SETTINGS_MODULE`` environment variable to
-    ``mysite.settings``.
+.. admonition:: 忽略 manage.py
 
-    For more information on all of this, see the :ref:`django-admin.py
-    documentation <ref-django-admin>`.
+    如果你不想用 ``manage.py`` ，没问题。只要确定 ``mysite`` 在 Python 根级别
+    路径下并且在 ``mysite.settings`` 中设置 ``DJANGO_SETTINGS_MODULE`` 环境
+    变量就行了。
+    
+    要了解更多的内容，请参考
+    :ref:`django-admin.py documentation <ref-django-admin>`
 
-Once you're in the shell, explore the :ref:`database API <topics-db-queries>`::
+在命令行状态下，我们来使用 :ref:`数据库 API <topics-db-queries>`::
 
-    >>> from mysite.polls.models import Poll, Choice # Import the model classes we just wrote.
+    >>> from mysite.polls.models import Poll, Choice # 导入我们刚才写的两个模型类。
 
-    # No polls are in the system yet.
+    # 系统中还没有投票。
     >>> Poll.objects.all()
     []
 
-    # Create a new Poll.
+    # 创建一个新的投票。
     >>> import datetime
     >>> p = Poll(question="What's up?", pub_date=datetime.datetime.now())
 
-    # Save the object into the database. You have to call save() explicitly.
+    # 把对象保存到数据库中。你必须显式地调用save()。
     >>> p.save()
 
-    # Now it has an ID. Note that this might say "1L" instead of "1", depending
-    # on which database you're using. That's no biggie; it just means your
-    # database backend prefers to return integers as Python long integer
-    # objects.
+    # 现在对象有了一个ID。注意根据你使用的数据库类型，ID可能是"1L"而不是"1"。
+    # 这没什么大不了的，这只不过表示你的数据库返回了一个长整数对象。
     >>> p.id
     1
 
-    # Access database columns via Python attributes.
+    # 通过Python属性来显示数据库中的列。
     >>> p.question
     "What's up?"
     >>> p.pub_date
     datetime.datetime(2007, 7, 15, 12, 00, 53)
 
-    # Change values by changing the attributes, then calling save().
+    # 改变属性值，然后调用save()。
     >>> p.pub_date = datetime.datetime(2007, 4, 1, 0, 0)
     >>> p.save()
 
-    # objects.all() displays all the polls in the database.
+    # objects.all() 显示所有数据库中的投票。
     >>> Poll.objects.all()
     [<Poll: Poll object>]
 
 
-Wait a minute. ``<Poll: Poll object>`` is, utterly, an unhelpful representation
-of this object. Let's fix that by editing the polls model (in the
-``polls/models.py`` file) and adding a
-:meth:`~django.db.models.Model.__unicode__` method to both ``Poll`` and
-``Choice``::
+等等， ``<Poll: Poll object>`` 这样的形式绝对不是一个直白的表达方式。我们可以修
+改模型的代码（在 ``polls/models.py`` 文件里），给 ``Poll`` 和 ``Choice`` 各加入
+一个 :meth:`~django.db.models.Model.__unicode__` 方法来解决这个问题::
 
     class Poll(models.Model):
         # ...
@@ -573,49 +499,42 @@ of this object. Let's fix that by editing the polls model (in the
         def __unicode__(self):
             return self.choice
 
-.. admonition:: If :meth:`~django.db.models.Model.__unicode__` doesn't seem to work
+.. admonition:: 如果 :meth:`~django.db.models.Model.__unicode__` 看起来好像没用
 
-   If you add the :meth:`~django.db.models.Model.__unicode__` method to your
-   models and don't see any change in how they're represented, you're most
-   likely using an old version of Django. (This version of the tutorial is
-   written for the latest development version of Django.) If you're using a
-   Subversion checkout of Django's development version (see :ref:`the
-   installation docs <topics-install>` for more information), you shouldn't have
-   any problems.
+    如果在模型中加入了 :meth:`~django.db.models.Model.__unicode__` 方法，但是在
+    命令行里对象的表现方式又没有任何改变，那你可能就是在用旧版本的Django。（这
+    个教程是针对最新的开发版本 Django 所写的）。如果使用 Subversion 工具获得
+    Django 开发版本（安装方法详见 :ref:`安装文档 <topics-install>` ），就不会出
+    现这个问题。
+    
+    如果你坚持使用旧版本的 Django ，那么应当学习 `Django 0.96 教程`__ ，因为这个
+    教程会用到一些开发版本中才有的功能。
 
-   If you want to stick with an older version of Django, you'll want to switch
-   to `the Django 0.96 tutorial`_, because this tutorial covers several features
-   that only exist in the Django development version.
+__ http://www.djangoproject.com/documentation/0.96/tutorial01/
 
-.. _the Django 0.96 tutorial: http://www.djangoproject.com/documentation/0.96/tutorial01/
+给模型加上 :meth:`~django.db.models.Model.__unicode__` 方法是很重要的，不仅是为
+了在命令行里保持思路清晰，而且会用于 Django 自动生成的管理界面里的内容
 
-It's important to add :meth:`~django.db.models.Model.__unicode__` methods to
-your models, not only for your own sanity when dealing with the interactive
-prompt, but also because objects' representations are used throughout Django's
-automatically-generated admin.
+.. admonition:: 为什么使用 :meth:`~django.db.models.Model.__unicode__` 而不用
+                :meth:`~django.db.models.Model.__str__` ？
 
-.. admonition:: Why :meth:`~django.db.models.Model.__unicode__` and not
-                :meth:`~django.db.models.Model.__str__`?
+    如果你熟悉 Python ，你可能有为你的类增加
+    ：meth:`~django.db.models.Model.__str__` 方法的习惯而不会去使用
+    :meth:`~django.db.models.Model.__unicode__` 方法。
+    我们用 :meth:`~django.db.models.Model.__unicode__` 方法是因为 Django
+    模型默认处理 Unicode 数据。当数据库里的数据返回时，它们全都会被转成
+    Unicode 编码。
 
-    If you're familiar with Python, you might be in the habit of adding
-    :meth:`~django.db.models.Model.__str__` methods to your classes, not
-    :meth:`~django.db.models.Model.__unicode__` methods. We use
-    :meth:`~django.db.models.Model.__unicode__` here because Django models deal
-    with Unicode by default. All data stored in your database is converted to
-    Unicode when it's returned.
+    Django 模型有个默认的 :meth:`~django.db.model.Model.__str__` 
+    方法来调用 :meth:`~django.db.models.Model.__unicode__` 方法并将结果转换成
+    UTF-8 格式。这意味着 ``unicode(p)`` 会返回 Unicode 字符串，而 ``str(p)``
+    只会返回一个 UTF-8 编码的普通字符串。
+    
+    如果这些东西让你很困扰，那就只需要记住给模型类加入
+    :meth:`~django.db.models.Model.__unicode__` 方法。幸运的话，这些代码会正常
+    工作。
 
-    Django models have a default :meth:`~django.db.models.Model.__str__` method
-    that calls :meth:`~django.db.models.Model.__unicode__` and converts the
-    result to a UTF-8 bytestring. This means that ``unicode(p)`` will return a
-    Unicode string, and ``str(p)`` will return a normal string, with characters
-    encoded as UTF-8.
-
-    If all of this is jibberish to you, just remember to add
-    :meth:`~django.db.models.Model.__unicode__` methods to your models. With any
-    luck, things should Just Work for you.
-
-Note these are normal Python methods. Let's add a custom method, just for
-demonstration::
+上面提到的都是常用 Python 方法。现在我们加上一个用于演示的自定义方法::
 
     import datetime
     # ...
@@ -623,27 +542,24 @@ demonstration::
         # ...
         def was_published_today(self):
             return self.pub_date.date() == datetime.date.today()
+            
+请注意增加了 ``import datetime`` 部分是为了引用 Python 的标准日期时间模块。
 
-Note the addition of ``import datetime`` to reference Python's standard
-``datetime`` module.
-
-Save these changes and start a new Python interactive shell by running
-``python manage.py shell`` again::
+保存改变的文件，回到命令下重新运行 ``python manage.py shell`` 命令::
 
     >>> from mysite.polls.models import Poll, Choice
 
-    # Make sure our __unicode__() addition worked.
+    # 验证我们的 __unicode__() 正常使用。
     >>> Poll.objects.all()
     [<Poll: What's up?>]
 
-    # Django provides a rich database lookup API that's entirely driven by
-    # keyword arguments.
+    # Django 提供多种关键字驱动的数据库查找 API 。
     >>> Poll.objects.filter(id=1)
     [<Poll: What's up?>]
     >>> Poll.objects.filter(question__startswith='What')
     [<Poll: What's up?>]
 
-    # Get the poll whose year is 2007.
+    # 查找 2007 年的投票。
     >>> Poll.objects.get(pub_date__year=2007)
     <Poll: What's up?>
 
@@ -652,20 +568,19 @@ Save these changes and start a new Python interactive shell by running
         ...
     DoesNotExist: Poll matching query does not exist.
 
-    # Lookup by a primary key is the most common case, so Django provides a
-    # shortcut for primary-key exact lookups.
-    # The following is identical to Poll.objects.get(id=1).
+    # 根据主键查找是最常用的，所以 Django 提供了一个主键精确查找的捷径。
+    # 下面的 API 和 Poll.objects.get(id=1)完全相同。
     >>> Poll.objects.get(pk=1)
     <Poll: What's up?>
 
-    # Make sure our custom method worked.
+    # 验证自定义方法是否正常工作。
     >>> p = Poll.objects.get(pk=1)
     >>> p.was_published_today()
     False
 
-    # Give the Poll a couple of Choices. The create call constructs a new
-    # choice object, does the INSERT statement, adds the choice to the set
-    # of available choices and returns the new Choice object.
+    # 给投票增加一些选择项。这里调用 create 来构建一个新的 choice 对象，
+    # 相当于在数据库中使用 INSERT 语句。把一个选择项添加到一个选择项集合中，
+    # 并返回一个新的 choice 对象。
     >>> p = Poll.objects.get(pk=1)
     >>> p.choice_set.create(choice='Not much', votes=0)
     <Choice: Not much>
@@ -673,29 +588,28 @@ Save these changes and start a new Python interactive shell by running
     <Choice: The sky>
     >>> c = p.choice_set.create(choice='Just hacking again', votes=0)
 
-    # Choice objects have API access to their related Poll objects.
+    # 通过 Choice 对象的 API 访问相关的投票对象。
     >>> c.poll
     <Poll: What's up?>
 
-    # And vice versa: Poll objects get access to Choice objects.
+    # 反之亦然：通过 Poll 对象也可以调用 Choice 对象。
     >>> p.choice_set.all()
     [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]
     >>> p.choice_set.count()
     3
 
-    # The API automatically follows relationships as far as you need.
-    # Use double underscores to separate relationships.
-    # This works as many levels deep as you want; there's no limit.
-    # Find all Choices for any poll whose pub_date is in 2007.
+    # API 会自动追踪关系。使用双下划线来分隔关系。这个方法可以一直追踪下去，可以
+    # 追踪任意层关系，没有限制。
+    # 搜索 pub_date 为 2007 的投票的所有选择项。
     >>> Choice.objects.filter(poll__pub_date__year=2007)
     [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]
 
-    # Let's delete one of the choices. Use delete() for that.
+    # 让我们使用 delete() 方法来删除其中一个选择项。
     >>> c = p.choice_set.filter(choice__startswith='Just hacking')
     >>> c.delete()
 
-For full details on the database API, see our :ref:`Database API reference
-<topics-db-queries>`.
+要了解更多的数据库 API 细节，只是，请查阅 :ref:`数据库 API 参考
+<topics-db-queries>` 。
 
-When you're comfortable with the API, read :ref:`part 2 of this tutorial
-<intro-tutorial02>` to get Django's automatic admin working.
+当你可以熟练使用 API 后，请阅读 :ref:`教程第二部分
+<intro-tutorial02>` ，学习 Django 自动创建 admin 程序。

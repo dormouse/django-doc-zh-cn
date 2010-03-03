@@ -15,7 +15,7 @@ Model field 参考
 .. seealso::
 
     如果内置的 field 无法满足你的需求，那么你可以轻松 :ref:`撰写你自己的
-    model fields <howto-custom-model-fields>`.
+    model fields <howto-custom-model-fields>` 。
 
 .. note::
 
@@ -524,7 +524,7 @@ Web 服务器的文档根目录，那么就可能会有人上传一个 CGI 或 P
 
     FilePathField(path="/home/images", match="foo.*", recursive=True)
 
-...会匹配 ``/home/images/foo.gif`` 而不是 ``/home/images/foo/bar.gif``，因为
+...会匹配 ``/home/images/foo.gif`` 而不是 ``/home/images/foo/bar.gif`` ，因为
 :attr:`~FilePathField.match` 只作用于基本文件名，即 ``foo.gif`` 和
 ``bar.gif`` ）。
 
@@ -875,3 +875,5 @@ Arguments
     当这个参数值为 ``True`` ，并且用于一个从其他 model 继承而来的 model 是时，
     就表示这的 field 就当被用作父 model 的反向链接，而不是一个通常被子类隐式创建的
     额外的 ``OneToOneField`` 。
+
+
