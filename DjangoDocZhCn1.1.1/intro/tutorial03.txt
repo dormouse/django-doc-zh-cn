@@ -332,7 +332,7 @@ Expressions ”（ Jeffrey Friedl 著）也是非常不错的。
 Python 包格式的字符串（和 URLconf 里面的回调函数的格式是一样的）。
 404 视图没有任何特别之处，它只是个普通的视图而已。
 
-你不用太关注于怎样编写 404 视图。一般，URLconf设置里有下面的机制：
+你不用太关注于怎样编写 404 视图。一般，URLconf设置里有下面的机制::
 
     from django.conf.urls.defaults import *
 
