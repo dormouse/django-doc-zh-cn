@@ -5,8 +5,8 @@
 =================
 
 你已经读完了所有 :ref:`介绍材料 <intro-index>` ，决定继续使用 Django 了？其实，
-介绍材料仅仅是一点毛皮而已（事实上，即使你是一字一句地读完了介绍材料已仅仅读了
-所有文档的不倒 10% ）。
+介绍材料仅仅是一点毛皮而已（事实上，即使你是一字一句地读完了介绍材料也仅仅读了
+所有文档的不到 10% ）。
 
 那么接下来做什么？
 
@@ -140,60 +140,47 @@ Django 文档与代码本身放在同一个版本控制系统中，就放在代�
         
             $ easy_install Sphinx
     
-    * Then, just use the included ``Makefile`` to turn the documentation into
-      HTML:
+    * 然后，通过内置的 ``Makefile`` 来把文档转换成为 HTML：
       
       .. code-block:: bash
       
             $ cd path/to/django/docs
             $ make html
     
-      You'll need `GNU Make`__ installed for this.
+      使用以上命令必须先安装 `GNU Make`__ 。
       
-    * The HTML documentation will be placed in ``docs/_build/html``.
+    * 生成的 HTML 文档会放在 ``docs/_build/html`` 目录下。
     
 .. warning::
 
-    At the time of this writing, Django's using a version of Sphinx not
-    yet released, so you'll currently need to install Sphinx from the
-    source. We'll fix this shortly.
+    当本文写作时， Django 使用的是一个还没有发布的 Sphinx 版本，所以你现在需要
+    从源代码安装 Sphinx 。我们会很快修正这个问题。
     
 __ http://sphinx.pocoo.org/
 __ http://www.gnu.org/software/make/
 
-Differences between versions
-============================
+版本之间的区别
+==============
 
-As previously mentioned, the text documentation in our Subversion repository
-contains the "latest and greatest" changes and additions. These changes often
-include documentation of new features added in the Django development version
--- the Subversion ("trunk") version of Django. For that reason, it's worth
-pointing out our policy on keeping straight the documentation for various
-versions of the framework.
+就象文提到的，版本仓库中的文本文档包括“最新最好”的修改和新内容。这些修改的内容
+常常包括关于 Django 开发版的新功能的文档。因此，有必要谈谈我们针对不同版本
+Django 的文档的原则。
 
-We follow this policy:
+我们遵循以下原则：
 
-    * The primary documentation on djangoproject.com is an HTML version of the
-      latest docs in Subversion. These docs always correspond to the latest
-      official Django release, plus whatever features we've added/changed in
-      the framework *since* the latest release.
+    * 在 djangoproject.com 上的主文档是版本仓库中最新文档的 HTML 版本。这些文档
+      总是对应于最新的官方发行版，并且包括这个官方发行版发布“之后”新增和修改的
+      内容。
 
-    * As we add features to Django's development version, we try to update the
-      documentation in the same Subversion commit transaction.
+    * 当我们为 Django 增加新功能后，总是尽力将更新的文档一并发布到版本仓库中。
 
-    * To distinguish feature changes/additions in the docs, we use the phrase:
-      "New in version X.Y", being X.Y the next release version (hence, the one
-      being developed).
+    * 为了标明新增或修改的内容，我们在下一个版本中使用“在版本 X.Y ”字样。
 
-    * Documentation for a particular Django release is frozen once the version
-      has been released officially. It remains a snapshot of the docs as of the
-      moment of the release. We will make exceptions to this rule in
-      the case of retroactive security updates or other such retroactive
-      changes. Once documentation is frozen, we add a note to the top of each
-      frozen document that says "These docs are frozen for Django version XXX"
-      and links to the current version of that document.
+    * 一旦某一个版本的 Django 正式发行后，针对这个版本文档就冻结了，并且会留下
+      这份文档的快照。这个原则有一个例外： Django 发生安全更新或类似安全更新的
+      的变动。在已冻结的文档开头我们会加上：“这是 XXX 版 Django 的已冻结文档”
+      和一个链结到当前文档的超链结。
 
-    * The `main documentation Web page`_ includes links to documentation for
-      all previous versions.
+    * `主文档 Web 页面`_ 包含所有以前版本文档的链结。
 
-.. _main documentation Web page: http://docs.djangoproject.com/en/dev/
+.. _主文档 Web 页面: http://docs.djangoproject.com/en/dev/
