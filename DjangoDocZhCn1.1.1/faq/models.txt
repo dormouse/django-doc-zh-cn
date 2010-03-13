@@ -1,56 +1,52 @@
 .. _faq-models:
 
-FAQ: Databases and models
-=========================
+FAQ: 数据库和模型
+=================
 
-How can I see the raw SQL queries Django is running?
+如何看到 Django 执行的原始 SQL 查询语句？
 ----------------------------------------------------
 
-Make sure your Django ``DEBUG`` setting is set to ``True``. Then, just do
-this::
+首先确认你的 Django 的 ``DEBUG`` 设置的值为 ``True`` 。然后执行如下命令::
 
     >>> from django.db import connection
     >>> connection.queries
     [{'sql': 'SELECT polls_polls.id,polls_polls.question,polls_polls.pub_date FROM polls_polls',
     'time': '0.002'}]
 
-``connection.queries`` is only available if ``DEBUG`` is ``True``. It's a list
-of dictionaries in order of query execution. Each dictionary has the following::
+``connection.queries`` 只有当 ``DEBUG`` 为 ``True`` 时才有用。它是一个按 SQL
+执行顺序排列的字典组成的列表。列表中的每个字典包含以下内容::
 
-    ``sql`` -- The raw SQL statement
-    ``time`` -- How long the statement took to execute, in seconds.
+    ``sql`` -- 原始 SQL 语句
+    ``time`` -- 以秒为单位的 SQL 语句执行时间
 
-``connection.queries`` includes all SQL statements -- INSERTs, UPDATES,
-SELECTs, etc. Each time your app hits the database, the query will be recorded.
-Note that the raw SQL logged in ``connection.queries`` may not include
-parameter quoting.  Parameter quoting is performed by the database-specific 
-backend, and not all backends provide a way to retrieve the SQL after quoting.
+``connection.queries`` 包含所有执行过的 SQL 语句，包括 INSERT 、 UPDATES 和
+SELECT 等等。只要你的程序动了数据库，那么所执行的 SQL 就会被记录下来。注意：
+记录下来的 SQL 语句可能不包含参数引用，因为参数引用由数据库提供，而有点数据库
+没有这个功能。
 
-Can I use Django with a pre-existing database?
+在 Django 中我可以使用已经存在的数据库吗？
 ----------------------------------------------
 
-Yes. See :ref:`Integrating with a legacy database <howto-legacy-databases>`.
+可以的。参见 :ref:`整合现有数据库 <howto-legacy-databases>` 。
 
-If I make changes to a model, how do I update the database?
+如果我修改了模型，那么我如何更新我的数据库呢？
 -----------------------------------------------------------
 
-If you don't mind clearing data, your project's ``manage.py`` utility has an
-option to reset the SQL for a particular application::
+如果你不介意清空数据，那么你的项目中的 ``manage.py`` 工具有一个选择可以用于重置
+本项目的数据库::
 
     manage.py reset appname
 
-This drops any tables associated with ``appname`` and recreates them.
+这命令会删除所有与 ``appname`` 数据库表并合建它们。
 
-If you do care about deleting data, you'll have to execute the ``ALTER TABLE``
-statements manually in your database. That's the way we've always done it,
-because dealing with data is a very sensitive operation that we've wanted to
-avoid automating. That said, there's some work being done to add partially
-automated database-upgrade functionality.
+如果你的数据不允许删除，那么你只能在你的数据库中手动执行 ``ALTER TABLE`` 语句。
+我们就是这样处理的，因为处理数据是一个非常敏感的操作，我们不想让这个操作自动
+化。尽管如此，我们正在进行为数据库更新操作增加一些自动化功能的工作。
 
-Do Django models support multiple-column primary keys?
+Django 模型支持多个主键吗？
 ------------------------------------------------------
 
-No. Only single-column primary keys are supported.
+不支持， Django 只支持单个主键。
 
 But this isn't an issue in practice, because there's nothing stopping you from
 adding other constraints (using the ``unique_together`` model option or

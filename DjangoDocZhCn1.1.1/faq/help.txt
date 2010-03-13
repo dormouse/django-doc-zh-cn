@@ -36,31 +36,28 @@ Django 用户邮件列表中没有回答我的问题！我该怎么办？
 没有人回答你的问题，那么可能是因为没人能理解你的问题或者能回答的人都很忙，没空
 回答。如果没人回答你可以试试在 Freenode IRC 上的 `#django IRC 频道`_ 中提问。
 
-You might notice we have a second mailing list, called django-developers_ --
-but please don't e-mail support questions to this mailing list. This list is
-for discussion of the development of Django itself. Asking a tech support
-question there is considered quite impolite.
+你可能注意到我们还有第二个邮件列表，即 `Django 开发者邮件列表`_ 。请不要向这个
+邮件列表发送关于技术支持的问题，这种行为是不受欢迎的，因为这个邮件列表讨论的是
+Django 本身的开发问题。
 
-.. _django-developers: http://groups.google.com/group/django-developers
+.. _`Django 开发者邮件列表`: http://groups.google.com/group/django-developers
 
-I think I've found a bug! What should I do?
+我认为我找到一个缺陷！我该怎么办？
 -------------------------------------------
 
-Detailed instructions on how to handle a potential bug can be found in our
-:ref:`Guide to contributing to Django <reporting-bugs>`.
+关于如何处理一个潜在的缺陷问题请参阅
+:ref:`如何为 Django 作出贡献 <reporting-bugs>` 。
 
-I think I've found a security problem! What should I do?
+我认为我找到了一个安全问题！我该怎么办？
 --------------------------------------------------------
 
-If you think you've found a security problem with Django, please send a message
-to security@djangoproject.com. This is a private list only open to long-time,
-highly trusted Django developers, and its archives are not publicly readable.
+如果你认为你找到了 Django 的一个安全问题，那么发邮件给
+security@djangoproject.com 。这个邮件列表是只向工龄长且被高度信任的 Django 开发
+者开放，其内容是不向公众开放的。
 
-Due to the sensitive nature of security issues, we ask that if you think you
-have found a security problem, *please* don't send a message to one of the
-public mailing lists. Django has a
-:ref:`policy for handling security issues <reporting-security-issues>`;
-while a defect is outstanding, we would like to minimize any damage that
-could be inflicted through public knowledge of that defect.
+因为安全问题事关重大，所以如果你找到了一个安全问题， *请* 不要把问题提交到公开
+的邮件列表。 Django 有一个 :ref:`处理安全问题的原则
+<reporting-security-issues>` ；当一个安全问题出现时，我们希望最大程度地减少因
+安全问题被公开而产生的损失。
 
-.. _`policy for handling security issues`: ../contributing/#reporting-security-issues
+.. _`处理安全问题的原则`: ../contributing/#reporting-security-issues
