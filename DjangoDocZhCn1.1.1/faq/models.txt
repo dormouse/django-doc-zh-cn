@@ -32,12 +32,12 @@ SELECT 等等。只要你的程序动了数据库，那么所执行的 SQL 就�
 如果我修改了模型，那么我如何更新我的数据库呢？
 -----------------------------------------------------------
 
-如果你不介意清空数据，那么你的项目中的 ``manage.py`` 工具有一个选择可以用于重置
+如果你不介意清空数据，那么你的项目中的 ``manage.py`` 工具有一个选项可以用于重置
 本项目的数据库::
 
     manage.py reset appname
 
-这命令会删除所有与 ``appname`` 数据库表并合建它们。
+这命令会删除所有与 ``appname`` 数据库表并重新创建它们。
 
 如果你的数据不允许删除，那么你只能在你的数据库中手动执行 ``ALTER TABLE`` 语句。
 我们就是这样处理的，因为处理数据是一个非常敏感的操作，我们不想让这个操作自动
@@ -48,46 +48,42 @@ Django 模型支持多个主键吗？
 
 不支持， Django 只支持单个主键。
 
-But this isn't an issue in practice, because there's nothing stopping you from
-adding other constraints (using the ``unique_together`` model option or
-creating the constraint directly in your database), and enforcing the
-uniqueness at that level. Single-column primary keys are needed for things such
-as the admin interface to work; e.g., you need a simple way of being able to
-specify an object to edit or delete.
+但是这在实践中不会成为一个问题，因为你可以添加其他约束（通过使用
+``unique_together`` 模型参数或直接在数据库中创建约束）来强制一定级别的唯一性。
+单个主键是管理站点之类的站点所必须的，因为你需要一个简单的方式来修改或删除
+对象。
 
-How do I add database-specific options to my CREATE TABLE statements, such as specifying MyISAM as the table type?
+我如何为我的 CREATE TABLE 语句添加一个数据库特定的选项（例如定义 MyISAM 表类型）？
 ------------------------------------------------------------------------------------------------------------------
 
-We try to avoid adding special cases in the Django code to accommodate all the
-database-specific options such as table type, etc. If you'd like to use any of
-these options, create an :ref:`SQL initial data file <initial-sql>` that
-contains ``ALTER TABLE`` statements that do what you want to do. The initial
-data files are executed in your database after the ``CREATE TABLE`` statements.
+我们尽量避免在 Django 代码中添加特定的东西，包括所有如表类型之类的数据库特定的
+选项。如果你想要使用这些选项，那么你可以创建一个包含 ``ALTER TABLE`` 语句的
+:ref:`SQL 初始化数据文件 <initial-sql>` 。这个文件会在  ``CREATE TABLE`` 语句
+执行完后跟着执行。
 
-For example, if you're using MySQL and want your tables to use the MyISAM table
-type, create an initial data file and put something like this in it::
+例如，如果你使用的是 MySQL ，并且你想要使用 MyISAM 表类型，那么你先创建一个包含
+以下内容的初始化数据文件::
 
     ALTER TABLE myapp_mytable ENGINE=MyISAM;
 
-As explained in the :ref:`SQL initial data file <initial-sql>` documentation,
-this SQL file can contain arbitrary SQL, so you can make any sorts of changes
-you need to make.
+就象 :ref:`SQL 初始化数据文件 <initial-sql>` 中解释的一样，这个 SQL 文件可以
+包含任意 SQL 语句，这样你就可以为所欲为了。
 
-Why is Django leaking memory?
+为什么 Django 会泄漏内存？
 -----------------------------
 
-Django isn't known to leak memory. If you find your Django processes are
-allocating more and more memory, with no sign of releasing it, check to make
-sure your ``DEBUG`` setting is set to ``False``. If ``DEBUG`` is ``True``, then
-Django saves a copy of every SQL statement it has executed.
+Django 并不会泄漏内存。如果你发现你的 Django 正在泄漏内存，但是没有任何警示
+信号，那么你首先要检查你的 ``DEBUG`` 是否已经设置成为 ``False`` 。如果设置为
+``True`` ，那么 Django 会保存每一句已执行的 SQL 语句，这样就会占用越来越多的
+内存。
 
-(The queries are saved in ``django.db.connection.queries``. See
-`How can I see the raw SQL queries Django is running?`_.)
+（ SQL 语句被储存在 ``django.db.connection.queries`` 中，参见
+`如何看到 Django 执行的原始 SQL 查询语句？`_ 。）
 
-To fix the problem, set ``DEBUG`` to ``False``.
+要修正这个问题，只要把 ``DEBUG`` 设置为 ``False`` 就可以了。
 
-If you need to clear the query list manually at any point in your functions,
-just call ``reset_queries()``, like this::
+如果你要在程序中手动清除已储存的 SQL 语句列表，只要调用 ``reset_queries()`` 就
+可以了，例如::
 
     from django import db
     db.reset_queries()
