@@ -1,95 +1,85 @@
 .. _faq-admin:
 
-FAQ: The admin
+FAQ: 管理站点
 ==============
 
-I can't log in. When I enter a valid username and password, it just brings up the login page again, with no error messages.
+我无法登录。当我输入一个正确的用户名和密码后，没有能够登录，反而重新显示登录页面，并且没任何错误信息。
 ---------------------------------------------------------------------------------------------------------------------------
 
-The login cookie isn't being set correctly, because the domain of the cookie
-sent out by Django doesn't match the domain in your browser. Try these two
-things:
+出现这个问题是因为 Django 设置的 cookie 中的域（ domain ）与你浏览器中的域不
+一致。请尝试以下两步：
 
-    * Set the ``SESSION_COOKIE_DOMAIN`` setting in your admin config file
-      to match your domain. For example, if you're going to
-      "http://www.example.com/admin/" in your browser, in
-      "myproject.settings" you should set ``SESSION_COOKIE_DOMAIN = 'www.example.com'``.
+    * 设置你的管理站点配置文件中的 ``SESSION_COOKIE_DOMAIN`` 设置以匹配你的域。
+      例如，如果你要在浏览器中访问 "http://www.example.com/admin/" ，那么在
+      "myproject.settings" 中应当这样设置：
+      ``SESSION_COOKIE_DOMAIN = 'www.example.com'`` 。
 
-    * Some browsers (Firefox?) don't like to accept cookies from domains that
-      don't have dots in them. If you're running the admin site on "localhost"
-      or another domain that doesn't have a dot in it, try going to
-      "localhost.localdomain" or "127.0.0.1". And set
-      ``SESSION_COOKIE_DOMAIN`` accordingly.
+    * 一些浏览器（ Firefox ？）不接受不包含点的域的 cookie 。如果你的管理站点
+      运行在 “ localhost ”或其他不包含点的域上，试试访问
+      "localhost.localdomain" 或 "127.0.0.1" 。同时相应修改
+      ``SESSION_COOKIE_DOMAIN`` 的设置。
 
-I can't log in. When I enter a valid username and password, it brings up the login page again, with a "Please enter a correct username and password" error.
+我无法登录。当我输入一个正确的用户名和密码后，没有能够登录，反而重新显示登录页面，同时显示“请输入一个正确的用户名和密码”。
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-If you're sure your username and password are correct, make sure your user
-account has ``is_active`` and ``is_staff`` set to True. The admin site only
-allows access to users with those two fields both set to True.
+如果你确定你输入的用户名或密码是正确的，请确认你的用户账号的 ``is_active`` 和
+``is_staff`` 属性为 True 。管理站点只允许两个属性都为 True 的账号登录。
 
-How can I prevent the cache middleware from caching the admin site?
--------------------------------------------------------------------
+如果防止缓存中间件缓存管理站点？
+--------------------------------
 
-Set the :setting:`CACHE_MIDDLEWARE_ANONYMOUS_ONLY` setting to ``True``. See the
-:ref:`cache documentation <topics-cache>` for more information.
+设置 :setting:`CACHE_MIDDLEWARE_ANONYMOUS_ONLY` 为 ``True`` 。详见
+:ref:`缓存文档 <topics-cache>` 。
 
-How do I automatically set a field's value to the user who last edited the object in the admin?
------------------------------------------------------------------------------------------------
+在管理站点中如何把字段的值自动设置为上次编辑的值？
+--------------------------------------------------
 
-The :class:`ModelAdmin` class provides customization hooks that allow you to transform
-an object as it saved, using details from the request. By extracting the current user
-from the request, and customizing the :meth:`ModelAdmin.save_model` hook, you can update
-an object to reflect the user that edited it. See :ref:`the documentation on ModelAdmin
-methods <model-admin-methods>` for an example.
+:class:`ModelAdmin` 类提供一个自定义钩子。通过请求中的信息，这个钩子可以让你在
+一个对象保存时改变它。在请求中提取出用户名，并自定义
+:meth:`ModelAdmin.save_model` 钩子，你可以保存编辑这个对象的用户名。示例参见
+:ref:`ModelAdmin 方法文档 <model-admin-methods>` 。
 
-How do I limit admin access so that objects can only be edited by the users who created them?
----------------------------------------------------------------------------------------------
+在管理站点中如何限制用户只以编辑自己创建的内容？
+------------------------------------------------
 
-The :class:`ModelAdmin` class also provides customization hooks that allow you to control the
-visibility and editability of objects in the admin. Using the same trick of extracting the
-user from the request, the :meth:`ModelAdmin.queryset` and :meth:`ModelAdmin.has_change_permission`
-can be used to control the visibility and editability of objects in the admin.
+针对这个情况 :class:`ModelAdmin` 类也提供了一个自定义钩子，这个钩子允许你控制
+管理站点中的对象是否可见和是否可编辑。通过在请求中提取出用户名，使用
+:meth:`ModelAdmin.queryset` 和 :meth:`ModelAdmin.has_change_permission`
+就可以控制管理站点中的对象是否可见和是否可编辑。
 
-My admin-site CSS and images showed up fine using the development server, but they're not displaying when using mod_python.
----------------------------------------------------------------------------------------------------------------------------
+我的管理站点的 CSS 和图像在开发服务器中正常，可是当使用 mod_python 时就不能正常显示了。
+---------------------------------------------------------------------------------------
 
-See :ref:`serving the admin files <howto-deployment-modpython-serving-the-admin-files`
-in the "How to use Django with mod_python" documentation.
+参见“如何在 mod_python 中使用 Django ”文档中的
+:ref:`布置管理站点 <howto-deployment-modpython-serving-the-admin-files` 。
 
-My "list_filter" contains a ManyToManyField, but the filter doesn't display.
-----------------------------------------------------------------------------
+我的列表过滤器中包含一个 ManyToManyField ，但过滤器没有显示出来。
+--------------------------------------------------------------------
 
-Django won't bother displaying the filter for a ``ManyToManyField`` if there
-are fewer than two related objects.
+如果少于两个关联对象， Django 就不会显示对应一个 ``ManyToManyField`` 字段的过滤
+器。
 
-For example, if your ``list_filter`` includes ``sites``, and there's only one
-site in your database, it won't display a "Site" filter. In that case,
-filtering by site would be meaningless.
+例如，如果你的列表过滤器中包括 ``sites`` ，且在你的数据库中只有一个站点，那么
+站点过滤器就不会显示。显然，这种情况下对站点进行过滤是没有必要的。
 
-How can I customize the functionality of the admin interface?
--------------------------------------------------------------
+如何定制管理站点的功能？
+------------------------
 
-You've got several options. If you want to piggyback on top of an add/change
-form that Django automatically generates, you can attach arbitrary JavaScript
-modules to the page via the model's ``class Admin`` ``js`` parameter. That
-parameter is a list of URLs, as strings, pointing to JavaScript modules that
-will be included within the admin form via a ``<script>`` tag.
+你就许多方法来定制。如果你想在 Django 自动生成的“增加/修改”表单上添加功能，你
+可以通过模型的 ``class Admin`` ``js`` 参数来给页面添加任意 JavaScript 模块。这
+些参数是一个字符串类型的 URL 组成的列表，指向通过 ``<script>`` 标签包含在管理
+站点中 JavaScript 模块。
 
-If you want more flexibility than simply tweaking the auto-generated forms,
-feel free to write custom views for the admin. The admin is powered by Django
-itself, and you can write custom views that hook into the authentication
-system, check permissions and do whatever else they need to do.
+如果你想要定制更复杂的功能，请自己写一个视图吧。因为管理站点就是用 Django 写
+的，所以你可以自己写一个，并与认证系统对接，正所谓求人不如求已。
 
-If you want to customize the look-and-feel of the admin interface, read the
-next question.
+如果你想要定制管理站点的外观，那么就看下一个问题。
 
-The dynamically-generated admin site is ugly! How can I change it?
-------------------------------------------------------------------
+自动创建的管理站点太丑了，如何改变？
+------------------------------------
 
-We like it, but if you don't agree, you can modify the admin site's
-presentation by editing the CSS stylesheet and/or associated image files. The
-site is built using semantic HTML and plenty of CSS hooks, so any changes you'd
-like to make should be possible by editing the stylesheet. We've got a
-:ref:`guide to the CSS used in the admin <obsolete-admin-css>` to get you started.
+我们很喜欢管理站点的外观，但是如果你不喜欢，你可以通过编辑 CSS 和（或）图像文件
+来修改外观。管理站点使用了语义化的 HTML 和大量 CSS ，所以你可以通过编辑 CSS 来
+定制外观。我们有一份 :ref:`管理站点 CSS 使用指南 <obsolete-admin-css>` ，请
+参考。
 

@@ -1,28 +1,25 @@
 .. _faq-contributing:
 
-FAQ: Contributing code
-======================
+FAQ: 贡献代码
+=============
 
-How can I get started contributing code to Django?
---------------------------------------------------
+我如何向 Django 贡献代码？
+--------------------------
 
-Thanks for asking! We've written an entire document devoted to this question.
-It's titled :ref:`Contributing to Django <internals-contributing>`.
+感谢你的提问！关于这个问题我们一份名为 :ref:`向 Django 贡献代码
+<internals-contributing>` 的详细文档。
 
-I submitted a bug fix in the ticket system several weeks ago. Why are you ignoring my patch?
---------------------------------------------------------------------------------------------
+几周前我在小票系统中提交了一个缺陷修正。为什么你们忽视了我的补丁？
+------------------------------------------------------------------
 
-Don't worry: We're not ignoring you!
+不要担心，我们没有忽略你！
 
-It's important to understand there is a difference between "a ticket is being
-ignored" and "a ticket has not been attended to yet." Django's ticket system
-contains hundreds of open tickets, of various degrees of impact on end-user
-functionality, and Django's developers have to review and prioritize.
+理解“一个小票已经被忽略”和“一个小票还没有被处理”之间的不同是非常重要的。
+Django 的小票系统中有上百个公开的小票，每个小票对最终用户的影响程度是不同的，
+所以 Djanog 的开发者必须检查每个小票并按重要性先后处理。
 
-On top of that: the people who work on Django are all volunteers. As a result,
-the amount of time that we have to work on the framework is limited and will
-vary from week to week depending on our spare time. If we're busy, we may not
-be able to spend as much time on Django as we might want.
+更重要的是：为 Django 工作的人都是志愿者。因此花费在开发上的时间是有限的，并且
+会随着业余时间的多寡而变化。如果他们很忙，那么他们就抽不出足够的时间。
 
 The best way to make sure tickets do not get hung up on the way to checkin is
 to make it dead easy, even for someone who may not be intimately familiar with
