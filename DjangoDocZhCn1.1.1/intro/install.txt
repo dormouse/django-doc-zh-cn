@@ -14,7 +14,7 @@ Django 。
 作为一个 Python Web 框架， Django 依赖于 Python 。在 Python 2.3 至 2.6 版本下，
 Django 都可以使用。（由于 Python 3.0 是不向后兼容的，所以 Django 目前无法在
 Python 3.0 下使用；更多关于支持的 Python 版本和 3.0 迁移的内容，参见
-:ref:`the Django FAQ <faq-install>` 。我们推荐安装 Python 2.5 或更高版本。因为
+:ref:`Django FAQ <faq-install>` 。）我们推荐安装 Python 2.5 或更高版本。因为
 这些版本包含一个名为 SQLite_ 的轻型数据库，这样你就不必另外设置数据库了。
 
 .. _sqlite: http://sqlite.org/

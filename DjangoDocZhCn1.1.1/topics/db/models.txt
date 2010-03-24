@@ -1,38 +1,34 @@
 .. _topics-db-models:
 
 ======
-Models
+模型
 ======
 
 .. module:: django.db.models
 
-A model is the single, definitive source of data about your data. It contains
-the essential fields and behaviors of the data you're storing. Generally, each
-model maps to a single database table.
+一个模型是你的数据的唯一的，精确的数据来源。它包含你所储存的数据的字段的本质和
+和行为。通常每个模型对应一个数据库中的表。
 
-The basics:
+基本上：
 
-    * Each model is a Python class that subclasses
-      :class:`django.db.models.Model`.
+    * 每一个模型是一个由 :class:`django.db.models.Model` 继承而来的子类。
 
-    * Each attribute of the model represents a database field.
+    * 模型的每一个属性对应一个数据库中的字段。
 
-    * With all of this, Django gives you an automatically-generated
-      database-access API; see :ref:`topics-db-queries`.
+    * Django 会为你的模型自动生成数据库操作的 API ；详见 :ref:`topics-db-queries` 。
 
 .. seealso::
 
-    A companion to this document is the `official repository of model
-    examples`_. (In the Django source distribution, these examples are in the
-    ``tests/modeltests`` directory.)
+    本文档有一篇名为 `模型例子的官方文档`_ 姐妹文档。（在 Django 的源代码中，
+    这些例子在 ``tests/modeltests`` 目录下。）
 
-    .. _official repository of model examples: http://www.djangoproject.com/documentation/models/
+    .. _`模型例子的官方文档`: http://www.djangoproject.com/documentation/models/
 
-Quick example
-=============
+快速例子
+========
 
-This example model defines a ``Person``, which has a ``first_name`` and
-``last_name``::
+以下例子定义了一个关于人（ ``Person`` ）的模型，包含姓（ ``first_name`` ）和名
+``last_name`` 两个字段::
 
     from django.db import models
 
@@ -40,10 +36,10 @@ This example model defines a ``Person``, which has a ``first_name`` and
         first_name = models.CharField(max_length=30)
         last_name = models.CharField(max_length=30)
 
-``first_name`` and ``last_name`` are fields_ of the model. Each field is
-specified as a class attribute, and each attribute maps to a database column.
+``first_name`` 和 ``last_name`` 是模型的两个 字段_ ，每个字段定义为类的属性，
+每个属性映射到一个数据库的列。
 
-The above ``Person`` model would create a database table like this:
+上例中的 ``Person`` 模型将会创建如下的数据库表：
 
 .. code-block:: sql
 
@@ -53,31 +49,27 @@ The above ``Person`` model would create a database table like this:
         "last_name" varchar(30) NOT NULL
     );
 
-Some technical notes:
+一些技术说明：
 
-    * The name of the table, ``myapp_person``, is automatically derived from
-      some model metadata but can be overridden. See :ref:`table-names` for more
-      details..
+    * 数据库表的名称 ``myapp_person`` 是自动根据模型的元数据创建的，创建的方法
+      可以重载。详见 :ref:`table-names` 。
 
-    * An ``id`` field is added automatically, but this behavior can be
-      overridden. See :ref:`automatic-primary-key-fields`.
+    * 自动添加了一个 ``id`` 字段，这种行为也是可以重载的。参见
+      :ref:`automatic-primary-key-fields` 。
 
-    * The ``CREATE TABLE`` SQL in this example is formatted using PostgreSQL
-      syntax, but it's worth noting Django uses SQL tailored to the database
-      backend specified in your :ref:`settings file <topics-settings>`.
+    * 上例中的 ``CREATE TABLE`` SQL 使用的是 PostgreSQL 语法，但值得指出的是
+      Django 会根据你的 :ref:`设置文件 <topics-settings>` 中设置的不同的数据库
+      后台生成相应的 SQL 语句。
 
-Using models
+使用模型
 ============
 
-Once you have defined your models, you need to tell Django you're going to *use*
-those models. Do this by editing your settings file and changing the
-:setting:`INSTALLED_APPS` setting to add the name of the module that contains
-your ``models.py``.
+一旦你定义好了你的模型，你得告诉 Django 你要 *使用* 这些模型。操作方法是编辑你
+的设置文件，在 :setting:`INSTALLED_APPS` 设置中增加你的 ``models.py`` 。
 
-For example, if the models for your application live in the module
-``mysite.myapp.models`` (the package structure that is created for an
-application by the :djadmin:`manage.py startapp <startapp>` script),
-:setting:`INSTALLED_APPS` should read, in part::
+例如，如果你的应用中模型放在 ``mysite.myapp.models`` 模块（由
+:djadmin:`manage.py startapp <startapp>` 语句创建的包结构）中，那么
+:setting:`INSTALLED_APPS` 应当包含如下内容::
 
     INSTALLED_APPS = (
         #...
@@ -85,17 +77,16 @@ application by the :djadmin:`manage.py startapp <startapp>` script),
         #...
     )
 
-When you add new apps to :setting:`INSTALLED_APPS`, be sure to run
-:djadmin:`manage.py syncdb <syncdb>`.
+每次向 :setting:`INSTALLED_APPS` 增加新的应用后，必须执行
+:djadmin:`manage.py syncdb <syncdb>` 。
 
-Fields
+字段
 ======
 
-The most important part of a model -- and the only required part of a model --
-is the list of database fields it defines. Fields are specified by class
-attributes.
+一个模型最重要且不可或缺的部分就是数据库中定义的字段的列表。字段以类的属性的
+方式定义。
 
-Example::
+例如::
 
     class Musician(models.Model):
         first_name = models.CharField(max_length=50)

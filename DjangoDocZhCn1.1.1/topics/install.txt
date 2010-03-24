@@ -1,73 +1,66 @@
 .. _topics-install:
 
 =====================
-How to install Django
+如何安装 Django
 =====================
 
-This document will get you up and running with Django.
+本文档会指导你安装 Django 。
 
-Install Python
+安装 Python
 ==============
 
-Being a Python Web framework, Django requires Python.
+作为一个 Python 的 Web 框架， 使用 Django 前需要先安装 Python 。 
 
-It works with any Python version from 2.3 to 2.6 (due to backwards
-incompatibilities in Python 3.0, Django does not currently work with
-Python 3.0; see :ref:`the Django FAQ <faq-install>` for more
-information on supported Python versions and the 3.0 transition).
+在 Python 2.3 至 2.6 版本下，Django 都可以使用。（由于 Python 3.0 是不向后兼容
+的，所以 Django 目前无法在 Python 3.0 下使用；更多关于支持的 Python 版本和 3.0
+迁移的内容，参见 :ref:`the Django FAQ <faq-install>` 。）
 
-Get Python at http://www.python.org. If you're running Linux or Mac OS X, you
-probably already have it installed.
+在 http://www.python.org 可以得到 Python 。如果你的操作系统是 Linux 或
+Mac OS X ，那么可能 Python 已经安装在系统中了。
 
 .. admonition:: Django on Jython
 
-    If you use Jython_ (a Python implementation for the Java platform), you'll
-    need to follow a few additional steps. See :ref:`howto-jython` for details.
+    如果你使用 Jython_ （一个 Java 平台上的 Python 实现），你将要做一些额外的
+    步骤。详见 :ref:`howto-jython` 。
 
 .. _jython: http://jython.org/
 
-Install Apache and mod_wsgi
+安装 Apache 和 mod_wsgi
 =============================
 
-If you just want to experiment with Django, skip ahead to the next section;
-Django includes a lightweight web server you can use for testing, so you won't
-need to set up Apache until you're ready to deploy Django in production.
+如果你只是想体验一下 Django ，那么请跳过本节直接阅读下一节。因为 Django 本身
+包含一个可用于测试的轻型 Web 服务器，所以在你要把 Django 部署到生产环境之前你
+不需要安装 Apache 。
 
-If you want to use Django on a production site, use Apache with `mod_wsgi`_.
-mod_wsgi is similar to mod_perl -- it embeds Python within Apache and loads
-Python code into memory when the server starts. Code stays in memory throughout
-the life of an Apache process, which leads to significant performance gains over
-other server arrangements. Make sure you have Apache installed, with the
-mod_wsgi module activated. Django will work with any version of Apache that
-supports mod_wsgi.
+如果你想在生产环境下使用 Django ，那么请使用带有 `mod_wsgi`_ 的  Apache 。
+mod_wsgi 与  mod_perl 类似，它把 Python 嵌入 Apache 并且在服务器启动时把
+Python 代码载入内存。在 Apache 进程的生存周期内，代码始终留在内存内，相比其他
+方式，这样可以获得显著的性能提升。请确保 Apache 已安装，并且 mod_wsgi 模块是
+可用的。 Django 可以在支持 mod_wsgi 的任何版本 Apache 下工作。
 
-See :ref:`How to use Django with mod_wsgi <howto-deployment-modwsgi>` for
-information on how to configure mod_wsgi once you have it installed.
+安装完 mod_wsgi 后如何配置 mod_wsgi ，请参考 
+See :ref:`如果通过 mod_wsgi 使用 Django <howto-deployment-modwsgi>` 。
 
-If you can't use mod_wsgi for some reason, fear not: Django supports many other
-deployment options. A great second choice is :ref:`mod_python
-<howto-deployment-modpython>`, the predecessor to mod_wsgi. Additionally, Django
-follows the WSGI_ spec, which allows it to run on a variety of server platforms.
-See the `server-arrangements wiki page`_ for specific installation instructions
-for each platform.
+如果因为某种原因你无法使用 mod_wsgi ，不用担心。 Django 支持其他多种部署方式。
+最好的第二选择是使用 mod_wsgi 的前身 :ref:`mod_python
+<howto-deployment-modpython>` 。另外 Django 遵循 WSGI_ 标准，可以运行于多种不同
+的服务器平台。相应平台的安装方法参见 `不同平台安装维基页面`_ 。
 
 .. _Apache: http://httpd.apache.org/
 .. _mod_wsgi: http://code.google.com/p/modwsgi/
 .. _WSGI: http://www.python.org/peps/pep-0333.html
-.. _server-arrangements wiki page: http://code.djangoproject.com/wiki/ServerArrangements
+.. _`不同平台安装维基页面`: http://code.djangoproject.com/wiki/ServerArrangements
 
 .. _database-installation:
 
-Get your database running
+让你的数据库运行起来
 =========================
 
-If you plan to use Django's database API functionality, you'll need to make
-sure a database server is running. Django supports many different database
-servers and is officially supported with PostgreSQL_, MySQL_, Oracle_ and
-SQLite_ (although SQLite doesn't require a separate server to be running).
+如果你要使用 Django 数据库 API ，那么先要让你的数据库运行起来。 Django 支持
+多种不同的数据库并且官方支持 PostgreSQL_ 、 MySQL_ 、 Oracle_ 和 SQLite_ 
+（虽然  SQLite 不需要运行一个独立的服务）。
 
-In addition to the officially supported databases, there are backends provided
-by 3rd parties that allow you to use other databases with Django:
+除了官方支持的数据库外，还有一些可通过第三方软件支持的数据库：
 
 * `Sybase SQL Anywhere`_
 * `IBM DB2`_
@@ -75,54 +68,43 @@ by 3rd parties that allow you to use other databases with Django:
 * Firebird_
 * ODBC_
 
-The Django versions and ORM features supported by these unofficial backends
-vary considerably. Queries regarding the specific capabilities of these
-unofficial backends, along with any support queries, should be directed to the
-support channels provided by each 3rd party project.
+但是这些第三方支持的 Django 的版本和 ORM 功能差别很大。如果你对这些第三方支持的
+功能或品质有疑问的话，请直接向这些第三方项目提问。
 
-In addition to a database backend, you'll need to make sure your Python
-database bindings are installed.
+所了让数据库运行外，你还要确定安装好这些数据库相应的 Python 库。
 
-* If you're using PostgreSQL, you'll need the psycopg_ package. Django supports
-  both version 1 and 2. (When you configure Django's database layer, specify
-  either ``postgresql`` [for version 1] or ``postgresql_psycopg2`` [for version 2].)
+* 如果你使用 PostgreSQL ，你需要 psycopg_ 包。 Django 既支持版本 1 也支持版本
+  2 。（当你定义 Django 的数据库层时，可以定义 ``postgresql`` [用于版本 1 ]，
+  也可以定义 ``postgresql_psycopg2`` [用于版本 2] 。）
 
-  If you're on Windows, check out the unofficial `compiled Windows version`_.
+  如果你使用 Windows ，可以试试非官方的 `编辑好的 Windows 版本`_ 。
 
-* If you're using MySQL, you'll need MySQLdb_, version 1.2.1p2 or higher. You
-  will also want to read the database-specific notes for the :ref:`MySQL
-  backend <ref-databases>`.
+* 如果你使用 MySQL ，你需要 1.2.1p2 或更高版本的 MySQLdb_ 。同时你还要读一下
+  关于, :ref:`MySQL 数据库 <ref-databases>` 的注意事项。
 
-* If you're using SQLite and either Python 2.3 or Python 2.4, you'll need
-  pysqlite_. Use version 2.0.3 or higher. Python 2.5 ships with an SQLite
-  wrapper in the standard library, so you don't need to install anything extra
-  in that case. Please read the SQLite backend :ref:`notes<sqlite-notes>`.
+* 如果你使用 SQLite 并且使用 Python 2.3 或者 Python 2.4 ，你需要 2.0.3 或更高
+  版本的 pysqlite_ 。 Python 2.5 把 SQLite 作为标准模块内置了，所以就不需要安装
+  其他额外的东西了。请参阅 SQLite 数据库 :ref:`注意事事项<sqlite-notes>` 。
 
-* If you're using Oracle, you'll need a copy of cx_Oracle_, but please
-  read the database-specific notes for the
-  :ref:`Oracle backend <oracle-notes>` for important information
-  regarding supported versions of both Oracle and ``cx_Oracle``.
+* 如果你使用 Oracle ，你需要 cx_Oracle_ 。但请先阅读, :ref:`Oracle 数据库
+  <oracle-notes>` 的注意事项，重点了解支持的 Oracle 和 ``cx_Oracle`` 的版本。
 
-* If you're using an unofficial 3rd party backend, please consult the
-  documentation provided for any additional requirements.
+* 如果你使用一个非官方支持的数据库，请阅读相关文档，了解额外的需求。
 
-If you plan to use Django's ``manage.py syncdb`` command to
-automatically create database tables for your models, you'll need to
-ensure that Django has permission to create and alter tables in the
-database you're using; if you plan to manually create the tables, you
-can simply grant Django ``SELECT``, ``INSERT``, ``UPDATE`` and
-``DELETE`` permissions. On some databases, Django will need
-``ALTER TABLE`` privileges during ``syncdb`` but won't issue
-``ALTER TABLE`` statements on a table once ``syncdb`` has created it.
+如果你计划使用 Django 的 ``manage.py syncdb`` 命令来自动创建数据库的表，请先
+确定在你的数据库中 Django 拥有创建和改变表的权限。如果你计划手动创建表，那么
+Django 只要有 ``SELECT`` 、 ``INSERT`` 、 ``UPDATE`` 和 ``DELETE`` 权限就可以
+了。在一些数据库中， Django 在执行 ``syncdb`` 时需要 ``ALTER TABLE`` 权限，但是
+创建完表以后就不需要了。
 
-If you're using Django's :ref:`testing framework<topics-testing>` to test database queries,
-Django will need permission to create a test database.
+如果你使用 Django 的 :ref:`测试框架<topics-testing>` 来测试数据库查询，那么
+Django 需要创建测试数据库的权限。
 
 .. _PostgreSQL: http://www.postgresql.org/
 .. _MySQL: http://www.mysql.com/
 .. _Django's ticket system: http://code.djangoproject.com/report/1
 .. _psycopg: http://initd.org/pub/software/psycopg/
-.. _compiled Windows version: http://stickpeople.com/projects/python/win-psycopg/
+.. _编辑好的 Windows 版本: http://stickpeople.com/projects/python/win-psycopg/
 .. _MySQLdb: http://sourceforge.net/projects/mysql-python
 .. _SQLite: http://www.sqlite.org/
 .. _pysqlite: http://pysqlite.org/
@@ -135,16 +117,13 @@ Django will need permission to create a test database.
 .. _ODBC: http://code.google.com/p/django-pyodbc/
 .. _removing-old-versions-of-django:
 
-Remove any old versions of Django
+删除任何旧版本的 Django
 =================================
 
-If you are upgrading your installation of Django from a previous version,
-you will need to uninstall the old Django version before installing the
-new version.
+如果你是升级 Django ，那么安装前应当先删除旧版本的 Django 。
 
-If you installed Django using ``setup.py install``, uninstalling
-is as simple as deleting the ``django`` directory from your Python
-``site-packages``.
+如果你以前使用 ``setup.py install`` 安装 Django ，那么删除旧版本就非常简单——
+只要删除你的 Python 目录下 ``site-packages`` 中的 ``django`` 目录就可以了。
 
 If you installed Django from a Python egg, remove the Django ``.egg`` file,
 and remove the reference to the egg in the file named ``easy-install.pth``.
