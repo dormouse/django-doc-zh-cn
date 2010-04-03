@@ -99,61 +99,52 @@
         release_date = models.DateField()
         num_stars = models.IntegerField()
 
-Field types
+Field 类型
 -----------
 
-Each field in your model should be an instance of the appropriate
-:class:`~django.db.models.Field` class. Django uses the field class types to
-determine a few things:
+你的模型中的每一个字段都应当是相应的 :class:`~django.db.models.Field` 类的实例。
+Django 使用字段类来决定以下事项：
 
-    * The database column type (e.g. ``INTEGER``, ``VARCHAR``).
+    * 数据库中的列的类型（如 ``INTEGER`` 、 ``VARCHAR`` ）。
 
-    * The widget to use in Django's admin interface, if you care to use it
-      (e.g. ``<input type="text">``, ``<select>``).
+    * 在 Django 管理站点中使用的控件（如 ``<input type="text">`` 、
+      ``<select>`` ）。
 
-    * The minimal validation requirements, used in Django's admin and in
-      automatically-generated forms.
+    * 在 Django 管理站点和自动创建的表单中使用的数据验证方式。
 
-Django ships with dozens of built-in field types; you can find the complete list
-in the :ref:`model field reference <model-field-types>`. You can easily write
-your own fields if Django's built-in ones don't do the trick; see
-:ref:`howto-custom-model-fields`.
+Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考 <model-field-types>`
+中找到完整的清单。如果内置的字段类型不够用，你可以方便地创建自定义的字段类型，
+参见 :ref:`howto-custom-model-fields` 。
 
-Field options
+Field 参数
 -------------
 
-Each field takes a certain set of field-specific arguments (documented in the
-:ref:`model field reference <model-field-types>`). For example,
-:class:`~django.db.models.CharField` (and its subclasses) require a
-:attr:`~django.db.models.CharField.max_length` argument which specifies the size
-of the ``VARCHAR`` database field used to store the data.
+每种字段都有一些特定的参数，参见 :ref:`模型字段参考 <model-field-types>` 。例如
+:class:`~django.db.models.CharField` （包括其子类）用于数据中的 ``VARCHAR``
+字段，这个类需要一个定义长度的 :attr:`~django.db.models.CharField.max_length`
+参数。
 
-There's also a set of common arguments available to all field types. All are
-optional. They're fully explained in the :ref:`reference
-<common-model-field-options>`, but here's a quick summary of the most often-used
-ones:
+还有一些通用于各种字段的参数，这些参数都是可选参数。详见 :ref:`参考
+<common-model-field-options>` ，以下是这些参数中最常用参数的概述：
 
     :attr:`~Field.null`
-        If ``True``, Django will store empty values as ``NULL`` in the database.
-        Default is ``False``.
+        如果值为 ``True`` ，那么 Django 在数据库中储存空值，即 ``NULL`` 。
+        缺省值为 ``False`` 。
 
     :attr:`~Field.blank`
-        If ``True``, the field is allowed to be blank. Default is ``False``.
+        如果值为 ``True`` ，那么 field 允许为空。缺省值为 ``False`` 。
 
-        Note that this is different than :attr:`~Field.null`.
-        :attr:`~Field.null` is purely database-related, whereas
-        :attr:`~Field.blank` is validation-related. If a field has
-        :attr:`blank=True <Field.blank>`, validation on Django's admin site will
-        allow entry of an empty value. If a field has :attr:`blank=False
-        <Field.blank>`, the field will be required.
+        注意这个参数与 :attr:`~Field.null` 是不同的。 :attr:`~Field.null`
+        是与数据库相关的，而 :attr:`~Field.blank` 是与验证相关的。如果一个
+        字段设置为 ``blank=True`` ，那么在 Django 的管理站点中允许输入项为空；
+        如果设置为 ``blank=False`` ，那么这个字段为必填项。
 
     :attr:`~Field.choices`
-        An iterable (e.g., a list or tuple) of 2-tuples to use as choices for
-        this field. If this is given, Django's admin will use a select box
-        instead of the standard text field and will limit choices to the choices
-        given.
+        一个用于该字段的选择项的可迭代对象（例如 list 或 tuple ），由二元 tuple
+        组成。如果有这个参数，那么 Django 管理站点中这个字段的输入会用一个选择
+        框来代替文本框。
 
-        A choices list looks like this::
+        一个 choices 列表例子如下::
 
             YEAR_IN_SCHOOL_CHOICES = (
                 (u'FR', u'Freshman'),
@@ -163,11 +154,9 @@ ones:
                 (u'GR', u'Graduate'),
             )
 
-        The first element in each tuple is the value that will be stored in the
-        database, the second element will be displayed by the admin interface,
-        or in a ModelChoiceField. Given an instance of a model object, the
-        display value for a choices field can be accessed using the
-        ``get_FOO_display`` method. For example::
+        每个 tuple 第一个元素该选项是要储存的实际值，第二个元素管理站点或
+        ModelChoiceField 中要显示的内容。通过使用 ``get_FOO_display`` 可以得到
+        一个模型对象要显示的值。例如::
 
             from django.db import models
 
@@ -189,104 +178,91 @@ ones:
             u'Male'
 
     :attr:`~Field.default`
-        The default value for the field. This can be a value or a callable
-        object. If callable it will be called every time a new object is
-        created.
+        字段的缺省值。可以是一个值或一个可调用的对象。如果是一个可调用的对象，
+        那么每次创建一个新对象时都会调用这个对象一次。
 
     :attr:`~Field.help_text`
-        Extra "help" text to be displayed under the field on the object's admin
-        form. It's useful for documentation even if your object doesn't have an
-        admin form.
+        显示在对象的 admin 表单中的 field 下的额外的“帮助”文本。即使你不使用
+        admin 表单，这个对于程序说明也有很大帮助。
 
     :attr:`~Field.primary_key`
-        If ``True``, this field is the primary key for the model.
+        如果值为 ``True`` ，那么这个字段就是模型的主键。
 
-        If you don't specify :attr:`primary_key=True <Field.primary_key>` for
-        any fields in your model, Django will automatically add an
-        :class:`IntegerField` to hold the primary key, so you don't need to set
-        :attr:`primary_key=True <Field.primary_key>` on any of your fields
-        unless you want to override the default primary-key behavior. For more,
-        see :ref:`automatic-primary-key-fields`.
+        如果你不在任何一个字段定义 ``primary_key=True`` ，那么 Django 自动添加
+        一个 :class:`IntegerField` 作为 primary key 。所以除非你想重载缺省的
+        primary-key ，你不必在任何一个 field 设置 ``primary_key=True`` 。更多
+        内容参见 :ref:`automatic-primary-key-fields` 。
 
     :attr:`~Field.unique`
-        If ``True``, this field must be unique throughout the table.
+        如果值为 ``True`` ，那么这个 field 在表中只能有唯一值。
 
-Again, these are just short descriptions of the most common field options. Full
-details can be found in the :ref:`common model field option reference
-<common-model-field-options>`.
+重复一下，以上只是最常用的字段参数的简要说明。完整的细节参见 :ref:`常用模型字段
+参数参考 <common-model-field-options>` 。
 
 .. _automatic-primary-key-fields:
 
-Automatic primary key fields
-----------------------------
+自动主键字段
+------------
 
-By default, Django gives each model the following field::
+缺省情况下， Django 给每一个模型添加下面的字段::
 
     id = models.AutoField(primary_key=True)
 
-This is an auto-incrementing primary key.
+这是一个自增主键。
 
-If you'd like to specify a custom primary key, just specify
-:attr:`primary_key=True <Field.primary_key>` on one of your fields. If Django
-sees you've explicitly set :attr:`Field.primary_key`, it won't add the automatic
-``id`` column.
+如果你想要自定义主键，那么只要在你想要的字段上定义
+:attr:`primary_key=True <Field.primary_key>` 就可以了。即如果 Django 发现你显式
+的设置了 :attr:`Field.primary_key` ，那么就不会自动增加 ``id`` 列了。
 
-Each model requires exactly one field to have :attr:`primary_key=True
-<Field.primary_key>`.
+每个模型都需要一个有 :attr:`primary_key=True <Field.primary_key>` 属性的字段。
 
 .. _verbose-field-names:
 
-Verbose field names
--------------------
+详细字段名称
+------------
 
-Each field type, except for :class:`~django.db.models.ForeignKey`,
-:class:`~django.db.models.ManyToManyField` and
-:class:`~django.db.models.OneToOneField`, takes an optional first positional
-argument -- a verbose name. If the verbose name isn't given, Django will
-automatically create it using the field's attribute name, converting underscores
-to spaces.
+除了 :class:`~django.db.models.ForeignKey` 、
+:class:`~django.db.models.ManyToManyField` 和
+:class:`~django.db.models.OneToOneField` 之外的第一个字段，第一个可选参数都是
+详细名称。如果这个详细名称参数没有定义，那么 Django 会把通过把字段名称的下划线
+转换为空格的方式自动创建字段的详细名称。
 
-In this example, the verbose name is ``"Person's first name"``::
+在下例中，详细名称为 ``"Person's first name"``::
 
     first_name = models.CharField("Person's first name", max_length=30)
 
-In this example, the verbose name is ``"first name"``::
+在下例中，详细名称为 ``"first name"``::
 
     first_name = models.CharField(max_length=30)
 
-:class:`~django.db.models.ForeignKey`,
-:class:`~django.db.models.ManyToManyField` and
-:class:`~django.db.models.OneToOneField` require the first argument to be a
-model class, so use the :attr:`~Field.verbose_name` keyword argument::
+:class:`~django.db.models.ForeignKey` 、
+:class:`~django.db.models.ManyToManyField` 和
+:class:`~django.db.models.OneToOneField` 的第一个参数是一个模型类，因此使用
+:attr:`~Field.verbose_name` 关键字来定义详细名称::
 
     poll = models.ForeignKey(Poll, verbose_name="the related poll")
     sites = models.ManyToManyField(Site, verbose_name="list of sites")
     place = models.OneToOneField(Place, verbose_name="related place")
 
-The convention is not to capitalize the first letter of the
-:attr:`~Field.verbose_name`. Django will automatically capitalize the first
-letter where it needs to.
+按照惯例， :attr:`~Field.verbose_name` 开头第一个字母是不大写的。 Django 会在
+恰当的时候自动处理开头字母大写。
 
-Relationships
--------------
+关系
+----
 
-Clearly, the power of relational databases lies in relating tables to each
-other. Django offers ways to define the three most common types of database
-relationships: many-to-one, many-to-many and one-to-one.
+显然，关系型数据库的关键是表与表之间的关系。 Django 提供了三种常用的的关系：
+多对一、多对多、一对一。
 
-Many-to-one relationships
-~~~~~~~~~~~~~~~~~~~~~~~~~
+多对一关系
+~~~~~~~~~~
 
-To define a many-to-one relationship, use :class:`~django.db.models.ForeignKey`.
-You use it just like any other :class:`~django.db.models.Field` type: by
-including it as a class attribute of your model.
+要定义多对一关系，请使用 :class:`~django.db.models.ForeignKey` 。使用方法与其他
+:class:`~django.db.models.Field` 类型相同：把它作为你的模型的一个类属性。
 
-:class:`~django.db.models.ForeignKey` requires a positional argument: the class
-to which the model is related.
+:class:`~django.db.models.ForeignKey` 需要一个位置参数：相关联的类。
 
-For example, if a ``Car`` model has a ``Manufacturer`` -- that is, a
-``Manufacturer`` makes multiple cars but each ``Car`` only has one
-``Manufacturer`` -- use the following definitions::
+例如，一个 ``汽车（ Car ）`` 模型有一个 ``厂商（Manufacturer ）`` 字段。一个
+``厂商`` 可以对应多个汽车，但一个 ``汽车`` 只有一个 ``厂商`` 。定义如下::
 
     class Manufacturer(models.Model):
         # ...
@@ -295,15 +271,13 @@ For example, if a ``Car`` model has a ``Manufacturer`` -- that is, a
         manufacturer = models.ForeignKey(Manufacturer)
         # ...
 
-You can also create :ref:`recursive relationships <recursive-relationships>` (an
-object with a many-to-one relationship to itself) and :ref:`relationships to
-models not yet defined <lazy-relationships>`; see :ref:`the model field
-reference <ref-foreignkey>` for details.
+你也可以创建一个 :ref:`递归关系 <recursive-relationships>` （一个对象对于其本身
+有多对一关系）和 :ref:`对应于未创建模型的关系 <lazy-relationships>` ，详见
+:ref:`模型字段关系参考 <ref-foreignkey>` 。
 
-It's suggested, but not required, that the name of a
-:class:`~django.db.models.ForeignKey` field (``manufacturer`` in the example
-above) be the name of the model, lowercase. You can, of course, call the field
-whatever you want. For example::
+只是作为一个建议，但不是规定，一个 :class:`~django.db.models.ForeignKey` 字段（
+如上例中的 ``厂商`` ）的名称应当与相应模型的名称相同，并且小写。当然，
+你也可以定义为任何名称，例如::
 
     class Car(models.Model):
         company_that_makes_it = models.ForeignKey(Manufacturer)
@@ -311,29 +285,24 @@ whatever you want. For example::
 
 .. seealso::
 
-    See the `Many-to-one relationship model example`_ for a full example.
+    更多例子参见 `多对一关系模型举例`_ 。
 
-.. _Many-to-one relationship model example: http://www.djangoproject.com/documentation/models/many_to_one/
+.. _多对一关系模型举例: http://www.djangoproject.com/documentation/models/many_to_one/
 
-:class:`~django.db.models.ForeignKey` fields also accept a number of extra
-arguments which are explained in :ref:`the model field reference
-<foreign-key-arguments>`. These options help define how the relationship should
-work; all are optional.
+:class:`~django.db.models.ForeignKey` 也可以接受许多额外的参数，详见 :ref:`模型
+字段参考 <foreign-key-arguments>` 。这些参数定义了关系如何工作，且都是可选参数。
 
-Many-to-many relationships
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+多对多关系
+~~~~~~~~~~
 
-To define a many-to-many relationship, use
-:class:`~django.db.models.ManyToManyField`. You use it just like any other
-:class:`~django.db.models.Field` type: by including it as a class attribute of
-your model.
+要定义多对多关系，请使用 :class:`~django.db.models.ManyToManyField` 。使用
+方法与其他 :class:`~django.db.models.Field` 类型相同：把它作为你的模型的一个
+类属性。
 
-:class:`~django.db.models.ManyToManyField` requires a positional argument: the
-class to which the model is related.
+:class:`~django.db.models.ManyToManyField` 需要一个位置参数：相关联的类。
 
-For example, if a ``Pizza`` has multiple ``Topping`` objects -- that is, a
-``Topping`` can be on multiple pizzas and each ``Pizza`` has multiple toppings
--- here's how you'd represent that::
+例如，假设一个 ``比萨饼（ Pizza ）`` 有多个 ``调料（ Topping ）`` 对象，一个
+``调料`` 对应多个比萨饼并且每个 ``比萨饼`` 有多个调料。定义如下::
 
     class Topping(models.Model):
         # ...
@@ -342,64 +311,54 @@ For example, if a ``Pizza`` has multiple ``Topping`` objects -- that is, a
         # ...
         toppings = models.ManyToManyField(Topping)
 
-As with :class:`~django.db.models.ForeignKey`, you can also create
-:ref:`recursive relationships <recursive-relationships>` (an object with a
-many-to-one relationship to itself) and :ref:`relationships to models not yet
-defined <lazy-relationships>`; see :ref:`the model field reference
-<ref-manytomany>` for details.
+就象 :class:`~django.db.models.ForeignKey` 一样，你也可以创建
+:ref:`递归关系 <recursive-relationships>` （一个对象对于其本身
+有多对一关系）和 :ref:`对应于未创建模型的关系 <lazy-relationships>` ，详见
+:ref:`模型字段关系参考 <ref-manytomany>` 。
 
-It's suggested, but not required, that the name of a
-:class:`~django.db.models.ManyToManyField` (``toppings`` in the example above)
-be a plural describing the set of related model objects.
+只是作为一个建议，但不是规定，一个
+:class:`~django.db.models.ManyToManyField` （如上例中的 ``调料`` ）的名称应当是
+相关模型对象的复数。
 
-It doesn't matter which model gets the
-:class:`~django.db.models.ManyToManyField`, but you only need it in one of the
-models -- not in both.
+不管在哪个模型中使用 :class:`~django.db.models.ManyToManyField` ，但是你只需要
+在一个模型中使用，不需要两个模型中都使用。
 
-Generally, :class:`~django.db.models.ManyToManyField` instances should go in the
-object that's going to be edited in the admin interface, if you're using
-Django's admin. In the above example, ``toppings`` is in ``Pizza`` (rather than
-``Topping`` having a ``pizzas`` :class:`~django.db.models.ManyToManyField` )
-because it's more natural to think about a pizza having toppings than a
-topping being on multiple pizzas. The way it's set up above, the ``Pizza`` admin
-form would let users select the toppings.
+通常，如果你想使用管理站点，那么 :class:`~django.db.models.ManyToManyField`
+实例应当在准备中管理站点中编辑的对象中使用。在上例中， ``调料`` 在
+``比萨饼`` 中定义（比 ``调料`` 有一个关于 ``比萨饼`` 的
+:class:`~django.db.models.ManyToManyField` 好）。因为一个比萨饼有多种调料比一个
+调料有多个比萨饼要自然一点。根据上例中的定义，在 ``比萨饼`` 管理表单中
+用户可以选择不同的调料。
 
 .. seealso::
 
-    See the `Many-to-many relationship model example`_ for a full example.
+    更多例子参见 `多对多关系模型举例`_ 。
 
-.. _Many-to-many relationship model example: http://www.djangoproject.com/documentation/models/many_to_many/
+.. _多对多关系模型举例: http://www.djangoproject.com/documentation/models/many_to_many/
 
-:class:`~django.db.models.ManyToManyField` fields also accept a number of extra
-arguments which are explained in :ref:`the model field reference
-<manytomany-arguments>`. These options help define how the relationship should
-work; all are optional.
+:class:`~django.db.models.ManyToManyField` 也可以接受许多额外的参数，详见 :ref:`模型
+字段参考 <manytomany-arguments>` 。这些参数定义了关系如何工作，且都是可选参数。
 
 .. _intermediary-manytomany:
 
-Extra fields on many-to-many relationships
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+多对多关系上的扩展字段
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 1.0
 
-When you're only dealing with simple many-to-many relationships such as
-mixing and matching pizzas and toppings, a standard :class:`~django.db.models.ManyToManyField` is all you need. However, sometimes
-you may need to associate data with the relationship between two models.
+当你处理如上例中的比萨饼和调料这种简单的多对多关系时，标准的
+:class:`~django.db.models.ManyToManyField` 就够用了。然而，有时你需要处理两个
+模型之间的相关联的数据，标准的类就不够用了。
 
-For example, consider the case of an application tracking the musical groups
-which musicians belong to. There is a many-to-many relationship between a person
-and the groups of which they are a member, so you could use a
-:class:`~django.db.models.ManyToManyField` to represent this relationship.
-However, there is a lot of detail about the membership that you might want to
-collect, such as the date at which the person joined the group.
+例如，假设有一个管理音乐团体和音乐家的应用程序。这个程序中有一个人与其所属团体
+之间的关系，所以你可以使用一个 :class:`~django.db.models.ManyToManyField` 来
+表现这种关系。然而，你可能要搜集一个成员的许多信息，如成员加入团体的时间。
 
-For these situations, Django allows you to specify the model that will be used
-to govern the many-to-many relationship. You can then put extra fields on the
-intermediate model. The intermediate model is associated with the
-:class:`~django.db.models.ManyToManyField` using the
-:attr:`through <ManyToManyField.through>` argument to point to the model
-that will act as an intermediary. For our musician example, the code would look
-something like this::
+对于这种情况，在 Django 中你可以定义中介模型专门用于处理关系的模型。你可以把
+扩展的字段放在中介模型中。中介模型是通过使用
+:class:`~django.db.models.ManyToManyField` 的
+:attr:`through <ManyToManyField.through>` 属性来定义的。对于上述的音乐家的例子，
+代码如下::
 
     class Person(models.Model):
         name = models.CharField(max_length=128)
@@ -420,35 +379,27 @@ something like this::
         date_joined = models.DateField()
         invite_reason = models.CharField(max_length=64)
 
-When you set up the intermediary model, you explicitly specify foreign
-keys to the models that are involved in the ManyToMany relation. This
-explicit declaration defines how the two models are related.
+在你的中介模型中，你必须把多对多关系中的两个模型显式定义为外键，以明确相关模型
+是如何关联的。
 
-There are a few restrictions on the intermediate model:
+中介模型有一些规定：
 
-    * Your intermediate model must contain one - and *only* one - foreign key
-      to the target model (this would be ``Person`` in our example). If you
-      have more than one foreign key, a validation error will be raised.
+    * 你的中模型中必须有且仅有一个目标模型外键（如上例中的 ``Person`` ）。如果
+      定义了多个，会产生验证错误。
 
-    * Your intermediate model must contain one - and *only* one - foreign key
-      to the source model (this would be ``Group`` in our example). If you
-      have more than one foreign key, a validation error will be raised.
+    * 你的中模型中必须有且仅有一个来源模型外键（如上例中的 ``Group`` ）。如果
+      定义了多个，会产生验证错误。
 
-    * The only exception to this is a model which has a many-to-many
-      relationship to itself, through an intermediary model. In this
-      case, two foreign keys to the same model are permitted, but they
-      will be treated as the two (different) sides of the many-to-many
-      relation.
+    * 唯一的例外是，当一个模型通过中介模型来表现相对于自身的多对多关系时，两个
+      外键可以指向同一个模型，但是这两个外键会被当作多对多关系的两面来对待。
 
-    * When defining a many-to-many relationship from a model to
-      itself, using an intermediary model, you *must* use
-      :attr:`symmetrical=False <ManyToManyField.symmetrical>` (see
-      :ref:`the model field reference <manytomany-arguments>`).
+    * 当使用中介模型来表现相对于自身的多对多关系时，你 *必须* 使用
+      :attr:`symmetrical=False <ManyToManyField.symmetrical>` （参见
+      :ref:`模型字段参考 <manytomany-arguments>` ）。
 
-Now that you have set up your :class:`~django.db.models.ManyToManyField` to use
-your intermediary model (``Membership``, in this case), you're ready to start
-creating some many-to-many relationships. You do this by creating instances of
-the intermediate model::
+现在你已经通过使用中介模型（本例中的 ``Membership`` ）来表现
+:class:`~django.db.models.ManyToManyField` ，下面通过创建中介模型的实例来创建
+一些多对多关系::
 
     >>> ringo = Person.objects.create(name="Ringo Starr")
     >>> paul = Person.objects.create(name="Paul McCartney")
@@ -467,97 +418,83 @@ the intermediate model::
     >>> beatles.members.all()
     [<Person: Ringo Starr>, <Person: Paul McCartney>]
 
-Unlike normal many-to-many fields, you *can't* use ``add``, ``create``,
-or assignment (i.e., ``beatles.members = [...]``) to create relationships::
+和一般多对多关系字段不同，你 *不能* 使用 ``add`` 、 ``create`` 或赋值（例如：
+``beatles.members = [...]`` ）来创建关系::
 
-    # THIS WILL NOT WORK
+    # 这样是不对的
     >>> beatles.members.add(john)
-    # NEITHER WILL THIS
+    # 这样也不对
     >>> beatles.members.create(name="George Harrison")
-    # AND NEITHER WILL THIS
+    # 这样还是不对
     >>> beatles.members = [john, paul, ringo, george]
 
-Why? You can't just create a relationship between a ``Person`` and a ``Group``
-- you need to specify all the detail for the relationship required by the
-``Membership`` model. The simple ``add``, ``create`` and assignment calls
-don't provide a way to specify this extra detail. As a result, they are
-disabled for many-to-many relationships that use an intermediate model.
-The only way to create this type of relationship is to create instances of the
-intermediate model.
+为什么？因为你不能只创建 ``Person`` 和 ``Group`` 之间的关系，你还必须去定义
+``Membership`` 模型所需要的全部细节内容。而简单的 ``add`` 、 ``create`` 和赋值
+无法做到这点。所以使用中介模型不能这样创建关系，只能通过创建中介模型的实例来
+创建关系。
 
-The ``remove`` method is disabled for similar reasons. However, the
-``clear()`` method can be used to remove all many-to-many relationships
-for an instance::
+同理， ``remove`` 方法也不可以。然而 ``clear()`` 方法可以用于移除一个实例的所有
+多对多关系::
 
-    # Beatles have broken up
+    # Beatles 中所有关系都被清除
     >>> beatles.members.clear()
 
-Once you have established the many-to-many relationships by creating instances
-of your intermediate model, you can issue queries. Just as with normal
-many-to-many relationships, you can query using the attributes of the
-many-to-many-related model::
+一旦你通过创建中介模型实例的方式创建了关系，就可以进行查询了。和一般多对多关系
+一样，你可以使用多对多关系模型的属性来查询::
 
-    # Find all the groups with a member whose name starts with 'Paul'
+    # 查找所有包含名字以 'Paul' 开头的组员的组
     >>> Group.objects.filter(members__name__startswith='Paul')
     [<Group: The Beatles>]
 
-As you are using an intermediate model, you can also query on its attributes::
+当你使用中介模型时，你还可以通过相关模型的属性来查询::
 
-    # Find all the members of the Beatles that joined after 1 Jan 1961
+    # 查找所有 Beatles 的 1961 年 1 月 1 日以后加入的成员
     >>> Person.objects.filter(
     ...     group__name='The Beatles',
     ...     membership__date_joined__gt=date(1961,1,1))
     [<Person: Ringo Starr]
 
 
-One-to-one relationships
-~~~~~~~~~~~~~~~~~~~~~~~~
+一对一关系
+~~~~~~~~~~
 
-To define a one-to-one relationship, use
-:class:`~django.db.models.OneToOneField`. You use it just like any other
-``Field`` type: by including it as a class attribute of your model.
+要定义一对一关系，请使用 :class:`~django.db.models.OneToOneField` 。使用
+方法与其他 :class:`~django.db.models.Field` 类型相同：把它作为你的模型的一个
+类属性。
 
-This is most useful on the primary key of an object when that object "extends"
-another object in some way.
+这种关系常用于通过主键来扩展相关的对象。
 
-:class:`~django.db.models.OneToOneField` requires a positional argument: the
-class to which the model is related.
+:class:`~django.db.models.OneToOneField` 需要一个位置参数：相关联的类。
 
-For example, if you were building a database of "places", you would
-build pretty standard stuff such as address, phone number, etc. in the
-database. Then, if you wanted to build a database of restaurants on
-top of the places, instead of repeating yourself and replicating those
-fields in the ``Restaurant`` model, you could make ``Restaurant`` have
-a :class:`~django.db.models.OneToOneField` to ``Place`` (because a
-restaurant "is a" place; in fact, to handle this you'd typically use
-:ref:`inheritance <model-inheritance>`, which involves an implicit
-one-to-one relation).
+例如，假设你要建立一个“场所”数据库，你会在数据库中创建一些常用的内容，如地址、
+电话号码等等。接着，假设你要创建一个基于场所的餐厅数据库，那么你就不必重复创建
+场所数据库中已有的内容，而只要在 ``Restaurant`` 模型中建立一个与 ``Place`` 关联
+的 :class:`~django.db.models.OneToOneField` 就可以了。因为餐厅是场所的一种。
+实际上，要处理这种情况，最好使用 :ref:`继承 <model-inheritance>` 。继承暗含了一
+对一关系。
 
-As with :class:`~django.db.models.ForeignKey`, a
-:ref:`recursive relationship <recursive-relationships>`
-can be defined and
-:ref:`references to as-yet undefined models <lazy-relationships>`
-can be made; see :ref:`the model field reference <ref-onetoone>` for details.
+就象 :class:`~django.db.models.ForeignKey` 一样，你也可以创建
+:ref:`递归关系 <recursive-relationships>` （一个对象对于其本身有多对一关系）和
+:ref:`对应于未创建模型的关系 <lazy-relationships>` ，详见
+:ref:`模型字段关系参考 <ref-onetoone>` 。
 
 .. seealso::
 
-    See the `One-to-one relationship model example`_ for a full example.
+    更多例子参见 `一对一关系模型举例`_ 。
 
-.. _One-to-one relationship model example: http://www.djangoproject.com/documentation/models/one_to_one/
+.. _一对一关系模型举例: http://www.djangoproject.com/documentation/models/one_to_one/
 
 .. versionadded:: 1.0
 
-:class:`~django.db.models.OneToOneField` fields also accept one optional argument
-described in the :ref:`model field reference <ref-onetoone>`.
+:class:`~django.db.models.OneToOneField` 字段还可以接受一个 :ref:`模型字段参考
+<ref-onetoone>` 中说明的可选参数。
 
-:class:`~django.db.models.OneToOneField` classes used to automatically become
-the primary key on a model. This is no longer true (although you can manually
-pass in the :attr:`~django.db.models.Field.primary_key` argument if you like).
-Thus, it's now possible to have multiple fields of type
-:class:`~django.db.models.OneToOneField` on a single model.
+:class:`~django.db.models.OneToOneField` 类通常自动成为一个模型的主键。但是你也
+可以通过 :attr:`~django.db.models.Field.primary_key` 参数来手动设置。现在也可以
+在一个模型中使用多个 :class:`~django.db.models.OneToOneField` 。
 
-Models across files
--------------------
+使用不同文件中的模型
+--------------------
 
 It's perfectly OK to relate a model to one from another app. To do this,
 import the related model at the top of the model that holds your model. Then,
