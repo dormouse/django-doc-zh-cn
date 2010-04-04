@@ -99,7 +99,7 @@
         release_date = models.DateField()
         num_stars = models.IntegerField()
 
-Field 类型
+字段类型
 -----------
 
 你的模型中的每一个字段都应当是相应的 :class:`~django.db.models.Field` 类的实例。
@@ -116,7 +116,7 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 中找到完整的清单。如果内置的字段类型不够用，你可以方便地创建自定义的字段类型，
 参见 :ref:`howto-custom-model-fields` 。
 
-Field 参数
+字段参数
 -------------
 
 每种字段都有一些特定的参数，参见 :ref:`模型字段参考 <model-field-types>` 。例如
@@ -496,9 +496,8 @@ Field 参数
 使用不同文件中的模型
 --------------------
 
-It's perfectly OK to relate a model to one from another app. To do this,
-import the related model at the top of the model that holds your model. Then,
-just refer to the other model class wherever needed. For example::
+关联不同应用之中模型是非常方便的。只要在模型的开头导入要关联的模型，就可以引用
+在本模型中引用了。例如::
 
     from mysite.geography.models import ZipCode
 
@@ -506,41 +505,36 @@ just refer to the other model class wherever needed. For example::
         # ...
         zip_code = models.ForeignKey(ZipCode)
 
-Field name restrictions
------------------------
+字段名限制
+----------
 
-Django places only two restrictions on model field names:
+Django 中字段名只有两个限制：
 
-    1. A field name cannot be a Python reserved word, because that would result
-       in a Python syntax error. For example::
-
-           class Example(models.Model):
-               pass = models.IntegerField() # 'pass' is a reserved word!
-
-    2. A field name cannot contain more than one underscore in a row, due to
-       the way Django's query lookup syntax works. For example::
+    1. 字段名不能是 Python 保留字，否则会引发 Python 语法错误。例如::
 
            class Example(models.Model):
-               foo__bar = models.IntegerField() # 'foo__bar' has two underscores!
+               pass = models.IntegerField() # 'pass' 是一个保留字！
 
-These limitations can be worked around, though, because your field name doesn't
-necessarily have to match your database column name. See the
-:attr:`~Field.db_column` option.
+    2. 字段名不能包含一个以上的下划线，这是 Django 的查询搜索语法所决定的。
+       例如::
 
-SQL reserved words, such as ``join``, ``where`` or ``select``, *are* allowed as
-model field names, because Django escapes all database table names and column
-names in every underlying SQL query. It uses the quoting syntax of your
-particular database engine.
+           class Example(models.Model):
+               foo__bar = models.IntegerField() # 'foo__bar' 有两个下划线！
 
-Custom field types
+以上限制是可以绕过的，因为字段名称与数据库中的列名称不必相同。参见
+:attr:`~Field.db_column` 选项。
+
+SQL 保留字，如 ``join`` 、 ``where`` 或 ``select`` ， *允许* 作为模型字段的名称。
+因为 Django 在背后生成的 SQL 查询语句中对所有数据库表名和列名都进行了转义，这些
+SQL 语句针对特定的数据库使用引号语法。
+
+自定义字段类型
 ------------------
 
 .. versionadded:: 1.0
 
-If one of the existing model fields cannot be used to fit your purposes, or if
-you wish to take advantage of some less common database column types, you can
-create your own field class. Full coverage of creating your own fields is
-provided in :ref:`howto-custom-model-fields`.
+如果现有的模型字段类型无法满足你的需要，或者你想要使用冷门的数据库列类型，那么
+你可以创建你自己的字段类。详见 :ref:`howto-custom-model-fields` 。
 
 .. _meta-options:
 
