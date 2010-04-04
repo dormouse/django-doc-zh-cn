@@ -218,39 +218,35 @@ Django 需要创建测试数据库的权限。
    这可以是 Windows 系统下最方便的方法，因为 Windows 系统不支持符号链接。（环境
    变更可以在 Windos 系统的 `控制面板`_ 中定义。）
 
-   .. admonition:: What about Apache and mod_python?
+   .. admonition:: 那么 Apache 和 mod_python 呢？
 
-      If you take the approach of setting ``PYTHONPATH``, you'll need to
-      remember to do the same thing in your Apache configuration once you
-      deploy your production site. Do this by setting ``PythonPath`` in your
-      Apache configuration file.
+      如果你会设置好了 ``PYTHONPATH`` ，那么在部署你的生产站点时请在你的 Apache
+      配置文件中也设置 ``PYTHONPATH`` 。
 
-      More information about deployment is available, of course, in our
-      :ref:`How to use Django with mod_python <howto-deployment-modpython>`
-      documentation.
+      在我们的
+      :ref:`如何在 mod_python 下使用 Django <howto-deployment-modpython>` 文档中
+      有更多关于部署的内容。
 
-4. On Unix-like systems, create a symbolic link to the file
-   ``django-trunk/django/bin/django-admin.py`` in a directory on your system
-   path, such as ``/usr/local/bin``. For example:
+4. 在类 Unix 系统中，在系统路径所包含的目录（如 ``/usr/local/bin`` ）下创建一个
+   指向 ``django-trunk/django/bin/django-admin.py`` 文件的符号链接。例如：
 
    .. code-block:: bash
 
        ln -s `pwd`/django-trunk/django/bin/django-admin.py /usr/local/bin
 
-   This simply lets you type ``django-admin.py`` from within any directory,
-   rather than having to qualify the command with the full path to the file.
+   这样可以让你的任何目录下都可以运行 ``django-admin.py`` ，而不用输入完整的
+   路径。
 
-   On Windows systems, the same result can be achieved by copying the file
-   ``django-trunk/django/bin/django-admin.py`` to somewhere on your system
-   path, for example ``C:\Python24\Scripts``.
+   在 Windows 系统中，如果要实现同样目的，那么要把
+   ``django-trunk/django/bin/django-admin.py`` 文件复制到系统路径所包含的目录中，
+   例如 ``C:\Python24\Scripts`` 。
 
-You *don't* have to run ``python setup.py install``, because you've already
-carried out the equivalent actions in steps 3 and 4.
+你 *不必* 运行 ``python setup.py install`` ，因为在第 3 步和第 4 步中你所做的
+操作相当于运行了这个命令。
 
-When you want to update your copy of the Django source code, just run the
-command ``svn update`` from within the ``django-trunk`` directory. When you do
-this, Subversion will automatically download any changes.
+当你想要升级 Django 的源代码时，只要在 ``django-trunk`` 目录中运行
+``svn update`` 命令就行了。这个命令会将最新的内容自动更新。
 
-.. _`download page`: http://www.djangoproject.com/download/
+.. _`下载页面`: http://www.djangoproject.com/download/
 .. _Subversion: http://subversion.tigris.org/
-.. _from the Control Panel: http://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/sysdm_advancd_environmnt_addchange_variable.mspx
+.. _控制面板: http://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/sysdm_advancd_environmnt_addchange_variable.mspx
