@@ -538,10 +538,10 @@ SQL 语句针对特定的数据库使用引号语法。
 
 .. _meta-options:
 
-Meta options
+元数据选项
 ============
 
-Give your model metadata by using an inner ``class Meta``, like so::
+通过内置的 ``class Meta`` 可以为你的模型加入元数据，就象下面的例子::
 
     class Ox(models.Model):
         horn_length = models.IntegerField()
@@ -550,8 +550,8 @@ Give your model metadata by using an inner ``class Meta``, like so::
             ordering = ["horn_length"]
             verbose_name_plural = "oxen"
 
-Model metadata is "anything that's not a field", such as ordering options
-(:attr:`~Options.ordering`), database table name (:attr:`~Options.db_table`), or
+模型元数据是“除了字段外的所有东西”，如排序参数（ :attr:`~Options.ordering` ）、
+数据库表名（ :attr:`~Options.db_table` ）或), or
 human-readable singular and plural names (:attr:`~Options.verbose_name` and
 :attr:`~Options.verbose_name_plural`). None are required, and adding ``class
 Meta`` to a model is completely optional.
