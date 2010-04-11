@@ -712,14 +712,14 @@ Django 中可能出现的继承有以下三种：
 在多数情况下，这种类型的继承就是最适用的。这种继承提供一种在 Python 级别提取
 相同信息，同时在数据库级别每个子模型只创建一个数据库表的方法。
 
-``Meta`` inheritance
-~~~~~~~~~~~~~~~~~~~~
+``Meta`` 继承
+~~~~~~~~~~~~~
 
-When an abstract base class is created, Django makes any :ref:`Meta <meta-options>`
-inner class you declared in the base class available as an
-attribute. If a child class does not declare its own :ref:`Meta <meta-options>`
-class, it will inherit the parent's :ref:`Meta <meta-options>`. If the child wants to
-extend the parent's :ref:`Meta <meta-options>` class, it can subclass it. For example::
+当一个抽象基类被创建后， Django 把任何该类中内置的 :ref:`元数据
+<meta-options>` 都作为一个属性。如果该类的子类没有声明其自己的 :ref:`元数据
+<meta-options>` ，那么子类将会继承父类的 :ref:`元数据 <meta-options>` 。如果
+子类希望扩展父类的 :ref:`元数据 <meta-options>` ，可以继承父类的元数据类，然后
+扩展。例如::
 
     class CommonInfo(models.Model):
         ...
@@ -732,34 +732,29 @@ extend the parent's :ref:`Meta <meta-options>` class, it can subclass it. For ex
         class Meta(CommonInfo.Meta):
             db_table = 'student_info'
 
-Django does make one adjustment to the :ref:`Meta <meta-options>` class of an abstract base
-class: before installing the :ref:`Meta <meta-options>` attribute, it sets ``abstract=False``.
-This means that children of abstract base classes don't automatically become
-abstract classes themselves. Of course, you can make an abstract base class
-that inherits from another abstract base class. You just need to remember to
-explicitly set ``abstract=True`` each time.
+在 Django 中，对于抽象基类的 :ref:`元数据 <meta-options>` 有一个调整：在安装
+:ref:`元数据 <meta-options>` 属性前，设置 ``abstract=False`` 。这就意味着抽象
+基类的子类不会自动成为抽象基类。当然，你可以把抽象基类的子类也变成抽象基类，
+只要显式地声明 ``abstract=True`` 就行了。
 
-Some attributes won't make sense to include in the :ref:`Meta <meta-options>` class of an
-abstract base class. For example, including ``db_table`` would mean that all
-the child classes (the ones that don't specify their own :ref:`Meta <meta-options>`) would use
-the same database table, which is almost certainly not what you want.
+一些属性不应当在抽象基类的 :ref:`元数据 <meta-options>` 中使用。例如，如果使用
+``db_table`` ，那么其所有子类（没有在 :ref:`元数据 <meta-options>` 中定义自己的
+数据库表的）都会使用同一个数据库表，多数情况下这不会是你要的结果。
 
 .. _abstract-related-name:
 
-Be careful with ``related_name``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+小心 ``related_name``
+~~~~~~~~~~~~~~~~~~~~~
 
-If you are using the :attr:`~django.db.models.ForeignKey.related_name` attribute on a ``ForeignKey`` or
-``ManyToManyField``, you must always specify a *unique* reverse name for the
-field. This would normally cause a problem in abstract base classes, since the
-fields on this class are included into each of the child classes, with exactly
-the same values for the attributes (including :attr:`~django.db.models.ForeignKey.related_name`) each time.
+如果在一个 ``ForeignKey`` 或 ``ManyToManyField`` 上使用
+:attr:`~django.db.models.ForeignKey.related_name` 属性，那么你一定要给字段定义
+一个 *唯一* 的反向名称。否则，在抽象基类中常常会出问题，因为抽象基类中的字段会
+包含到其子类中，造成重名。
 
-To work around this problem, when you are using :attr:`~django.db.models.ForeignKey.related_name` in an
-abstract base class (only), part of the name should be the string
-``'%(class)s'``. This is replaced by the lower-cased name of the child class
-that the field is used in. Since each class has a different name, each related
-name will end up being different. For example::
+如果要解决这个问题，那么当你在（仅在）抽象基类中使用
+:attr:`~django.db.models.ForeignKey.related_name` 时，名称应当包含
+``'%(class)s'`` 。这个字符串会被其小写的子类名称所代替。因为每个子类的名称是
+不同的，所有生成的关联名字也会不同。例如::
 
     class Base(models.Model):
         m2m = models.ManyToManyField(OtherModel, related_name="%(class)s_related")
@@ -773,31 +768,27 @@ name will end up being different. For example::
     class ChildB(Base):
         pass
 
-The reverse name of the ``ChildA.m2m`` field will be ``childa_related``,
-whilst the reverse name of the ``ChildB.m2m`` field will be
-``childb_related``. It is up to you how you use the ``'%(class)s'`` portion to
-construct your related name, but if you forget to use it, Django will raise
-errors when you validate your models (or run :djadmin:`syncdb`).
+``ChildA.m2m`` 字段的反向名为 ``childa_related`` ，同时 ``ChildB.m2m`` 字段的
+反向名为 ``childb_related`` 。是否使用 ``'%(class)s'`` 作为你的关联名称的一部分
+由你决定，但是如果不使用，那么当你验证你的模型（或运行 :djadmin:`syncd` 时），
+会产生错误。
 
-If you don't specify a :attr:`~django.db.models.ForeignKey.related_name` attribute for a field in an
-abstract base class, the default reverse name will be the name of the
-child class followed by ``'_set'``, just as it normally would be if
-you'd declared the field directly on the child class. For example, in
-the above code, if the :attr:`~django.db.models.ForeignKey.related_name` attribute was omitted, the
-reverse name for the ``m2m`` field would be ``childa_set`` in the
-``ChildA`` case and ``childb_set`` for the ``ChildB`` field.
+如果你没有定义抽象基类中的字段的
+:attr:`~django.db.models.ForeignKey.related_name` 属性，并且如果你没有在子类中
+直接声明反向名称，那么缺省的反向名称将会是子类名加上 ``'_set'`` 。例如在上面的
+代码中，如果 :attr:`~django.db.models.ForeignKey.related_name` 属性被省略了，
+那么 ``ChildA`` 的 ``m2m`` 字段的反向名称将会是 ``childa_set`` ，而  ``ChildB``
+的是 ``childb_set`` 。
 
 .. _multi-table-inheritance:
 
-Multi-table inheritance
------------------------
+多表继承
+--------
 
-The second type of model inheritance supported by Django is when each model in
-the hierarchy is a model all by itself. Each model corresponds to its own
-database table and can be queried and created individually. The inheritance
-relationship introduces links between the child model and each of its parents
-(via an automatically-created :class:`~django.db.models.fields.OneToOneField`).
-For example::
+多表继承是 Django 支持的第二种模型继承类型，这种继承类型中的模型是相对独立的。
+即每个模型都有自己对应的可以查询和分别创建的数据库表。这种继承会引进子模型与每
+一个父模型之间的链接（通过一个自动创建的
+:class:`~django.db.models.fields.OneToOneField` ）。例如::
 
     class Place(models.Model):
         name = models.CharField(max_length=50)
@@ -807,29 +798,28 @@ For example::
         serves_hot_dogs = models.BooleanField()
         serves_pizza = models.BooleanField()
 
-All of the fields of ``Place`` will also be available in ``Restaurant``,
-although the data will reside in a different database table. So these are both
-possible::
+所有 ``地点（ Place ）`` 中的字段在 ``餐厅（ Restaurant ）`` 都能使用，但是两者
+的数据会储存在不同的数据库表中。因此以下代码都是可用的::
 
     >>> Place.objects.filter(name="Bob's Cafe")
     >>> Restaurant.objects.filter(name="Bob's Cafe")
 
-If you have a ``Place`` that is also a ``Restaurant``, you can get from the
-``Place`` object to the ``Restaurant`` object by using the lower-case version
-of the model name::
+如果你有一个 ``地点`` 同时也是一个 ``餐厅`` ，你可以通过小写的模型名称用
+``地点`` 对象引用 ``餐厅`` 对象::
 
     >>> p = Place.objects.filter(name="Bob's Cafe")
-    # If Bob's Cafe is a Restaurant object, this will give the child class:
+    # 如果 Bob's Cafe 是一个餐厅对象，以下代码将会给出子类：
     >>> p.restaurant
     <Restaurant: ...>
 
-However, if ``p`` in the above example was *not* a ``Restaurant`` (it had been
-created directly as a ``Place`` object or was the parent of some other class),
-referring to ``p.restaurant`` would raise a Restaurant.DoesNotExist exception.
+然而，如果上例中的 ``p`` *不是* 一个 ``餐厅`` （直接作为一个 ``地点`` 对象创建
+或是其他类的父类），那么引用 ``p.restaurant`` 将会升起一个
+Restaurant.DoesNotExist 例外。
 
-``Meta`` and multi-table inheritance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``Meta`` 和多表继承
+~~~~~~~~~~~~~~~~~~~
 
+在多表继承的情况下，
 In the multi-table inheritance situation, it doesn't make sense for a child
 class to inherit from its parent's :ref:`Meta <meta-options>` class. All the :ref:`Meta <meta-options>` options
 have already been applied to the parent class and applying them again would
