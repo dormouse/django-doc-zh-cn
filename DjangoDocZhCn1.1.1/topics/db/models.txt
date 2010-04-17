@@ -688,7 +688,7 @@ Django 中可能出现的继承有以下三种：
 --------
 
 当许多不同模型要使用相同的信息进，抽象基类非常有用。抽象基类的写法是在
-:ref:`Meta <meta-options>` 中放入 ``abstract=True`` ，这样这个模型就不会用于
+:ref:`元数据 <meta-options>` 中放入 ``abstract=True`` ，这样这个模型就不会用于
 创建数据库表了，取而代之的是当这个模型被用作其他模型的基类时，其字段会被添加到
 其子类之中。基类和子类的类名称不能相同，否则 Django 会报错（抛出例外）。
 
@@ -819,23 +819,15 @@ Restaurant.DoesNotExist 例外。
 ``Meta`` 和多表继承
 ~~~~~~~~~~~~~~~~~~~
 
-在多表继承的情况下，
-In the multi-table inheritance situation, it doesn't make sense for a child
-class to inherit from its parent's :ref:`Meta <meta-options>` class. All the :ref:`Meta <meta-options>` options
-have already been applied to the parent class and applying them again would
-normally only lead to contradictory behavior (this is in contrast with the
-abstract base class case, where the base class doesn't exist in its own
-right).
+在多表继承的情况下，子类继承父类的 :ref:`元数据 <meta-options>` 是没有意义的，
+只会导致矛盾行为。这与抽象基类是不同的，因为抽象基类没有自己的数据库表。
 
-So a child model does not have access to its parent's :ref:`Meta
-<meta-options>` class. However, there are a few limited cases where the child
-inherits behavior from the parent: if the child does not specify an
-:attr:`django.db.models.Options.ordering` attribute or a
-:attr:`django.db.models.Options.get_latest_by` attribute, it will inherit
-these from its parent.
+所以子模型不能引用其父模型的 :ref:`元数据 <meta-options>` 类。然而，也有一些
+例外：如果子类没有定义一个 :attr:`django.db.models.Options.ordering` 属性或一个
+:attr:`django.db.models.Options.get_latest_by` 属性，那么子类会从父类继承这些
+属性。
 
-If the parent has an ordering and you don't want the child to have any natural
-ordering, you can explicitly disable it::
+如果父类有一个排序属性，而子类要取消这个属性，可以如下显式定义::
 
     class ChildModel(ParentModel):
         ...
@@ -843,11 +835,10 @@ ordering, you can explicitly disable it::
             # Remove parent's ordering effect
             ordering = []
 
-Inheritance and reverse relations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+继承和回溯关系
 
-Because multi-table inheritance uses an implicit
-:class:`~django.db.models.fields.OneToOneField` to link the child and
+因为多表继承使用一个隐藏的 :class:`~django.db.models.fields.OneToOneField` 来
+关联父类和子类，所以to link the child and
 the parent, it's possible to move from the parent down to the child,
 as in the above example. However, this uses up the name that is the
 default :attr:`~django.db.models.ForeignKey.related_name` value for
@@ -1050,7 +1041,7 @@ Just as with Python's subclassing, it's possible for a Django model to inherit
 from multiple parent models. Keep in mind that normal Python name resolution
 rules apply. The first base class that a particular name (e.g. :ref:`Meta
 <meta-options>`) appears in will be the one that is used; for example, this
-means that if multiple parents contain a :ref:`Meta <meta-options>` class,
+means that if multiple parents contain a :ref:`元数据 <meta-options>` class,
 only the first one is going to be used, and all others will be ignored.
 
 Generally, you won't need to inherit from multiple parents. The main use-case
