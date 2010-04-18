@@ -836,22 +836,19 @@ Restaurant.DoesNotExist 例外。
             ordering = []
 
 继承和回溯关系
+~~~~~~~~~~~~~~
 
 因为多表继承使用一个隐藏的 :class:`~django.db.models.fields.OneToOneField` 来
-关联父类和子类，所以to link the child and
-the parent, it's possible to move from the parent down to the child,
-as in the above example. However, this uses up the name that is the
-default :attr:`~django.db.models.ForeignKey.related_name` value for
-:class:`django.db.models.fields.ForeignKey` and
-:class:`django.db.models.fields.ManyToManyField` relations.  If you
-are putting those types of relations on a subclass of another model,
-you **must** specify the
-:attr:`~django.db.models.ForeignKey.related_name` attribute on each
-such field. If you forget, Django will raise an error when you run
-:djadmin:`validate` or :djadmin:`syncdb`.
+关联父类和子类，所以可以由父类移动到子类，就像上例中一样。然而，这样使用的是
+:class:`django.db.models.fields.ForeignKey` 和
+:class:`django.db.models.fields.ManyToManyField` 关系的缺省的
+:attr:`~django.db.models.ForeignKey.related_name` 的值。如果你要把这些类型的
+关系放在一个其他模型的子类上，你 **必须** 在每一个字段上定义
+:attr:`~django.db.models.ForeignKey.related_name` 属性。否则，当你运行
+:djadmin:`validate` or :djadmin:`syncdb` 时会产生一个错误。
 
-For example, using the above ``Place`` class again, let's create another
-subclass with a :class:`~django.db.models.fields.ManyToManyField`::
+例如，还是使用上面的 ``Place`` 类，让我们用
+:class:`~django.db.models.fields.ManyToManyField` 创建另一个子类::
 
     class Supplier(Place):
         # Must specify related_name on all relations.
@@ -861,13 +858,12 @@ subclass with a :class:`~django.db.models.fields.ManyToManyField`::
 Specifying the parent link field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As mentioned, Django will automatically create a
-:class:`~django.db.models.fields.OneToOneField` linking your child
-class back any non-abstract parent models. If you want to control the
-name of the attribute linking back to the parent, you can create your
-own :class:`~django.db.models.fields.OneToOneField` and set
+前文提到 Django 会自动创建一个
+:class:`~django.db.models.fields.OneToOneField` 来链接你的子类和非抽象父类。
+如果你要控制这个链接类的名字，那么你可以创建你自己的
+:class:`~django.db.models.fields.OneToOneField` 同时设置
 :attr:`parent_link=True <django.db.models.fields.OneToOneField.parent_link>`
-to indicate that your field is the link back to the parent class.
+以回联到父类。
 
 .. _proxy-models:
 
