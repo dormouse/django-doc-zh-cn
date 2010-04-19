@@ -867,31 +867,27 @@ Specifying the parent link field
 
 .. _proxy-models:
 
-Proxy models
-------------
+代理模型
+--------
 
 .. versionadded:: 1.1
 
-When using :ref:`multi-table inheritance <multi-table-inheritance>`, a new
-database table is created for each subclass of a model. This is usually the
-desired behavior, since the subclass needs a place to store any additional
-data fields that are not present on the base class. Sometimes, however, you
-only want to change the Python behavior of a model -- perhaps to change the
-default manager, or add a new method.
+当使用 :ref:`多表继承 <multi-table-inheritance>` 时，会为每一个模型的子类创建
+一个新的数据库表。通常这种方式是我们期望得到的，因为子类需要存储基类所没有的
+另加的数据字段。但是，有时，你只是想要改变一个模型的 Python 行为，比如改变缺省
+的管理器或增加一个新的方法。
 
-This is what proxy model inheritance is for: creating a *proxy* for the
-original model. You can create, delete and update instances of the proxy model
-and all the data will be saved as if you were using the original (non-proxied)
-model. The difference is that you can change things like the default model
-ordering or the default manager in the proxy, without having to alter the
-original.
+这时我们就需要使用代理模型继承方法来为源模型创建一个 *代理* 。你可以创建、删除
+和更新代理模型的实例并且所有的数据都会被保存，就象没有使用代理一样。所不同的是
+你可以在代理模型中改变一些东西，如源模型的排序方式或缺省的管理器等等，而源模型
+则不会发生变化。
 
-Proxy models are declared like normal models. You tell Django that it's a
-proxy model by setting the :attr:`~django.db.models.Options.proxy` attribute of
-the ``Meta`` class to ``True``.
+代理模型的声明方式与一般模型一样。把 ``元数据`` 的
+:attr:`~django.db.models.Options.proxy` 属性设置为 ``True`` 就代表这个模型是一
+个代理模型。
 
-For example, suppose you want to add a method to the standard ``User`` model
-that will be used in your templates. You can do it like this::
+例如，假设你想要给标准的 ``User`` 模型添加一个方法，以便于以后用于你自己的模板
+中，你可以用下面的代码::
 
     from django.contrib.auth.models import User
 
@@ -902,50 +898,41 @@ that will be used in your templates. You can do it like this::
         def do_something(self):
             ...
 
-The ``MyUser`` class operates on the same database table as its parent
-``User`` class. In particular, any new instances of ``User`` will also be
-accessible through ``MyUser``, and vice-versa::
+``MyUser`` 类与 ``User`` 类操作的是同一个数据库。特别的是两个类都可以操作对方的
+实例::
 
     >>> u = User.objects.create(username="foobar")
     >>> MyUser.objects.get(username="foobar")
     <MyUser: foobar>
 
-You could also use a proxy model to define a different default ordering on a
-model. The standard ``User`` model has no ordering defined on it
-(intentionally; sorting is expensive and we don't want to do it all the time
-when we fetch users). You might want to regularly order by the ``username``
-attribute when you use the proxy. This is easy::
+你还可以使用代理模型来定义与源模型不同缺省排序方式。标准的 ``User`` 模型没有
+定义排序方式（这是有意为之的，因为排序是要耗费资源的，我们不希望每次读取用户
+信息时都进行排序）。当你使用代理模型时，你可能想要根据 ``username`` 来排序。
+通过以下代码可以轻易实现::
 
     class OrderedUser(User):
         class Meta:
             ordering = ["username"]
             proxy = True
 
-Now normal ``User`` queries will be unorderd and ``OrderedUser`` queries will
-be ordered by ``username``.
+现在，一般 ``User`` 查询是无序的，而 ``OrderedUser`` 查询是按 ``username`` 排序
+的。
 
-Querysets still return the model that was requested
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+查询集只会返回被请求的模型
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There is no way to have Django return, say, a ``MyUser`` object whenever you
-query for ``User`` objects. A queryset for ``User`` objects will return those
-types of objects. The whole point of proxy objects is that code relying on the
-original ``User`` will use those and your own code can use the extensions you
-included (that no other code is relying on anyway). It is not a way to replace
-the ``User`` (or any other) model everywhere with something of your own
-creation.
+当你针对 ``User`` 对象查询时，不会返回一个 ``MyUser`` 对象。一个针对 ``User``
+对象的查询集只会返回 ``User`` 对象。代理对象的要点是各个对象只会使用自己的代码
+而不会使用他方的代码。代理不是代替。
 
-Base class restrictions
-~~~~~~~~~~~~~~~~~~~~~~~
+基类限制
+~~~~~~~~
 
-A proxy model must inherit from exactly one non-abstract model class. You
-can't inherit from multiple non-abstract models as the proxy model doesn't
-provide any connection between the rows in the different database tables. A
-proxy model can inherit from any number of abstract model classes, providing
-they do *not* define any model fields.
+一个代理模型应当继承自一个非抽象基类。而且不能继承自多个非抽象基类，因为代理
+模型不包含不同数据库表中的行之间的关联。只有当一个代理模型 *不定义* 任何字段
+时，才可以继承自一个或多个抽象基类。
 
-Proxy models inherit any ``Meta`` options that they don't define from their
-non-abstract model parent (the model they are proxying for).
+代理模型会从父类继承任何 ``元数据`` ，只要这个元数据在代理模型中没有定义。
 
 Proxy model managers
 ~~~~~~~~~~~~~~~~~~~~
