@@ -934,16 +934,15 @@ Specifying the parent link field
 
 代理模型会从父类继承任何 ``元数据`` ，只要这个元数据在代理模型中没有定义。
 
-Proxy model managers
-~~~~~~~~~~~~~~~~~~~~
+代理模型管理器
+~~~~~~~~~~~~~~
 
-If you don't specify any model managers on a proxy model, it inherits the
-managers from its model parents. If you define a manager on the proxy model,
-it will become the default, although any managers defined on the parent
-classes will still be available.
+如果你没有为代理模型定义任何管理器，那么代理模型会从其父模型继承管理器。如果为
+代理模型定义了管理器，那么定义的管理器会成为缺省的管理器，但是父模型的管理器仍
+是可用的。
 
-Continuing our example from above, you could change the default manager used
-when you query the ``User`` model like this::
+还是使用上面的例子，当你查询 ``User`` 模型时你可以像如下代码一样改变缺省的管理
+器::
 
     class NewManager(models.Manager):
         ...
@@ -954,12 +953,11 @@ when you query the ``User`` model like this::
         class Meta:
             proxy = True
 
-If you wanted to add a new manager to the Proxy, without replacing the
-existing default, you can use the techniques described in the :ref:`custom
-manager <custom-managers-and-inheritance>` documentation: create a base class
-containing the new managers and inherit that after the primary base class::
+如果你要为代理模型新增一个管理器，而不取代缺省的管理器，你可以使用
+:ref:`自定义管理器 <custom-managers-and-inheritance>` 文档中描述的方法：
+创建一个包含新管理器基类并且在继承主基类后继承它::
 
-    # Create an abstract class for the new manager.
+    # 为新管理器创建一个绝对基类。
     class ExtraManagers(models.Model):
         secondary = NewManager()
 
@@ -970,8 +968,7 @@ containing the new managers and inherit that after the primary base class::
         class Meta:
             proxy = True
 
-You probably won't need to do this very often, but, when you do, it's
-possible.
+你可能不是经常要这样做，可是这种方法是可行的。
 
 .. _proxy-vs-unmanaged-models:
 
@@ -1006,7 +1003,7 @@ general, and managers, in particular, made the API very complicated and
 potentially difficult to understand and use. It turned out that two options
 were needed in any case, so the current separation arose.
 
-So, the general rules are:
+所以，通常的规则是：
 
     1. If you are mirroring an existing model or database table and don't want
        all the original database table columns, use ``Meta.managed=False``.
