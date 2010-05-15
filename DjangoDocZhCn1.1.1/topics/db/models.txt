@@ -28,7 +28,7 @@
 ========
 
 以下例子定义了一个关于人（ ``Person`` ）的模型，包含姓（ ``first_name`` ）和名
-``last_name`` 两个字段::
+（ ``last_name`` ）两个字段::
 
     from django.db import models
 
@@ -58,14 +58,14 @@
       :ref:`automatic-primary-key-fields` 。
 
     * 上例中的 ``CREATE TABLE`` SQL 使用的是 PostgreSQL 语法，但值得指出的是
-      Django 会根据你的 :ref:`设置文件 <topics-settings>` 中设置的不同的数据库
+      Django 会根据你的 :ref:`设置文件 <topics-settings>` 中设置的数据库类型在
       后台生成相应的 SQL 语句。
 
 使用模型
-============
+========
 
-一旦你定义好了你的模型，你得告诉 Django 你要 *使用* 这些模型。操作方法是编辑你
-的设置文件，在 :setting:`INSTALLED_APPS` 设置中增加你的 ``models.py`` 。
+一旦定义好了你的模型，就得告诉 Django 你要 *使用* 这些模型。操作方法是编辑你的
+设置文件，在 :setting:`INSTALLED_APPS` 设置中增加你的 ``models.py`` 。
 
 例如，如果你的应用中模型放在 ``mysite.myapp.models`` 模块（由
 :djadmin:`manage.py startapp <startapp>` 语句创建的包结构）中，那么
@@ -81,7 +81,7 @@
 :djadmin:`manage.py syncdb <syncdb>` 。
 
 字段
-======
+====
 
 一个模型最重要且不可或缺的部分就是数据库中定义的字段的列表。字段以类的属性的
 方式定义。
@@ -117,7 +117,7 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 参见 :ref:`howto-custom-model-fields` 。
 
 字段参数
--------------
+--------
 
 每种字段都有一些特定的参数，参见 :ref:`模型字段参考 <model-field-types>` 。例如
 :class:`~django.db.models.CharField` （包括其子类）用于数据中的 ``VARCHAR``
@@ -630,7 +630,7 @@ SQL 语句针对特定的数据库使用引号语法。
 你可以随心所欲地重载这些方法（包括其他模型方法）以改变数据库的行为。
 
 一种典型的情况是当你在保存对象时你想做一些其他工作，这时就需要重载方法。例如（
-相关参数参见 :meth:`~Model.save`）::
+相关参数参见 :meth:`~Model.save` ）::
 
     class Blog(models.Model):
         name = models.CharField(max_length=100)
@@ -813,7 +813,7 @@ Django 中可能出现的继承有以下三种：
     <Restaurant: ...>
 
 然而，如果上例中的 ``p`` *不是* 一个 ``餐厅`` （直接作为一个 ``地点`` 对象创建
-或是其他类的父类），那么引用 ``p.restaurant`` 将会升起一个
+或是其他类的父类），那么引用 ``p.restaurant`` 将会抛出一个
 Restaurant.DoesNotExist 例外。
 
 ``Meta`` 和多表继承
@@ -855,8 +855,8 @@ Restaurant.DoesNotExist 例外。
         customers = models.ManyToManyField(Restaurant, related_name='provider')
 
 
-Specifying the parent link field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+定义父链接字段
+~~~~~~~~~~~~~~
 
 前文提到 Django 会自动创建一个
 :class:`~django.db.models.fields.OneToOneField` 来链接你的子类和非抽象父类。
@@ -972,90 +972,62 @@ Specifying the parent link field
 
 .. _proxy-vs-unmanaged-models:
 
-Differences between proxy inheritance and  unmanaged models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+代理继承和无管理器模型的区别
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Proxy model inheritance might look fairly similar to creating an unmanaged
-model, using the :attr:`~django.db.models.Options.managed` attribute on a
-model's ``Meta`` class. The two alternatives are not quite the same and it's
-worth considering which one you should use.
+代理模型继承看上去和创建一个无管理器的模型，并在该模型的 ``Meta`` 类中使用
+:attr:`~django.db.models.Options.managed` 属性差不多。但是两种方式并不完全
+一样，选择哪一种方式是值得我们考虑的。
 
-One difference is that you can (and, in fact, must unless you want an empty
-model) specify model fields on models with ``Meta.managed=False``. You could,
-with careful setting of :attr:`Meta.db_table
-<django.db.models.Options.db_table>` create an unmanaged model that shadowed
-an existing model and add Python methods to it. However, that would be very
-repetitive and fragile as you need to keep both copies synchronized if you
-make any changes.
+一个区别是你可以（除了你要一个空模型外实际上是必须的）使用
+``Meta.managed=False`` 在模型中定义字段。你可以小心的设置
+:attr:`Meta.db_table <django.db.models.Options.db_table>` 属性来镜像一个已存在
+的模型，并且在模型中添加 Python 方法。但是如果你要作一些改动，那么你必须十分
+小心地同步两个模型。
 
-The other difference that is more important for proxy models, is how model
-managers are handled. Proxy models are intended to behave exactly like the
-model they are proxying for. So they inherit the parent model's managers,
-including the default manager. In the normal multi-table model inheritance
-case, children do not inherit managers from their parents as the custom
-managers aren't always appropriate when extra fields are involved. The
-:ref:`manager documentation <custom-managers-and-inheritance>` has more
-details about this latter case.
+对于代理模型另一个更重要的区别是模型管理器是如何运作的。代理模型被设计用于像被
+代理对象一样精确地运作，因此它们会继承父模型的管理器，包括缺省管理器。在一般的
+多表继承情况下，子模型不继承父模型的管理器，因为子模型添加了额外的字段，而父
+模型的管理器通常是不适用于子模型的。更多细节详见
+:ref:`管理器文档 <custom-managers-and-inheritance>` 。 
 
-When these two features were implemented, attempts were made to squash them
-into a single option. It turned out that interactions with inheritance, in
-general, and managers, in particular, made the API very complicated and
-potentially difficult to understand and use. It turned out that two options
-were needed in any case, so the current separation arose.
+当两个功能都要执行时，我们应当尝试把它们压缩为单一选项。否则情况就复杂了，也
+比较难以理解。
 
 所以，通常的规则是：
 
-    1. If you are mirroring an existing model or database table and don't want
-       all the original database table columns, use ``Meta.managed=False``.
-       That option is normally useful for modeling database views and tables
-       not under the control of Django.
-    2. If you are wanting to change the Python-only behavior of a model, but
-       keep all the same fields as in the original, use ``Meta.proxy=True``.
-       This sets things up so that the proxy model is an exact copy of the
-       storage structure of the original model when data is saved.
+    1. 如果你要镜像一个已存在的模型或数据库表，并且不需要所有的原数据库中的列，
+       那么就使用 ``Meta.managed=False`` 。这个选择通常适用于数据库表视图和不在
+       Django 管控下的数据库表。
+    2. 如果你要改变模型的 Python 行为，但又要保持所有的原字段不变，那么就使用
+       ``Meta.proxy=True`` 。这个选择适用于代理模型的字段结构与父模型完全一致的
+       情况。
 
-Multiple inheritance
---------------------
+多重继承
+--------
 
-Just as with Python's subclassing, it's possible for a Django model to inherit
-from multiple parent models. Keep in mind that normal Python name resolution
-rules apply. The first base class that a particular name (e.g. :ref:`Meta
-<meta-options>`) appears in will be the one that is used; for example, this
-means that if multiple parents contain a :ref:`元数据 <meta-options>` class,
-only the first one is going to be used, and all others will be ignored.
+就像 Python 的继承一样， Django 模型也可以继承自多个父模型。要记住的是名称确定
+规则使用的是一般 Python 名称确定规则，子类使用第一个基类的特定名称（如 :ref:`元数据 <meta-options>` ）。例如，如果多个父模型包含一个 :ref:`元数据 <meta-options>` 类，那么仅第一个父模型的才会被使用，其他则被忽略。
 
-Generally, you won't need to inherit from multiple parents. The main use-case
-where this is useful is for "mix-in" classes: adding a particular extra
-field or method to every class that inherits the mix-in. Try to keep your
-inheritance hierarchies as simple and straightforward as possible so that you
-won't have to struggle to work out where a particular piece of information is
-coming from.
+通常，不需要使用多重继承。多重继承一般适用于 "mix-in" 类，即为每一个 mix-in 的
+子类增加一个指定的额外的字段或方法。让我们尽量简化继承，以免以后难以分清数据的
+来源。
 
-Field name "hiding" is not permitted
--------------------------------------
+字段名“隐藏”是不允许的
+----------------------
 
-In normal Python class inheritance, it is permissible for a child class to
-override any attribute from the parent class. In Django, this is not permitted
-for attributes that are :class:`~django.db.models.fields.Field` instances (at
-least, not at the moment). If a base class has a field called ``author``, you
-cannot create another model field called ``author`` in any class that inherits
-from that base class.
+在一般的 Python 类继承中，子类可以重载父类的任何属性。但在 Django 中，不允许
+重载（起码现在不行） :class:`~django.db.models.fields.Field` 实例属性。假设一个
+基类有一个 ``author`` 字段，你就不能在其任何子类中创建名为 ``author`` 的字段。
 
-Overriding fields in a parent model leads to difficulties in areas such as
-initialising new instances (specifying which field is being intialised in
-``Model.__init__``) and serialization. These are features which normal Python
-class inheritance doesn't have to deal with in quite the same way, so the
-difference between Django model inheritance and Python class inheritance isn't
-merely arbitrary.
+重载字段会导致初始化新实例（如在 ``Model.__init__`` 中指定哪个字段被初始化）和
+连续化方面的问题。这些功能在 Python 中处理的方法是不同的，因此 Django 模型继承
+和 Python 类继承之间的差异也不是随意产生的。
 
-This restriction only applies to attributes which are
-:class:`~django.db.models.fields.Field` instances. Normal Python attributes
-can be overridden if you wish. It also only applies to the name of the
-attribute as Python sees it: if you are manually specifying the database
-column name, you can have the same column name appearing in both a child and
-an ancestor model for multi-table inheritance (they are columns in two
-different database tables).
+这个限制只用于 :class:`~django.db.models.fields.Field` 实例属性上。一般的
+Python 属性是可以重载的。这个限制也只用于被 Python 所见的属性名称。例如如果你
+手工定义数据库列名称，那么在多表继承中你就可以在子模型和祖先模型中使用相同的
+列名（因为列不在同一个数据库表中）。
 
-Django will raise a ``FieldError`` exception if you override any model field
-in any ancestor model.
+如果你重载任何祖先类的字段，那么 Django 会抛出一个 ``FieldError`` 异常。
 
