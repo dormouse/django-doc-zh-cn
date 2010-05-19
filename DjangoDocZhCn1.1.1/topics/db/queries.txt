@@ -1,19 +1,16 @@
 .. _topics-db-queries:
 
 ==============
-Making queries
+构造查询
 ==============
 
 .. currentmodule:: django.db.models
 
-Once you've created your :ref:`data models <topics-db-models>`, Django
-automatically gives you a database-abstraction API that lets you create,
-retrieve, update and delete objects. This document explains how to use this
-API. Refer to the :ref:`data model reference <ref-models-index>` for full
-details of all the various model lookup options.
+一旦创建完 :ref:`data models <topics-db-models>` ， Django 会自动给你一套数据库
+抽象的 API ，以用于创建、检索、更新和删除对象。本文为你介绍如何使用这套 API 。
+所有不同种类的搜索参数详见 :ref:`data model reference <ref-models-index>` 。
 
-Throughout this guide (and in the reference), we'll refer to the following
-models, which comprise a weblog application:
+本文所有内容（包括本手册）全部围绕以下模型展开，这些模型可以组成一个博客应用：
 
 .. _queryset-model-example:
 
@@ -46,12 +43,11 @@ models, which comprise a weblog application:
         def __unicode__(self):
             return self.headline
 
-Creating objects
-================
+创建对象
+========
 
-To represent database-table data in Python objects, Django uses an intuitive
-system: A model class represents a database table, and an instance of that
-class represents a particular record in the database table.
+为在 Python 对象中表现数据库表中的数据， Django 使用一个非常直观的系统：一个
+模型类表现一个数据库表，并且一个该类的实例表现表中一个指定的记录。
 
 To create an object, instantiate it using keyword arguments to the model class,
 then call ``save()`` to save it to the database.
