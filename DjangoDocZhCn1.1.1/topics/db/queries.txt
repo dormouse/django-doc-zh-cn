@@ -49,49 +49,47 @@
 为在 Python 对象中表现数据库表中的数据， Django 使用一个非常直观的系统：一个
 模型类表现一个数据库表，并且一个该类的实例表现表中一个指定的记录。
 
-To create an object, instantiate it using keyword arguments to the model class,
-then call ``save()`` to save it to the database.
+要创建一个对象，只要通过使用关键参数实例化模型类，然后调用 ``save()`` 把对象
+保存到数据库就行了。
 
-You import the model class from wherever it lives on the Python path, as you
-may expect. (We point this out here because previous Django versions required
-funky model importing.)
+你可以从任何 Python 路径导入模型类。（我们之所以要指出这点是因为旧版本 Django
+导入模型没有这么方便。）
 
-Assuming models live in a file ``mysite/blog/models.py``, here's an example::
+假设模型存在于文件 ``mysite/blog/models.py`` 中，示例如下::
 
     >>> from mysite.blog.models import Blog
     >>> b = Blog(name='Beatles Blog', tagline='All the latest Beatles news.')
     >>> b.save()
 
-This performs an ``INSERT`` SQL statement behind the scenes. Django doesn't hit
-the database until you explicitly call ``save()``.
+上例在后执行了一个 ``INSERT`` SQL 语句。 Django 不会执行数据库操作，除非显式
+调用 ``save()`` 。
 
-The ``save()`` method has no return value.
+``save()`` 方法没有返回值。
 
 .. seealso::
 
-    ``save()`` takes a number of advanced options not described here.
-    See the documentation for ``save()`` for complete details.
+    ``save()`` 有许多高级参数这里没有提到，详见其文档。
 
-    To create an object and save it all in one step see the ```create()```
-    method.
+    要一步完成创建并且同时保存对象参见 ```create()``` 方法。
 
-Saving changes to objects
-=========================
+修改对象
+========
 
-To save changes to an object that's already in the database, use ``save()``.
+要修改数据库中已存在的对象，请使用 ``save()`` 。
 
-Given a ``Blog`` instance ``b5`` that has already been saved to the database,
-this example changes its name and updates its record in the database::
+假设一个 ``Blog`` 的实例 ``b5`` ，这个实例已经保存进了数据库，以下例子会修改其
+name 并且会修改数据库中相应的数据::
 
     >> b5.name = 'New name'
     >> b5.save()
 
-This performs an ``UPDATE`` SQL statement behind the scenes. Django doesn't hit
-the database until you explicitly call ``save()``.
+上例在后执行了一个 ``UPDATE`` SQL 语句。 Django 不会执行数据库操作，除非显式
+调用 ``save()`` 。 
 
-Saving ``ForeignKey`` and ``ManyToManyField`` fields
-----------------------------------------------------
+保存 ``ForeignKey`` 和 ``ManyToManyField`` 字段
+-----------------------------------------------
 
+更新 
 Updating ``ForeignKey`` fields works exactly the same way as saving a normal
 field; simply assign an object of the right type to the field in question::
 
