@@ -89,36 +89,35 @@ name 并且会修改数据库中相应的数据::
 保存 ``ForeignKey`` 和 ``ManyToManyField`` 字段
 -----------------------------------------------
 
-更新 
-Updating ``ForeignKey`` fields works exactly the same way as saving a normal
-field; simply assign an object of the right type to the field in question::
+更新 ``ForeignKey`` 字段的方法与一般的字段一样，只要设置正确的字段类型就可以
+了::
 
     >>> cheese_blog = Blog.objects.get(name="Cheddar Talk")
     >>> entry.blog = cheese_blog
     >>> entry.save()
 
-Updating a ``ManyToManyField`` works a little differently; use the ``add()``
-method on the field to add a record to the relation::
+更新一个 ``ManyToManyField`` 字段稍有不同，要对更新的字段使用 ``add()`` 方法来
+为关系增加一个记录::
 
     >> joe = Author.objects.create(name="Joe")
     >> entry.authors.add(joe)
 
-Django will complain if you try to assign or add an object of the wrong type.
+如果你尝试使用不正确的对象类型，那么 Django 会有意见的。
 
-Retrieving objects
-==================
+获取对象
+========
 
-To retrieve objects from your database, you construct a ``QuerySet`` via a
-``Manager`` on your model class.
+要从你的数据库中获得对象，你必须通过你的模型类的 ``管理器（ Manager ）`` 来构建
+一个 ``查询集（ QuerySet ）`` 。
 
-A ``QuerySet`` represents a collection of objects from your database. It can
-have zero, one or many *filters* -- criteria that narrow down the collection
-based on given parameters. In SQL terms, a ``QuerySet`` equates to a ``SELECT``
-statement, and a filter is a limiting clause such as ``WHERE`` or ``LIMIT``.
+一个 ``查询集`` 表现为数据库中对象的集合。它可以没有、有一个或有多个
+*过滤器（ filters ）* 。过滤器是限制集合范围的准则。在 SQL 语句中，一个
+``查询集`` 等于一个 ``SELECT`` 语句，一个过滤器相当于一个 ``WHERE`` 或
+``LIMIT`` 子句。
 
-You get a ``QuerySet`` by using your model's ``Manager``. Each model has at
-least one ``Manager``, and it's called ``objects`` by default. Access it
-directly via the model class, like so::
+你可以通过使用模型的 ``管理器`` 得到一个 ``查询集`` 。每个模型至少有一个
+``管理器`` ，``管理器`` 一般也称作 ``对象（ objects ）`` 。 ``管理器`` 可以通过
+模型类直接操作，就如下例::
 
     >>> Blog.objects
     <django.db.models.manager.Manager object at ...>
@@ -130,32 +129,29 @@ directly via the model class, like so::
 
 .. note::
 
-    ``Managers`` are accessible only via model classes, rather than from model
-    instances, to enforce a separation between "table-level" operations and
-    "record-level" operations.
+    ``管理器`` 只能由模型类操作，而不能由模型实例操作。这样用以区别
+    ``表级别`` 操作和 ``记录级别`` 操作。
 
-The ``Manager`` is the main source of ``QuerySets`` for a model. It acts as a
-"root" ``QuerySet`` that describes all objects in the model's database table.
-For example, ``Blog.objects`` is the initial ``QuerySet`` that contains all
-``Blog`` objects in the database.
+``管理器`` 是一个模型的 ``查询集`` 的主要来源，它类似于模型的数据库表中所有对象
+的“根” ``查询集`` 。例如， ``Blog.objects`` 是包含 ``Blog`` 数据库表中所有
+对象的初始 ``查询集`` 。
 
-Retrieving all objects
+获得所有对象
 ----------------------
 
-The simplest way to retrieve objects from a table is to get all of them.
-To do this, use the ``all()`` method on a ``Manager``::
+从数据库表中获得对象的最简单的方法就是获得所有对象。在一个 ``管理器`` 上使用
+``all()`` 方法可以获得所有对象::
 
     >>> all_entries = Entry.objects.all()
 
-The ``all()`` method returns a ``QuerySet`` of all the objects in the database.
+``all()`` 方法返回一个包含所有数据库表中对象的 ``查询集`` 。
 
-(If ``Entry.objects`` is a ``QuerySet``, why can't we just do ``Entry.objects``?
-That's because ``Entry.objects``, the root ``QuerySet``, is a special case
-that cannot be evaluated. The ``all()`` method returns a ``QuerySet`` that
-*can* be evaluated.)
+（既然 ``Entry.objects`` 是一个 ``查询集`` ，为什么不使用 ``Entry.objects`` ？
+这是因为 ``Entry.objects`` ，是一个根 ``查询集`` ，是一个不能表现出来的东西。
+``all()`` 方法返回的是 *可以* 表现出来的 ``查询集`` 。
 
-Retrieving specific objects with filters
-----------------------------------------
+用过滤器获得特定对象
+--------------------
 
 The root ``QuerySet`` provided by the ``Manager`` describes all objects in the
 database table. Usually, though, you'll need to select only a subset of the
