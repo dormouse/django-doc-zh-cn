@@ -153,40 +153,35 @@ name 并且会修改数据库中相应的数据::
 用过滤器获得特定对象
 --------------------
 
-The root ``QuerySet`` provided by the ``Manager`` describes all objects in the
-database table. Usually, though, you'll need to select only a subset of the
-complete set of objects.
+根 ``查询集`` 通过 ``管理器`` 提供数据库表的所有对象的描述。但是通常你只需要
+全部对象的一个子集。
 
-To create such a subset, you refine the initial ``QuerySet``, adding filter
-conditions. The two most common ways to refine a ``QuerySet`` are:
+要得到这个子集，就必须改进原始的 ``查询集`` ，增加一些过滤条件，通常使用以下
+两种方法：
 
     ``filter(**kwargs)``
-        Returns a new ``QuerySet`` containing objects that match the given
-        lookup parameters.
+        返回一个新的包含符合查询条件对象的 ``查询集`` 。
 
     ``exclude(**kwargs)``
-        Returns a new ``QuerySet`` containing objects that do *not* match the
-        given lookup parameters.
+        返回一个新的 *不* 包含符合查询条件对象的 ``查询集`` 。
 
-The lookup parameters (``**kwargs`` in the above function definitions) should
-be in the format described in `Field lookups`_ below.
+查询参数（即上例中的 ``**kwargs`` ）应当遵循下文 `字段查找`_ 一节中描述的规则。
 
-For example, to get a ``QuerySet`` of blog entries from the year 2006, use
-``filter()`` like so::
+例如，要获得一个包含所有 2006 年的博客条目的 ``查询集`` ，可以这样使用
+``filter()`` ::
 
     Entry.objects.filter(pub_date__year=2006)
 
-We don't have to add an ``all()`` -- ``Entry.objects.all().filter(...)``. That
-would still work, but you only need ``all()`` when you want all objects from the
-root ``QuerySet``.
+这里我们不需要添加一个 ``all()`` -- ``Entry.objects.all().filter(...)`` 。当然
+添加了也可以，但是一般只有在需要从根 ``查询集`` 中获取所有对象时才使用
+``all()`` 。
 
 .. _chaining-filters:
 
-Chaining filters
-~~~~~~~~~~~~~~~~
+连环过滤器
+~~~~~~~~~~
 
-The result of refining a ``QuerySet`` is itself a ``QuerySet``, so it's
-possible to chain refinements together. For example::
+``过滤器`` 可以连环使用，例如::
 
     >>> Entry.objects.filter(
     ...     headline__startswith='What'
@@ -196,61 +191,54 @@ possible to chain refinements together. For example::
     ...     pub_date__gte=datetime(2005, 1, 1)
     ... )
 
-This takes the initial ``QuerySet`` of all entries in the database, adds a
-filter, then an exclusion, then another filter. The final result is a
-``QuerySet`` containing all entries with a headline that starts with "What",
-that were published between January 1, 2005, and the current day.
+上例中在原始的包含所有记录的 ``查询集`` 上加上了一个过滤器，再加上了一个排除，
+最后再加上了一个过滤器。最后得到的是一个 headline 以 "What" 开头的，发布时间
+介于 2005 年 1 月 1 日和当前时间之间的 ``查询集`` 。
 
 .. _filtered-querysets-are-unique:
 
-Filtered QuerySets are unique
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+过滤后的查询集是独立唯一的
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Each time you refine a ``QuerySet``, you get a brand-new ``QuerySet`` that is
-in no way bound to the previous ``QuerySet``. Each refinement creates a
-separate and distinct ``QuerySet`` that can be stored, used and reused.
+每一次提取的 ``查询集`` 都是独立的、唯一的，是与前一次的 ``查询集`` 无关的，是
+可以储存、使用和再使用的。
 
-Example::
+例如::
 
     >> q1 = Entry.objects.filter(headline__startswith="What")
     >> q2 = q1.exclude(pub_date__gte=datetime.now())
     >> q3 = q1.filter(pub_date__gte=datetime.now())
 
-These three ``QuerySets`` are separate. The first is a base ``QuerySet``
-containing all entries that contain a headline starting with "What". The second
-is a subset of the first, with an additional criteria that excludes records
-whose ``pub_date`` is greater than now. The third is a subset of the first,
-with an additional criteria that selects only the records whose ``pub_date`` is
-greater than now. The initial ``QuerySet`` (``q1``) is unaffected by the
-refinement process.
+以上三个 ``查询集`` 是独立的。第一个是一个基础 ``查询集`` ，包含所有 headline
+以 "What" 开头的记录。第二个 ``查询集`` 是第一个的子集，去除了发布时间晚于当前
+时间的记录。第三个 ``查询集`` 是第一个的子集，只含有发布时间晚于当前时间的
+记录。原始的 ``查询集`` （ ``q1`` ）不会因为后面的添加限制条件而改变。
 
 .. _querysets-are-lazy:
 
-QuerySets are lazy
-~~~~~~~~~~~~~~~~~~
+查询集是惰性的
+~~~~~~~~~~~~~~
 
-``QuerySets`` are lazy -- the act of creating a ``QuerySet`` doesn't involve any
-database activity. You can stack filters together all day long, and Django won't
-actually run the query until the ``QuerySet`` is *evaluated*. Take a look at
-this example::
+``查询集`` 是惰性的，即创建一个 ``查询集`` 不会触动数据库。你可以不停地创建
+过滤器，但 Django 不会真正运行查询，除非 ``查询集`` 被 *执行* 了。来看以下的
+例子::
 
     >>> q = Entry.objects.filter(headline__startswith="What")
     >>> q = q.filter(pub_date__lte=datetime.now())
     >>> q = q.exclude(body_text__icontains="food")
     >>> print q
 
-Though this looks like three database hits, in fact it hits the database only
-once, at the last line (``print q``). In general, the results of a ``QuerySet``
-aren't fetched from the database until you "ask" for them. When you do, the
-``QuerySet`` is *evaluated* by accessing the database. For more details on
-exactly when evaluation takes place, see :ref:`when-querysets-are-evaluated`.
+上例中表面看执行了三个数据库查询，但实质只有最后一行代码（ ``print q`` ）执行了
+一次数据库查询。通常，只到你“要求”返回结果时， ``查询集`` 才会从数据库中抓取
+数据， ``查询集`` 被 *执行* 了。更多关于执行的精确时间的内容参见
+:ref:`when-querysets-are-evaluated` 。
 
-Other QuerySet methods
-~~~~~~~~~~~~~~~~~~~~~~
+其他查询集方法
+~~~~~~~~~~~~~~
 
-Most of the time you'll use ``all()``, ``filter()`` and ``exclude()`` when you
-need to look up objects from the database. However, that's far from all there is; see the :ref:`QuerySet API Reference <queryset-api>` for a complete list
-of all the various ``QuerySet`` methods.
+大多数时间，当需要在数据库中查找对象时会使用 ``all()`` 、 ``filter()`` 和
+``exclude()`` 。但是，这还是远远不够的。要得到所有 ``查询集`` 方法的完整列表，请
+参阅 :ref:`查询集 API 手册 <queryset-api>` 。
 
 .. _limiting-querysets:
 
@@ -295,7 +283,7 @@ second will raise ``DoesNotExist`` if no objects match the given criteria. See
 
 .. _field-lookups-intro:
 
-Field lookups
+字段查找
 -------------
 
 Field lookups are how you specify the meat of an SQL ``WHERE`` clause. They're
