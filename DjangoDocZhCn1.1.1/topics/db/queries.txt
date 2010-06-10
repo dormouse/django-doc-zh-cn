@@ -242,107 +242,97 @@ name 并且会修改数据库中相应的数据::
 
 .. _limiting-querysets:
 
-Limiting QuerySets
-------------------
+限制查询集
+----------
 
-Use a subset of Python's array-slicing syntax to limit your ``QuerySet`` to a
-certain number of results. This is the equivalent of SQL's ``LIMIT`` and
-``OFFSET`` clauses.
+可以使用 Python 序列切片语法的子集来限制你的 ``查询集`` 。这将相当于 SQL 的
+``LIMIT`` 和 ``OFFSET`` 子句。
 
-For example, this returns the first 5 objects (``LIMIT 5``)::
+例如，下例返回前五个对象（ ``LIMIT 5`` ）::
 
     >>> Entry.objects.all()[:5]
 
-This returns the sixth through tenth objects (``OFFSET 5 LIMIT 5``)::
+下例返回第六到第十个对象（ ``OFFSET 5 LIMIT 5`` ）::
 
     >>> Entry.objects.all()[5:10]
 
-Negative indexing (i.e. ``Entry.objects.all()[-1]``) is not supported.
+负数索引（如： ``Entry.objects.all()[-1]`` ）是不支持的。
 
-Generally, slicing a ``QuerySet`` returns a new ``QuerySet`` -- it doesn't
-evaluate the query. An exception is if you use the "step" parameter of Python
-slice syntax. For example, this would actually execute the query in order to
-return a list of every *second* object of the first 10::
+通常，对一个 ``查询集`` 切片只会返回一个新的 ``查询集`` ，不会执行这个查询 。
+但是有一个例外：假如使用 Python 语法中的“步长”参数，那么就会执行查询。下例用于
+返回前十个对象中的第偶数个对象，查询会立即执行::
 
     >>> Entry.objects.all()[:10:2]
 
-To retrieve a *single* object rather than a list
-(e.g. ``SELECT foo FROM bar LIMIT 1``), use a simple index instead of a
-slice. For example, this returns the first ``Entry`` in the database, after
-ordering entries alphabetically by headline::
+要得到一个 *单一* 的对象而不是一个列表（如：
+``SELECT foo FROM bar LIMIT 1`` ），可以使用一个简单的索引，而不使用切片。例如
+下例返回数据中按字母排序后的第一条记录::
 
     >>> Entry.objects.order_by('headline')[0]
 
-This is roughly equivalent to::
+上例基本上等同于::
 
     >>> Entry.objects.order_by('headline')[0:1].get()
 
-Note, however, that the first of these will raise ``IndexError`` while the
-second will raise ``DoesNotExist`` if no objects match the given criteria. See
-``get()`` for more details.
+注意：当查询结果为空时，第一个例子会产生 ``IndexError`` 异常，而第二个例子则
+产生 ``DoesNotExist`` 异常。详见 ``get()`` 。
 
 .. _field-lookups-intro:
 
 字段查找
--------------
+--------
 
-Field lookups are how you specify the meat of an SQL ``WHERE`` clause. They're
-specified as keyword arguments to the ``QuerySet`` methods ``filter()``,
-``exclude()`` and ``get()``.
+字段查找的定义相当于书写 SQL 的 ``WHERE`` 子句。定义方法是把条件作为 ``查询集``
+的 ``filter()`` 、 ``exclude()`` 和 ``get()`` 方法的关键字参数。
 
-Basic lookups keyword arguments take the form ``field__lookuptype=value``.
-(That's a double-underscore). For example::
+基本的查找关键字参数形如： ``字段__查找类型=值`` （注意：是双下划线）。
+例如::
 
     >>> Entry.objects.filter(pub_date__lte='2006-01-01')
 
-translates (roughly) into the following SQL::
+翻译为 SQL 语句大致如下::
 
     SELECT * FROM blog_entry WHERE pub_date <= '2006-01-01';
 
-.. admonition:: How this is possible
+.. admonition:: 这是如何做到的
 
-   Python has the ability to define functions that accept arbitrary name-value
-   arguments whose names and values are evaluated at runtime. For more
-   information, see `Keyword Arguments`_ in the official Python tutorial.
+   Python 中的函数可以接受独特的名称-值参数，并且这些参数可以动态赋值。更详细的
+   信息参见官方 Python 教程的 `关键字参数`_ 。
 
-   .. _`Keyword Arguments`: http://docs.python.org/tut/node6.html#SECTION006720000000000000000
+   .. _`关键字参数`: http://docs.python.org/tut/node6.html#SECTION006720000000000000000
 
-If you pass an invalid keyword argument, a lookup function will raise
-``TypeError``.
+如果你传递了一个非法的关键字参数，会产生 ``TypeError`` 。
 
-The database API supports about two dozen lookup types; a complete reference
-can be found in the :ref:`field lookup reference <field-lookups>`. To give you a taste of what's available, here's some of the more common lookups
-you'll probably use:
+查找类型约有二十多个，详见 :ref:`字体查找手册<field-lookups>` 。以下是一些常用
+的查找例子：
 
     :lookup:`exact`
-        An "exact" match. For example::
+        “精确”匹配。例如::
 
             >>> Entry.objects.get(headline__exact="Man bites dog")
 
-        Would generate SQL along these lines:
+        相当于以下 SQL 语句：
 
         .. code-block:: sql
 
             SELECT ... WHERE headline = 'Man bites dog';
 
-        If you don't provide a lookup type -- that is, if your keyword argument
-        doesn't contain a double underscore -- the lookup type is assumed to be
-        ``exact``.
+        如果没有定义查找类型，即没有使用双下划线，那么默认类型为 ``exact`` 。
 
-        For example, the following two statements are equivalent::
+        例如以下两句是等价的::
 
-            >>> Blog.objects.get(id__exact=14)  # Explicit form
-            >>> Blog.objects.get(id=14)         # __exact is implied
+            >>> Blog.objects.get(id__exact=14)  # 显式声明
+            >>> Blog.objects.get(id=14)         # __exact 隐含在内了
 
-        This is for convenience, because ``exact`` lookups are the common case.
+        这样做是为了方便，因为 ``exact`` 查找是最常用的。
 
     :lookup:`iexact`
-        A case-insensitive match. So, the query::
+        一个大小写不敏感的匹配。所以下例::
 
             >>> Blog.objects.get(name__iexact="beatles blog")
 
-        Would match a ``Blog`` titled "Beatles Blog", "beatles blog", or even
-        "BeAtlES blOG".
+        将会匹配标题为 “Beatles Blog ”、“ beatles blog ”或甚至是
+        “ BeAtlES blOG ”的 ``Blog`` 。
 
     :lookup:`contains`
         Case-sensitive containment test. For example::
