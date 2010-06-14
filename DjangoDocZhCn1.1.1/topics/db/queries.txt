@@ -549,49 +549,42 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
 使用 Q 对象进行复杂查询
 =======================
 
-Keyword argument queries -- in ``filter()``, etc. -- are "AND"ed together. If
-you need to execute more complex queries (for example, queries with ``OR``
-statements), you can use ``Q`` objects.
+在 ``filter()`` 等语句中的关键字查询参数都是“与”的关系。如果要进行更复杂的查询
+（如条件之间为“或”的关系），那么可以使用 ``Q`` 对象。
 
-A ``Q`` object (``django.db.models.Q``) is an object used to encapsulate a
-collection of keyword arguments. These keyword arguments are specified as in
-"Field lookups" above.
+``Q`` 对象（ ``django.db.models.Q`` ）是用于封装一堆关键字查询参数的对象。这些
+关键字查询参数在上文“字段查找”中已描述过。
 
-For example, this ``Q`` object encapsulates a single ``LIKE`` query::
+例如，下面的 ``Q`` 对象封装了一个单一的 ``LIKE`` 查询::
 
     Q(question__startswith='What')
 
-``Q`` objects can be combined using the ``&`` and ``|`` operators. When an
-operator is used on two ``Q`` objects, it yields a new ``Q`` object.
+``Q`` 对象可以用 ``&`` 和 ``|`` 操作符联结，联结之后会产生一个新的 ``Q`` 对象。
 
-For example, this statement yields a single ``Q`` object that represents the
-"OR" of two ``"question__startswith"`` queries::
+下例产生了一个新的 ``Q`` 对象，这个对象表示两个 ``"question__startswith"``
+查询的 ``OR`` 的联结。
 
     Q(question__startswith='Who') | Q(question__startswith='What')
 
-This is equivalent to the following SQL ``WHERE`` clause::
+上例相当于下面的 SQL ``WHERE`` 子句::
 
     WHERE question LIKE 'Who%' OR question LIKE 'What%'
 
-You can compose statements of arbitrary complexity by combining ``Q`` objects
-with the ``&`` and ``|`` operators and use parenthetical grouping. Also, ``Q``
-objects can be negated using the ``~`` operator, allowing for combined lookups
-that combine both a normal query and a negated (``NOT``) query::
+可以用 ``&`` 和 ``|`` 操作符及圆括号来组合任意复杂的 ``Q`` 对象，还可以使用
+``~`` 符号来表示”逻辑非“。例如::
 
     Q(question__startswith='Who') | ~Q(pub_date__year=2005)
 
-Each lookup function that takes keyword-arguments (e.g. ``filter()``,
-``exclude()``, ``get()``) can also be passed one or more ``Q`` objects as
-positional (not-named) arguments. If you provide multiple ``Q`` object
-arguments to a lookup function, the arguments will be "AND"ed together. For
-example::
+每个有关键字参数的查询函数（如 ``filter()`` 、``exclude()`` 和 ``get()`` ）可以
+接受一个或多个 ``Q`` 对象作为位置参数（非命名参数）。如果你提供了多个 ``Q``
+对象，则参数之间是”逻辑与“的关系。例如::
 
     Poll.objects.get(
         Q(question__startswith='Who'),
         Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6))
     )
 
-... roughly translates into the SQL::
+... 相当于以下 SQL::
 
     SELECT * from polls WHERE question LIKE 'Who%'
         AND (pub_date = '2005-05-02' OR pub_date = '2005-05-06')
