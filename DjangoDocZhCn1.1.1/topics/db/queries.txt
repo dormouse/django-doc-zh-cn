@@ -86,17 +86,16 @@ name 并且会修改数据库中相应的数据::
 上例在后执行了一个 ``UPDATE`` SQL 语句。 Django 不会执行数据库操作，除非显式
 调用 ``save()`` 。 
 
-保存 ``ForeignKey`` 和 ``ManyToManyField`` 字段
+保存 ``外键`` 和 ``多对多字段`` 字段
 -----------------------------------------------
 
-更新 ``ForeignKey`` 字段的方法与一般的字段一样，只要设置正确的字段类型就可以
-了::
+更新 ``外键`` 字段的方法与一般的字段一样，只要设置正确的字段类型就可以了::
 
     >>> cheese_blog = Blog.objects.get(name="Cheddar Talk")
     >>> entry.blog = cheese_blog
     >>> entry.save()
 
-更新一个 ``ManyToManyField`` 字段稍有不同，要对更新的字段使用 ``add()`` 方法来
+更新一个 ``多对多字段`` 稍有不同，要对更新的字段使用 ``add()`` 方法来
 为关系增加一个记录::
 
     >> joe = Author.objects.create(name="Joe")
@@ -562,7 +561,7 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
 ``Q`` 对象可以用 ``&`` 和 ``|`` 操作符联结，联结之后会产生一个新的 ``Q`` 对象。
 
 下例产生了一个新的 ``Q`` 对象，这个对象表示两个 ``"question__startswith"``
-查询的 ``OR`` 的联结。
+查询的 ``OR`` 的联结::
 
     Q(question__startswith='Who') | Q(question__startswith='What')
 
@@ -833,121 +832,102 @@ Django 同时还提供了从关系的“另一边”来操作的 API ，即被�
     b = Blog.objects.get(id=1)
     b.entry_set = [e1, e2]
 
-在上例中， ``e1`` 和 ``e2`` 可以是整个条目实例，也可以是整数型的主键值。
+在上例中， ``e1`` 和 ``e2`` 可以是完整的条目实例，也可以是整数型的主键值。
 
-If the ``clear()`` method is available, any pre-existing objects will be
-removed from the ``entry_set`` before all objects in the iterable (in this
-case, a list) are added to the set. If the ``clear()`` method is *not*
-available, all objects in the iterable will be added without removing any
-existing elements.
+如果 ``clear()`` 方法可用，在迭代对象被添加到集合之前，集合中已存在的对象会被
+清空。如果 ``clear()`` *不可用* ，那么已存在的对象则不会被清空。 
 
-Each "reverse" operation described in this section has an immediate effect on
-the database. Every addition, creation and deletion is immediately and
-automatically saved to the database.
+本节中所提到的每一个“反向”操作都会立即操作数据库。每一个添加、创建和删除都是
+即时生效的，并且自动保存到数据库中。
 
-Many-to-many relationships
---------------------------
+多对多关系
+----------
 
-Both ends of a many-to-many relationship get automatic API access to the other
-end. The API works just as a "backward" one-to-many relationship, above.
+多对多关系中的两边都有可以操作另一边的 API 。这些 API 的工作方式和上文一对多
+关系中的“向后”引用一样。
 
-The only difference is in the attribute naming: The model that defines the
-``ManyToManyField`` uses the attribute name of that field itself, whereas the
-"reverse" model uses the lowercased model name of the original model, plus
-``'_set'`` (just like reverse one-to-many relationships).
+唯一不同的是属性的命名方式：定义 ``多对多字段`` 的模型使用字段名本身，而
+“反向”模型则使用原模型的名称的小写加上 ``_set`` （和一对多关系中的反向一样）。
 
-An example makes this easier to understand::
+举个例子来说的更清楚::
 
     e = Entry.objects.get(id=3)
-    e.authors.all() # Returns all Author objects for this Entry.
+    e.authors.all() # 返回这个条目的所有作者对象。
     e.authors.count()
     e.authors.filter(name__contains='John')
 
     a = Author.objects.get(id=5)
-    a.entry_set.all() # Returns all Entry objects for this Author.
+    a.entry_set.all() # 返回这个作者的所有条目对象。
 
-Like ``ForeignKey``, ``ManyToManyField`` can specify ``related_name``. In the
-above example, if the ``ManyToManyField`` in ``Entry`` had specified
-``related_name='entries'``, then each ``Author`` instance would have an
-``entries`` attribute instead of ``entry_set``.
+就象 ``外键`` 和 ``多对多字段`` 可以自定义 ``related_name`` 一样，在上例中，
+如果 ``条目`` 中的 ``多对多字段`` 定义了 ``related_name='entries'`` ，那么每个
+``作者`` 实例会有一个 ``entries`` 属性来代替 ``entry_set`` 。
 
-One-to-one relationships
-------------------------
+一对一关系
+----------
 
-One-to-one relationships are very similar to many-to-one relationships. If you
-define a :class:`~django.db.models.OneToOneField` on your model, instances of
-that model will have access to the related object via a simple attribute of the
-model.
+一对一关系与多对一关系非常相似。如果在模型中定义一个
+:class:`~django.db.models.OneToOneField` ，这个模型的实例就可以通过模型的属性
+方便地操作关联的对象。
 
-For example::
+例如::
 
     class EntryDetail(models.Model):
         entry = models.OneToOneField(Entry)
         details = models.TextField()
 
     ed = EntryDetail.objects.get(id=2)
-    ed.entry # Returns the related Entry object.
+    ed.entry # 返回相关联的条目对象。
 
-The difference comes in "reverse" queries. The related model in a one-to-one
-relationship also has access to a :class:`~django.db.models.Manager` object, but
-that :class:`~django.db.models.Manager` represents a single object, rather than
-a collection of objects::
+在“反向”查询中会有一些不同。一对一关系中的关联模型也可以一个
+:class:`~django.db.models.Manager` 对象，但是
+:class:`~django.db.models.Manager` 表现为一个单一的对象，而不是一个对象的集合::
 
     e = Entry.objects.get(id=2)
     e.entrydetail # returns the related EntryDetail object
 
-If no object has been assigned to this relationship, Django will raise
-a ``DoesNotExist`` exception.
+如果没有关系中没有对象，那么 Django 会引发一个 ``DoesNotExist`` 例外。
 
-Instances can be assigned to the reverse relationship in the same way as
-you would assign the forward relationship::
+实例可以像向前关系一样被赋值为一个反向关系::
 
     e.entrydetail = ed
 
-How are the backward relationships possible?
---------------------------------------------
+为什么可以引用反向关系？
+------------------------
 
-Other object-relational mappers require you to define relationships on both
-sides. The Django developers believe this is a violation of the DRY (Don't
-Repeat Yourself) principle, so Django only requires you to define the
-relationship on one end.
+其他对象关系映射需要你同时定义关系的两边。但是 Django 开发者认为这样做违背了
+DRY （不要重复自己）的原则，所以在 Django 中只要定义关系的一边就可以了。
 
-But how is this possible, given that a model class doesn't know which other
-model classes are related to it until those other model classes are loaded?
+但是，在关系的另一边的模型还没有载入的情况下，关系的这一边的模型是如何知道与哪
+个模型关联的呢？
 
-The answer lies in the :setting:`INSTALLED_APPS` setting. The first time any model is
-loaded, Django iterates over every model in :setting:`INSTALLED_APPS` and creates the
-backward relationships in memory as needed. Essentially, one of the functions
-of :setting:`INSTALLED_APPS` is to tell Django the entire model domain.
+答案就藏在 :setting:`INSTALLED_APPS` 设置中。当任何一个模型第一次载入时，
+Django 就会遍历 :setting:`INSTALLED_APPS` 中的每一个模型并在内存中创建反向关系
+备用。从本质上讲， :setting:`INSTALLED_APPS` 的功能之一就是告诉 Django 整个模型
+域。
 
-Queries over related objects
-----------------------------
+跨关系查询
+----------
 
-Queries involving related objects follow the same rules as queries involving
-normal value fields. When specifying the value for a query to match, you may
-use either an object instance itself, or the primary key value for the object.
+包含关联对象的查询与包含一般字段的查询规则是相同的。当为查询定义一个条件时，
+可以使用一个对象实例本身，也可以使用该对象的主键值。
 
-For example, if you have a Blog object ``b`` with ``id=5``, the following
-three queries would be identical::
+例如，假设有一个博客对象 ``b`` ，有 ``id=5`` ，以下三个查询是一样的::
 
-    Entry.objects.filter(blog=b) # Query using object instance
-    Entry.objects.filter(blog=b.id) # Query using id from instance
-    Entry.objects.filter(blog=5) # Query using id directly
+    Entry.objects.filter(blog=b) # 使用对象的实例
+    Entry.objects.filter(blog=b.id) # 使用对象的 id
+    Entry.objects.filter(blog=5) # 直接使用 id 的值
 
-Falling back to raw SQL
-=======================
+回退到原始 SQL
+==============
 
-If you find yourself needing to write an SQL query that is too complex for
-Django's database-mapper to handle, you can fall back into raw-SQL statement
-mode.
+如果你觉得 Django 的数据库映射用起来太复杂了，想直接使用原始的 SQL 查询，那么你
+可以回退到原始 SQL 语句模式。
 
-The preferred way to do this is by giving your model custom methods or custom
-manager methods that execute queries. Although there's nothing in Django that
-*requires* database queries to live in the model layer, this approach keeps all
-your data-access logic in one place, which is smart from an code-organization
-standpoint. For instructions, see :ref:`topics-db-sql`.
+使用原始 SQL 的最佳途径是给使用执行查询的模型自定义方法或模型自定义管理器方法。
+虽然把数据库查询都放在模型层不是 Django *必需* 的，但是这符合把逻辑数据库操作
+放在同一个地方的目标，是一个代码组织的明智选择。关于使用原始 SQL 的介绍参见
+:ref:`topics-db-sql` 。
 
-Finally, it's important to note that the Django database layer is merely an
-interface to your database. You can access your database via other tools,
-programming languages or database frameworks; there's nothing Django-specific
-about your database.
+最后，要注意重要的一点： Django 的数据库层只是数据库的一个接口。你可通过其他
+工具、编程语言或数据库框架来操作数据库， Django 没有强制性的要求。
