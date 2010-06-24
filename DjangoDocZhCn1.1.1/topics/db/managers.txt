@@ -41,22 +41,21 @@
 通过扩展基础 ``管理器`` 类可以在模型中使用自定义 ``管理器`` ，并初始化
 ``管理器`` 。
 
-我们要使用自定义 ``管理器``有两个目的 ：增加额外的 ``管理器`` 方法和（或）修改
+我们要使用自定义 ``管理器`` 有两个目的 ：增加额外的 ``管理器`` 方法和（或）修改
 ``管理器`` 返回的原始 ``查询集`` 。
 
 增加额外的管理器方法
 --------------------
 
 增加额外的 ``管理器`` 方法是为模型增加“表级别”功能的首选方式。（要增加如作用于
-模型对象中单个实例的“行级别”的功能请使用 :ref:`Model methods <model-methods>` ，
+模型对象中单个实例的“行级别”的功能请使用 :ref:`模型方法 <model-methods>` ，而
 不要使用 ``管理器`` 方法。）
 
-A custom ``Manager`` method can return anything you want. It doesn't have to
-return a ``QuerySet``.
+自定义 ``管理器`` 方法可以返回任何东西，不一定要返回一个 ``查询集`` 。
 
-For example, this custom ``Manager`` offers a method ``with_counts()``, which
-returns a list of all ``OpinionPoll`` objects, each with an extra
-``num_responses`` attribute that is the result of an aggregate query::
+例如下面的自定义 ``管理器`` 提供一个 ``with_counts()`` 方法，这个方法返回一个
+包含所有 ``OpinionPoll`` 的列表，每个列表中的对象都有一个 ``num_responses``
+属性，这个属性代表一个合计数::
 
     class PollManager(models.Manager):
         def with_counts(self):
@@ -85,37 +84,34 @@ returns a list of all ``OpinionPoll`` objects, each with an extra
         person_name = models.CharField(max_length=50)
         response = models.TextField()
 
-With this example, you'd use ``OpinionPoll.objects.with_counts()`` to return
-that list of ``OpinionPoll`` objects with ``num_responses`` attributes.
+使用上例中的模型，你可以使用 ``OpinionPoll.objects.with_counts()`` 来返回带有
+``num_responses`` 属性的 ``OpininPoll`` 对象列表。
 
-Another thing to note about this example is that ``Manager`` methods can
-access ``self.model`` to get the model class to which they're attached.
+另一个要注意的是 ``管理器`` 方法可以通过 ``self.model`` 来获得其所依附的模型类。
 
-Modifying initial Manager QuerySets
------------------------------------
+修改原始管理器查询集
+--------------------
 
-A ``Manager``'s base ``QuerySet`` returns all objects in the system. For
-example, using this model::
+一个 ``管理器`` 的基础 ``查询集`` 返回系统中的所有对象。例如，使用这个模型::
 
     class Book(models.Model):
         title = models.CharField(max_length=100)
         author = models.CharField(max_length=50)
 
-...the statement ``Book.objects.all()`` will return all books in the database.
+...语句 ``Book.objects.all()`` 会返回数据库中所有的书。
 
-You can override a ``Manager``\'s base ``QuerySet`` by overriding the
-``Manager.get_query_set()`` method. ``get_query_set()`` should return a
-``QuerySet`` with the properties you require.
+通过重载 ``Manager.get_query_set()`` 可以重载 ``管理器`` 的基础 ``查询集`` 。
+``get_query_set()`` 应当返回一个符合你需求的 ``查询集`` 。
 
-For example, the following model has *two* ``Manager``\s -- one that returns
-all objects, and one that returns only the books by Roald Dahl::
+例如，以下模型有 *两个* ``管理器`` ，一个返回所有对象，另一个只返回作者为
+Roald Dah1 的对象::
 
-    # First, define the Manager subclass.
+    # 首先定义管理器的子类。
     class DahlBookManager(models.Manager):
         def get_query_set(self):
             return super(DahlBookManager, self).get_query_set().filter(author='Roald Dahl')
 
-    # Then hook it into the Book model explicitly.
+    # 显式的把上面的子类安装到 Book 模型中。
     class Book(models.Model):
         title = models.CharField(max_length=100)
         author = models.CharField(max_length=50)
@@ -123,13 +119,12 @@ all objects, and one that returns only the books by Roald Dahl::
         objects = models.Manager() # The default manager.
         dahl_objects = DahlBookManager() # The Dahl-specific manager.
 
-With this sample model, ``Book.objects.all()`` will return all books in the
-database, but ``Book.dahl_objects.all()`` will only return the ones written by
-Roald Dahl.
+上例中， ``Book.objects.all()`` 会返回数据库中所有书，但是
+``Book.dahl_objects.all()`` 只返回作者为Roald Dah1 的书。
 
-Of course, because ``get_query_set()`` returns a ``QuerySet`` object, you can
-use ``filter()``, ``exclude()`` and all the other ``QuerySet`` methods on it.
-So these statements are all legal::
+当然，因为 ``get_query_set()`` 返回的是一个 ``查询集`` 对象，所以可以对这个对象
+使用 ``filter()`` 、 ``exclude()`` 和所有其它 ``查询集`` 方法。以下语句都是合法
+的::
 
     Book.dahl_objects.all()
     Book.dahl_objects.filter(title='Matilda')
