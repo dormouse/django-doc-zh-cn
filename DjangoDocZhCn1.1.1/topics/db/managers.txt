@@ -41,18 +41,15 @@
 通过扩展基础 ``管理器`` 类可以在模型中使用自定义 ``管理器`` ，并初始化
 ``管理器`` 。
 
-有两个原因我们要使用自定义 ``管理器`` ：增加额外的
-There are two reasons you might want to customize a ``Manager``: to add extra
-``Manager`` methods, and/or to modify the initial ``QuerySet`` the ``Manager``
-returns.
+我们要使用自定义 ``管理器``有两个目的 ：增加额外的 ``管理器`` 方法和（或）修改
+``管理器`` 返回的原始 ``查询集`` 。
 
-Adding extra Manager methods
-----------------------------
+增加额外的管理器方法
+--------------------
 
-Adding extra ``Manager`` methods is the preferred way to add "table-level"
-functionality to your models. (For "row-level" functionality -- i.e., functions
-that act on a single instance of a model object -- use :ref:`Model methods
-<model-methods>`, not custom ``Manager`` methods.)
+增加额外的 ``管理器`` 方法是为模型增加“表级别”功能的首选方式。（要增加如作用于
+模型对象中单个实例的“行级别”的功能请使用 :ref:`Model methods <model-methods>` ，
+不要使用 ``管理器`` 方法。）
 
 A custom ``Manager`` method can return anything you want. It doesn't have to
 return a ``QuerySet``.
