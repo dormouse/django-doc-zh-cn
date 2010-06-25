@@ -130,12 +130,10 @@ Roald Dah1 的对象::
     Book.dahl_objects.filter(title='Matilda')
     Book.dahl_objects.count()
 
-This example also pointed out another interesting technique: using multiple
-managers on the same model. You can attach as many ``Manager()`` instances to
-a model as you'd like. This is an easy way to define common "filters" for your
-models.
+这个例子也展示了一个有趣的技巧：在同一个模型中使用多个管理器。你可以为一个模型
+附加任意多 ``Manager()`` 实例。 这是一个为模型定义常用“过滤器”的便捷方法。
 
-For example::
+例如::
 
     class MaleManager(models.Manager):
         def get_query_set(self):
@@ -153,23 +151,19 @@ For example::
         men = MaleManager()
         women = FemaleManager()
 
-This example allows you to request ``Person.men.all()``, ``Person.women.all()``,
-and ``Person.people.all()``, yielding predictable results.
+这个例子让你方便地使用 ``Person.men.all()`` 、 ``Person.women.all()`` 和
+``Person.people.all()`` ，获得明确的结果。
 
-If you use custom ``Manager`` objects, take note that the first
-``Manager`` Django encounters (in the order in which they're defined
-in the model) has a special status. Django interprets this first
-``Manager`` defined in a class as the "default" ``Manager``, and
-several parts of Django (though not the admin application) will use
-that ``Manager`` exclusively for that model. As a result, it's often a
-good idea to be careful in your choice of default manager, in order to
-avoid a situation where overriding of ``get_query_set()`` results in
-an inability to retrieve objects you'd like to work with.
+如果你使用自定义 ``管理器`` 对象，那么要注意第一个 ``管理器`` （根据在模型
+定义的顺序）有一个特殊的状态。 Django 把第一个 ``管理器`` 作为缺省的
+``管理器`` ，并且 Django 的不同组成部分（虽然不是管理员程序）只使用模型的缺省
+``管理器`` 。所以要仔细斟酌如何定义第一个 ``管理器`` ，以免在查询进无法获得正确
+的结果。
 
 .. _managers-for-related-objects:
 
-Using managers for related object access
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+使用管理器操作关联对象
+~~~~~~~~~~~~~~~~~~~~~~
 
 By default, Django uses an instance of a "plain" manager class when accessing
 related objects (i.e. ``choice.poll``), not the default manager on the related
