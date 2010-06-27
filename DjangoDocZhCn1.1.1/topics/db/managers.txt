@@ -165,38 +165,28 @@ Roald Dah1 的对象::
 使用管理器操作关联对象
 ~~~~~~~~~~~~~~~~~~~~~~
 
-By default, Django uses an instance of a "plain" manager class when accessing
-related objects (i.e. ``choice.poll``), not the default manager on the related
-object. This is because Django needs to be able to retrieve the related
-object, even if it would otherwise be filtered out (and hence be inaccessible)
-by the default manager.
+缺省情况下，当操作关联对象时 Django 使用一个“简明”管理器类的实例（如
+``choice.poll`` ），而不是关联对象本身的缺省管理器。只有这样 Django 才可以在
+任何情况下都能获取关联对象(缺省的管理器可能会被过滤器过滤掉,变得不可操作)。
 
-If the normal plain manager class (:class:`django.db.models.Manager`) is not
-appropriate for your circumstances, you can force Django to use the same class
-as the default manager for your model by setting the `use_for_related_fields`
-attribute on the manager class. This is documented fully below_.
+如果一般的简明管理器类（ :class:`django.db.models.Manager` ）不合你的胃口，那么
+你可通过设置模型的 `use_for_related_fields` 属性来使用你自己的。详见 下文_ 。
 
-.. _below: manager-types_
+.. _下文: manager-types_
 
 .. _custom-managers-and-inheritance:
 
-Custom managers and model inheritance
--------------------------------------
+自定义管理器和模型继承
+----------------------
 
-Class inheritance and model managers aren't quite a perfect match for each
-other. Managers are often specific to the classes they are defined on and
-inheriting them in subclasses isn't necessarily a good idea. Also, because the
-first manager declared is the *default manager*, it is important to allow that
-to be controlled. So here's how Django handles custom managers and
-:ref:`model inheritance <model-inheritance>`:
+模型类的继承时，模型的管理器也同时继承有时候是不适合的。因为管理器通常是针对
+特定的类的。同时因为第一个管理器被视作 *缺省管理器* ，所以管理器是否同时继承
+应当可以控制是非常重要的。所以 Django 是这样处理自定义管理器和
+:ref:`模型继承 <model-inheritance>` 的：
 
-    1. Managers defined on non-abstract base classes are *not* inherited by
-       child classes. If you want to reuse a manager from a non-abstract base,
-       redeclare it explicitly on the child class. These sorts of managers are
-       likely to be fairly specific to the class they are defined on, so
-       inheriting them can often lead to unexpected results (particularly as
-       far as the default manager goes). Therefore, they aren't passed onto
-       child classes.
+    1. 非抽象基类中的管理器是 *不* 继承的。因为这种管理器通常是针对特定的非抽象
+       基类的。如果你要重用非抽象基类中的管理器，那么必须在其子类中显式的重新
+       定义这个管理器。
 
     2. Managers from abstract base classes are always inherited by the child
        class, using Python's normal name resolution order (names on the child
