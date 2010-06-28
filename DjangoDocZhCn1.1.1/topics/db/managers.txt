@@ -188,23 +188,18 @@ Roald Dah1 的对象::
        基类的。如果你要重用非抽象基类中的管理器，那么必须在其子类中显式的重新
        定义这个管理器。
 
-    2. Managers from abstract base classes are always inherited by the child
-       class, using Python's normal name resolution order (names on the child
-       class override all others; then come names on the first parent class,
-       and so on). Abstract base classes are designed to capture information
-       and behavior that is common to their child classes. Defining common
-       managers is an appropriate part of this common information.
+    2. 抽象基类的管理器总是被其子类继承的。管理器的名称使用 Python 的通常名称
+       处理方式（子类的名称重载所有其他名称；名称由第一个父类而来等）。抽象基类
+       就是用来其子类的通用信息和行为的，所有其管理器天生就是用来处理通用的信息
+       的，理当被继承。
 
-    3. The default manager on a class is either the first manager declared on
-       the class, if that exists, or the default manager of the first abstract
-       base class in the parent hierarchy, if that exists. If no default
-       manager is explicitly declared, Django's normal default manager is
-       used.
+    3. 如果模型类中声明了管理器，那么第一个声明的管理器就是缺省管理器。如果没有
+       声明，且这个类是继承自一个抽象基类，那么继承关系中第一个父抽象基类的缺省
+       管理器就是这个类的缺省管理器。如果没有显式声明任何管理器，那么就会使用
+       Django 自身的一般缺省管理器。
 
-These rules provide the necessary flexibility if you want to install a
-collection of custom managers on a group of models, via an abstract base
-class, but still customize the default manager. For example, suppose you have
-this base class::
+以上规则在多个模型中使用多个自定义管理器时提供了足够的弹性。例如，假设有如下基
+类::
 
     class AbstractBase(models.Model):
         ...
@@ -213,30 +208,28 @@ this base class::
         class Meta:
             abstract = True
 
-If you use this directly in a subclass, ``objects`` will be the default
-manager if you declare no managers in the base class::
+如果子类中不声明管理器，那么父类中 ``objects`` 就会成为缺省管理器::
 
     class ChildA(AbstractBase):
         ...
-        # This class has CustomManager as the default manager.
+        # 这个类的缺省管理器是 CustomManager 。
 
-If you want to inherit from ``AbstractBase``, but provide a different default
-manager, you can provide the default manager on the child class::
+如果要继承 ``AbstractBase`` ，但想使用不同的缺省管理器，那么可以在子类中声明
+自己的缺省管理器::
 
     class ChildB(AbstractBase):
         ...
-        # An explicit default manager.
+        # 一个显式定义的缺省管理器。
         default_manager = OtherManager()
 
-Here, ``default_manager`` is the default. The ``objects`` manager is
-still available, since it's inherited. It just isn't used as the default.
+上例中 ``default_manager`` 是缺省管理器。 ``objects`` 管理器仍是可用的，但不是
+缺省管理器。
 
-Finally for this example, suppose you want to add extra managers to the child
-class, but still use the default from ``AbstractBase``. You can't add the new
-manager directly in the child class, as that would override the default and you would
-have to also explicitly include all the managers from the abstract base class.
-The solution is to put the extra managers in another base class and introduce
-it into the inheritance hierarchy *after* the defaults::
+最后，对于上例，假设想要添加额外的管理器，但是仍然要使用父类 ``AbstractBase``
+的管理器作为缺省管理器。不能直接在子类中添加新的管理器，因为新添加的管理器会
+重载父类的管理器而成为缺省的管理器。那么必须先要显式的声明所有父类的管理器吗？
+不必，可以把要添加的管理器放在另外一个基类中，然后在要继承的基类 *之后* 引入
+另外这个基类::
 
     class ExtraManager(models.Model):
         extra_manager = OtherManager()
@@ -246,59 +239,46 @@ it into the inheritance hierarchy *after* the defaults::
 
     class ChildC(AbstractBase, ExtraManager):
         ...
-        # Default manager is CustomManager, but OtherManager is
-        # also available via the "extra_manager" attribute.
+        # 缺省管理器是 CustomManager ，但 OtherManager 作为
+        # “ extra_manager ”的属性也可以使用。
 
 .. _manager-types:
 
-Controlling Automatic Manager Types
-===================================
+控制自动管理器类型
+==================
 
-This document has already mentioned a couple of places where Django creates a
-manager class for you: `default managers`_ and the "plain" manager used to
-`access related objects`_. There are other places in the implementation of
-Django where temporary plain managers are needed. Those automatically created
-managers will normally be instances of the :class:`django.db.models.Manager`
-class.
+本文已经谈了许多 Django 为你创建的管理器类：`缺省管理器`_ 和用于
+`操作关联对象`_ 的“简明”管理器。但是 Django 的运行还需要一些其它的简明
+管理器。这些自动创建的管理器是 :class:`django.db.models.Manager` 的实例。
 
-.. _default managers: manager-names_
-.. _access related objects: managers-for-related-objects_
+.. _缺省管理器: manager-names_
+.. _操作关联对象: managers-for-related-objects_
 
-Throughout this section, we will use the term "automatic manager" to mean a
-manager that Django creates for you -- either as a default manager on a model
-with no managers, or to use temporarily when accessing related objects.
+本节我们会使用“自动管理器”来指代 Django 为你创建的管理器。“自动管理器”包括
+未定义管理器的模型的缺省管理器和当操作关联对象时临时使用的管理器。
 
-Sometimes this default class won't be the right choice. One example is in the
-`django.contrib.gis` application that ships with Django itself. All `gis`
-models must use a special manager class (``GeoManager``) because they need a
-special queryset (``GeoQuerySet``) to be used for interacting with the
-database.  It turns out that models which require a special manager like this
-need to use the same manager class wherever an automatic manager is created.
+有时候使用缺省的管理器不是一个正确的选择。例如 Django 自带的
+`django.contrib.gis` 应用中，所有 `gis` 模型必须使用一个特殊的管理器类
+（ ``GeoManager`` ），因为模型需要一个特殊的查询集（ ``GeoQuerySet`` ）来与
+数据库交互。即有时候模型不需要自动创建的管理器，而只使用特定的管理器。
 
-Django provides a way for custom manager developers to say that their manager
-class should be used for automatic managers whenever it is the default manager
-on a model. This is done by setting the ``use_for_related_fields`` attribute on
-the manager class::
+Django 通过设置管理器 ``use_for_related_fields`` 属性来解决这个问题::
 
     class MyManager(models.Manager):
         use_for_related_fields = True
 
         ...
 
-If this attribute is set on the *default* manager for a model (only the
-default manager is considered in these situations), Django will use that class
-whenever it needs to automatically create a manager for the class.  Otherwise,
-it will use :class:`django.db.models.Manager`.
+如果这个属性在一个模型的 *缺省* 管理器中被设置了（只有在缺省管理器中设置才起
+作用），那么 Django 就会始终使用这个管理器，否则就会使用
+:class:`django.db.models.Manager` 。
 
-.. admonition:: Historical Note
+.. admonition:: 历史由来
 
-    Given the purpose for which it's used, the name of this attribute
-    (``use_for_related_fields``) might seem a little odd. Originally, the
-    attribute only controlled the type of manager used for related field
-    access, which is where the name came from. As it became clear the concept
-    was more broadly useful, the name hasn't been changed. This is primarily
-    so that existing code will :ref:`continue to work <misc-api-stability>` in
-    future Django versions.
+    根据属性的用途，属性的名称（ ``use_for_related_fields`` ）可能看上去比较
+    琐碎。因为原来，这个属性只用于控制操作管理器的关联字段。当这个属性的概念
+    逐渐明确后，它的名称没有改变。这只是一个初步的情况，在 Django 以后的版本中
+    代码还会 :ref:`持续改进 <misc-api-stability>` 。
 
 Writing Correct Managers For Use In Automatic Manager Instances
 ---------------------------------------------------------------
