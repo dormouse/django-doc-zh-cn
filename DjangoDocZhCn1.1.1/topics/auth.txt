@@ -1,133 +1,120 @@
 .. _topics-auth:
 
 =============================
-User authentication in Django
+Django 中的用户认证
 =============================
 
 .. module:: django.contrib.auth
    :synopsis: Django's authentication framework.
 
-Django comes with a user authentication system. It handles user accounts,
-groups, permissions and cookie-based user sessions. This document explains how
-things work.
+Django 自带一个用户认证系统，这个系统处理用户帐户、组、权限和基于 cookie 的
+会话。本文说明这个系统是如何工作的。
 
-Overview
-========
+概览
+====
 
-The auth system consists of:
+认证系统由以下部分组成：
 
-    * Users
-    * Permissions: Binary (yes/no) flags designating whether a user may perform
-      a certain task.
-    * Groups: A generic way of applying labels and permissions to more than one
-      user.
-    * Messages: A simple way to queue messages for given users.
+    * 用户
+    * 权限：控制用户进否可以执行某项任务的二进制（是/否）标志。
+    * 组：一种为多个用户加上标签和权限的常用方式。
+    * 消息：一种为指定用户生成简单消息队列的方式。
 
-Installation
-============
+安装
+====
 
-Authentication support is bundled as a Django application in
-``django.contrib.auth``. To install it, do the following:
+认证系统打包在 Django 的 ``django.contrib.auth`` 应用中，安装它有以下步骤：
 
-    1. Put ``'django.contrib.auth'`` and ``'django.contrib.contenttypes'`` in
-       your :setting:`INSTALLED_APPS` setting.
-       (The :class:`~django.contrib.auth.models.Permisson` model in
-       :mod:`django.contrib.auth` depends on :mod:`django.contrib.contenttypes`.)
-    2. Run the command ``manage.py syncdb``.
+    1. 把 ``'django.contrib.auth'`` 和 ``'django.contrib.contenttypes'`` 放到
+       :setting:`INSTALLED_APPS` 设置中。（ :mod:`django.contrib.auth` 中的
+       :class:`~django.contrib.auth.models.Permisson` 模型依赖于
+       :mod:`django.contrib.contenttypes` 。）
+    2. 运行命令 ``manage.py syncdb`` 。
 
-Note that the default :file:`settings.py` file created by
-:djadmin:`django-admin.py startproject` includes ``'django.contrib.auth'`` and
-``'django.contrib.contenttypes'`` in :setting:`INSTALLED_APPS` for convenience.
-If your :setting:`INSTALLED_APPS` already contains these apps, feel free to run
-:djadmin:`manage.py syncdb` again; you can run that command as many times as
-you'd like, and each time it'll only install what's needed.
+注意：为了方便起见， :djadmin:`django-admin.py startproject` 创建的缺省
+:file:`settings.py` 文件的 :setting:`INSTALLED_APPS` 中已包含
+``'django.contrib.auth'`` 和 ``'django.contrib.contenttypes'`` 。
+如果你的 :setting:`INSTALLED_APPS` 早已包含这些应用，你可以放心地再次运行
+:djadmin:`manage.py syncdb` 。这个命令可以多次执行，因为每次它只会安装需要安装
+的东西。
 
-The :djadmin:`syncdb` command creates the necessary database tables, creates
-permission objects for all installed apps that need 'em, and prompts you to
-create a superuser account the first time you run it.
+:djadmin:`syncdb` 命令创建必须的数据库表和所有已安装应用需要的权限对象。第一次
+运行这个命令会提示你创建一个超级用户。
 
-Once you've taken those steps, that's it.
+通过以上步骤，认证系统就安装完成了。
 
-Users
+用户
 =====
 
 .. class:: models.User
 
-API reference
+API 手册
 -------------
 
-Fields
+字段
 ~~~~~~
 
 .. class:: models.User
 
-    :class:`~django.contrib.auth.models.User` objects have the following
-    fields:
+    :class:`~django.contrib.auth.models.User` 对象有以下字段：
 
     .. attribute:: models.User.username
 
-        Required. 30 characters or fewer. Alphanumeric characters only
-        (letters, digits and underscores).
+        必选项。 小于等于 30 个字符。 只能是字母数字（字母、数字和下划线）。
 
     .. attribute:: models.User.first_name
 
-        Optional. 30 characters or fewer.
+        可选项。 小于等于 30 个字符。
 
     .. attribute:: models.User.last_name
 
-        Optional. 30 characters or fewer.
+        可选项。 小于等于 30 个字符。
 
     .. attribute:: models.User.email
 
-        Optional. E-mail address.
+        可选项。电子邮件地址。
 
     .. attribute:: models.User.password
 
-        Required. A hash of, and metadata about, the password. (Django doesn't
-        store the raw password.) Raw passwords can be arbitrarily long and can
-        contain any character. See the "Passwords" section below.
+        必选项。密码（哈希值，元数据）。 Django 不储存原始密码。原始密码可以是
+        任意长度的，包含任何字符。参见下面“密码”一节。
 
     .. attribute:: models.User.is_staff
 
-        Boolean. Designates whether this user can access the admin site.
+        布尔值。指明这个用户是否可以进入管理站点。
 
     .. attribute:: models.User.is_active
 
-        Boolean. Designates whether this user account should be considered
-        active. Set this flag to ``False`` instead of deleting accounts.
+        布尔值。指明这个用户帐户是否是活动的。一般我们不删除帐户而是把这个标记
+        设置为 ``False`` 。
 
-        This doesn't control whether or not the user can log in. Nothing in the
-        authentication path checks the ``is_active`` flag, so if you want to
-        reject a login based on ``is_active`` being ``False``, it is up to you
-        to check that in your own login view. However, permission checking
-        using the methods like :meth:`~models.User.has_perm` does check this
-        flag and will always return ``False`` for inactive users.
+        这个属性不控制用户是否可以登录。登录验证时不会核查 ``is_active`` 标志。
+        因此，如果在登录时需要检查 ``is_active`` 标志，需要你在自己的登录视图中
+        实现。但是当使用象 :meth:`~models.User.has_perm` 的方法检查权限时会检查
+        这个标志，如果不是活动用户就会返回 ``False`` 。
 
     .. attribute:: models.User.is_superuser
 
-        Boolean. Designates that this user has all permissions without
-        explicitly assigning them.
+        布尔值。指明用户拥有所有权限（包括显式赋予和非显式赋予的）。
 
     .. attribute:: models.User.last_login
 
-        A datetime of the user's last login. Is set to the current date/time by
-        default.
+        缺省情况下设置为用户最后一次登录的日期时间。
 
     .. attribute:: models.User.date_joined
 
-        A datetime designating when the account was created. Is set to the
-        current date/time by default when the account is created.
+        缺省情况下设置为用户帐户创建的日期时间。
 
-Methods
+方法
 ~~~~~~~
 
 .. class:: models.User
 
-    :class:`~django.contrib.auth.models.User` objects have two many-to-many
-    fields: models.User. ``groups`` and ``user_permissions``.
-    :class:`~django.contrib.auth.models.User` objects can access their related
-    objects in the same way as any other :ref:`Django model
-    <topics-db-models>`:
+    :class:`~django.contrib.auth.models.User` 对象有两个多对多字段
+    fields: models.User. ``组（ groups  ）`` 和
+    ``用户权限（ user_permissions ）`` 。3
+    :class:`~django.contrib.auth.models.User` 对象可以象其它
+    :ref:`Django 模型 <topics-db-models>` 一样操作关联对象：
 
     .. code-block:: python
 
@@ -140,134 +127,118 @@ Methods
         myuser.user_permissions.remove(permission, permission, ...)
         myuser.user_permissions.clear()
 
-    In addition to those automatic API methods,
-    :class:`~django.contrib.auth.models.User` objects have the following custom
-    methods:
+    除了那些自动 API 方法之外， :class:`~django.contrib.auth.models.User` 对象
+    还有以下自己的方法：
 
     .. method:: models.User.is_anonymous()
 
-        Always returns ``False``. This is a way of differentiating
-        :class:`~django.contrib.auth.models.User` and
-        :class:`~django.contrib.auth.models.AnonymousUser` objects.
-        Generally, you should prefer using
-        :meth:`~django.contrib.auth.models.User.is_authenticated()` to this
-        method.
+        总是返回 ``False`` 。这是一个区别
+        :class:`~django.contrib.auth.models.User` 和 
+        :class:`~django.contrib.auth.models.AnonymousUser` 对象的方法。
+        通常，你会更喜欢用
+        :meth:`~django.contrib.auth.models.User.is_authenticated()` 来代替这个
+        方法。
 
     .. method:: models.User.is_authenticated()
 
-        Always returns ``True``. This is a way to tell if the user has been
-        authenticated. This does not imply any permissions, and doesn't check
-        if the user is active - it only indicates that the user has provided a
-        valid username and password.
+        总是返回 ``True`` 。这是一个测试用户是否经过验证的方法。这并不表示任何
+        权限，也不测试用户是否是活动的。这只是验证用户是否合法，密码是否正确。
 
     .. method:: models.User.get_full_name()
 
-        Returns the :attr:`~django.contrib.auth.models.User.first_name` plus
-        the :attr:`~django.contrib.auth.models.User.last_name`, with a space in
-        between.
+        返回 :attr:`~django.contrib.auth.models.User.first_name` 加上
+        :attr:`~django.contrib.auth.models.User.last_name` ，中间加上一个空格。
 
     .. method:: models.User.set_password(raw_password)
 
-        Sets the user's password to the given raw string, taking care of the
-        password hashing. Doesn't save the
-        :class:`~django.contrib.auth.models.User` object.
+        根据原始字符串设置用户密码，要注意密码的哈希算法。不保存
+        :class:`~django.contrib.auth.models.User` 对象。
 
     .. method:: models.User.check_password(raw_password)
 
-        Returns ``True`` if the given raw string is the correct password for
-        the user. (This takes care of the password hashing in making the
-        comparison.)
+        如果密码正确则返回 ``True`` 。（在比较密码时要注意哈希算法。）
 
     .. method:: models.User.set_unusable_password()
 
         .. versionadded:: 1.0
 
-        Marks the user as having no password set.  This isn't the same as
-        having a blank string for a password.
-        :meth:`~django.contrib.auth.models.User.check_password()` for this user
-        will never return ``True``. Doesn't save the
-        :class:`~django.contrib.auth.models.User` object.
+        使用用户可以不设置密码。这与用户使用空字符串作为密码是不同的。
+        对这种用户， :meth:`~django.contrib.auth.models.User.check_password()`
+        肯定不会返回 ``True`` 。不保存
+        :class:`~django.contrib.auth.models.User` 对象。
 
-        You may need this if authentication for your application takes place
-        against an existing external source such as an LDAP directory.
+        如果你的应用存在于如 LDAP 目录之类的外部来源时，那么可能需要这个方法。
 
     .. method:: models.User.has_usable_password()
 
         .. versionadded:: 1.0
 
-        Returns ``False`` if
-        :meth:`~django.contrib.auth.models.User.set_unusable_password()` has
-        been called for this user.
+        如果对于这个用户调用
+        :meth:`~django.contrib.auth.models.User.set_unusable_password()` 则返回
+        ``False`` 。
 
     .. method:: models.User.get_group_permissions()
 
-        Returns a list of permission strings that the user has, through his/her
-        groups.
+        通过用户的组返回一个其权限列表。
 
     .. method:: models.User.get_all_permissions()
 
-        Returns a list of permission strings that the user has, both through
-        group and user permissions.
+        通过用户的组和用户权限返回一个用户权限列表。
 
     .. method:: models.User.has_perm(perm)
 
-        Returns ``True`` if the user has the specified permission, where perm is
-        in the format ``"<app label>.<permission codename>"``.
-        If the user is inactive, this method will always return ``False``.
+        如果用户有特定的权限则返回 ``True`` ，这里的 perm 的格式为
+        ``"<app label>.<permission codename>"`` 。如果用户是不活动的，这个方法
+        总是返回 ``False`` 。
 
     .. method:: models.User.has_perms(perm_list)
 
-        Returns ``True`` if the user has each of the specified permissions,
-        where each perm is in the format 
-        ``"<app label>.<permission codename>"``. If the user is inactive,
-        this method will always return ``False``.
+        如果用户有列表中每个特定的权限则返回 ``True`` ，这里的 perm 的格式为
+        ``"<app label>.<permission codename>"`` 。如果用户是不活动的，这个方法
+        总是返回 ``False`` 。
 
     .. method:: models.User.has_module_perms(package_name)
 
-        Returns ``True`` if the user has any permissions in the given package
-        (the Django app label). If the user is inactive, this method will
-        always return ``False``.
+        如果用户在给定的包（ Django 应用标签）中有任何一个权限则返回
+        ``True`` 。如果用户是不活动的，这个方法总是返回 ``False`` 。
 
     .. method:: models.User.get_and_delete_messages()
 
-        Returns a list of :class:`~django.contrib.auth.models.Message` objects
-        in the user's queue and deletes the messages from the queue.
+        在用户的列表中获得 :class:`~django.contrib.auth.models.Message` 对象
+        列表，并从队列中删除。
 
     .. method:: models.User.email_user(subject, message, from_email=None)
 
-        Sends an e-mail to the user. If
-        :attr:`~django.contrib.auth.models.User.from_email` is ``None``, Django
-        uses the :setting:`DEFAULT_FROM_EMAIL`.
+        发送一个电子邮件给用户。如果
+        :attr:`~django.contrib.auth.models.User.from_email` 为 ``None`` ，则
+        使用 :setting:`DEFAULT_FROM_EMAIL` 。
 
     .. method:: models.User.get_profile()
 
-        Returns a site-specific profile for this user. Raises
-        :exc:`django.contrib.auth.models.SiteProfileNotAvailable` if the
-        current site doesn't allow profiles. For information on how to define a
-        site-specific user profile, see the section on `storing additional user
-        information`_ below.
+        返回用户的特定站点的描述。如果当前站点不提供描述则引发
+        :exc:`django.contrib.auth.models.SiteProfileNotAvailable` 。关于定义
+        特定站点用户描述，参见下文 `储存用户的额外信息` 一节。
 
-.. _storing additional user information: #storing-additional-information-about-users
+.. _储存用户的额外信息: #storing-additional-information-about-users
 
 Manager functions
 ~~~~~~~~~~~~~~~~~
 
 .. class:: models.UserManager
 
-    The :class:`~django.contrib.auth.models.User` model has a custom manager
-    that has the following helper functions:
+    :class:`~django.contrib.auth.models.User` 模型有一个包含以下实用函数的
+    自定义管理器：
 
     .. method:: models.UserManager.create_user(username, email, password=None)
 
-        Creates, saves and returns a :class:`~django.contrib.auth.models.User`.
+        创建、保存并返回一个 :class:`~django.contrib.auth.models.User` 。
         The :attr:`~django.contrib.auth.models.User.username`,
         :attr:`~django.contrib.auth.models.User.email` and
         :attr:`~django.contrib.auth.models.User.password` are set as given, and
         the :class:`~django.contrib.auth.models.User` gets ``is_active=True``.
 
-        If no password is provided,
-        :meth:`~django.contrib.auth.models.User.set_unusable_password()` will
-        be called.
+        如果没有提供密码，就会调用
+        :meth:`~django.contrib.auth.models.User.set_unusable_password()` 。
 
         See `Creating users`_ for example usage.
 
