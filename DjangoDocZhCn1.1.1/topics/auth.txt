@@ -221,7 +221,7 @@ API 手册
 
 .. _储存用户的额外信息: #storing-additional-information-about-users
 
-Manager functions
+管理器函数
 ~~~~~~~~~~~~~~~~~
 
 .. class:: models.UserManager
@@ -232,67 +232,61 @@ Manager functions
     .. method:: models.UserManager.create_user(username, email, password=None)
 
         创建、保存并返回一个 :class:`~django.contrib.auth.models.User` 。
-        The :attr:`~django.contrib.auth.models.User.username`,
-        :attr:`~django.contrib.auth.models.User.email` and
-        :attr:`~django.contrib.auth.models.User.password` are set as given, and
-        the :class:`~django.contrib.auth.models.User` gets ``is_active=True``.
+        :attr:`~django.contrib.auth.models.User.username` 属性、
+        :attr:`~django.contrib.auth.models.User.email` 属性和
+        :attr:`~django.contrib.auth.models.User.password` 属性根据给出的参数
+        设置， :class:`~django.contrib.auth.models.User` 设置为
+        ``is_active=True`` 。
 
         如果没有提供密码，就会调用
         :meth:`~django.contrib.auth.models.User.set_unusable_password()` 。
 
-        See `Creating users`_ for example usage.
+        使用举例参见 `Creating users`_ 。
 
     .. method:: models.UserManager.make_random_password(length=10, allowed_chars='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
 
-        Returns a random password with the given length and given string of
-        allowed characters. (Note that the default value of ``allowed_chars``
-        doesn't contain letters that can cause user confusion, including:
+        根据给定的长度和给定的可用字符串返回一个随机密码。注意缺省的可用字符串
+        不包括以下容易混淆的字符：
 
-            * ``i``, ``l``, ``I``, and ``1`` (lowercase letter i, lowercase
-              letter L, uppercase letter i, and the number one)
-            * ``o``, ``O``, and ``0`` (uppercase letter o, lowercase letter o,
+            * ``i`` 、 ``l`` 、 ``I`` 和 ``1`` （小写字母 i 、小写字母 L 、大写
+              字母 i 和数字一）
+            * ``o`` 、 ``O`` 和 ``0`` （大写字母 o 、小写字母 o 和零）
               and zero)
 
-Basic usage
+基本用法
 -----------
 
 .. _topics-auth-creating-users:
 
-Creating users
+创建用户
 ~~~~~~~~~~~~~~
 
-The most basic way to create users is to use the
-:meth:`~django.contrib.auth.models.UserManager.create_user` helper function
-that comes with Django::
+最基本的创建用户的方法是使用 Django 自带的
+:meth:`~django.contrib.auth.models.UserManager.create_user` 帮助函数::
 
     >>> from django.contrib.auth.models import User
     >>> user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
 
-    # At this point, user is a User object that has already been saved
-    # to the database. You can continue to change its attributes
-    # if you want to change other fields.
+    # 到这里， user 是一个已存入数据库的 User 对象。如果要改变其它字段可以继续
+    # 改变这个对象的属性。
     >>> user.is_staff = True
     >>> user.save()
 
-You can also create users using the Django admin site. Assuming you've enabled
-the admin site and hooked it to the URL ``/admin/``, the "Add user" page is at
-``/admin/auth/user/add/``. You should also see a link to "Users" in the "Auth"
-section of the main admin index page. The "Add user" admin page is different
-than standard admin pages in that it requires you to choose a username and
-password before allowing you to edit the rest of the user's fields.
+你也可以用 Django 的管理站点来创建用户。假设你已经启用了管理站点并把站点挂接到
+``/admin/`` ， ``/admin/auth/user/add/`` 页面会有一个“增加用户（ Add user ）”
+按钮。在管理站点的主页面中的“认证” 小节中还可以看见一个“用户（ Users ）”
+链接。“增加用户”页面与标准的管理站点页面不同之处在于在允许编辑其它用户字段之前
+必须确定用户名和密码。
 
-Also note: if you want your own user account to be able to create users using
-the Django admin site, you'll need to give yourself permission to add users
-*and* change users (i.e., the "Add user" and "Change user" permissions). If
-your account has permission to add users but not to change them, you won't be
-able to add users. Why? Because if you have permission to add users, you have
-the power to create superusers, which can then, in turn, change other users. So
-Django requires add *and* change permissions as a slight security measure.
+同时要注意：在管理站点中，如果要你的帐户可以创建用户，那么必须有添加 *和* 变更
+用户的权限。如果只有添加用户权限而没变更权限，那么是不能创建用户的。因为如果有
+添加用户权限，那么就可以添加超级用户，然后就可以变更其他用户。所以 Django 需要
+同时具备添加 *和* 变更权限。这是出于安全性考虑。
 
-Changing passwords
+变更密码
 ~~~~~~~~~~~~~~~~~~
 
-Change a password with :meth:`~django.contrib.auth.models.User.set_password()`:
+变更密码使用 :meth:`~django.contrib.auth.models.User.set_password()`:
 
 .. code-block:: python
 
@@ -301,109 +295,98 @@ Change a password with :meth:`~django.contrib.auth.models.User.set_password()`:
     >>> u.set_password('new password')
     >>> u.save()
 
-Don't set the :attr:`~django.contrib.auth.models.User.password` attribute
-directly unless you know what you're doing. This is explained in the next
-section.
+不要直接设置 :attr:`~django.contrib.auth.models.User.password` 属性，除非必须。
+下一节会说明原因。
 
-Passwords
+密码
 ---------
 
-The :attr:`~django.contrib.auth.models.User.password` attribute of a
-:class:`~django.contrib.auth.models.User` object is a string in this format::
+:class:`~django.contrib.auth.models.User` 对象的
+:attr:`~django.contrib.auth.models.User.password` 属性是一个如下格式的字符串::
 
     hashtype$salt$hash
 
-That's hashtype, salt and hash, separated by the dollar-sign character.
+由哈希类型、盐值和哈希值组成，用美元符合分隔。
 
-Hashtype is either ``sha1`` (default), ``md5`` or ``crypt`` -- the algorithm
-used to perform a one-way hash of the password. Salt is a random string used
-to salt the raw password to create the hash. Note that the ``crypt`` method is
-only supported on platforms that have the standard Python ``crypt`` module
-available.
+哈希类型可以是 ``sha1`` （缺省值）、 ``md5`` 或 ``crypt`` ，表明使用哪种单向
+哈希算法来处理密码。盐值是一个随机字符串，用于在哈希过程中加盐。注意 ``crypt``
+方法只适用于装有标准 Python ``crypt`` 模块的平台下。
 
 .. versionadded:: 1.0
-    Support for the ``crypt`` module is new in Django 1.0.
+    Django 1.0 开始支持 ``crypt`` 方法。
 
-For example::
+密码例子::
 
     sha1$a1976$a36cc8cbf81742a8fb52e221aaeab48ed7f58ab4
 
-The :meth:`~django.contrib.auth.models.User.set_password` and
-:meth:`~django.contrib.auth.models.User.check_password` functions handle the
-setting and checking of these values behind the scenes.
+:meth:`~django.contrib.auth.models.User.set_password` 方法和
+:meth:`~django.contrib.auth.models.User.check_password` 函数用于设置和检查
+密码。
 
-Previous Django versions, such as 0.90, used simple MD5 hashes without password
-salts. For backwards compatibility, those are still supported; they'll be
-converted automatically to the new style the first time
-:meth:`~django.contrib.auth.models.User.check_password()` works correctly for
-a given user.
+以前版本的 Django ，如 0.90 版，只是简单使用 MD5 哈希，并且不使用盐值。为了向后
+兼容，这些密码还是被支持的，指定用户的密码在第一次正常使用
+:meth:`~django.contrib.auth.models.User.check_password()` 后，会自动转换为新的
+形式。
 
-Anonymous users
+匿名用户
 ---------------
 
 .. class:: models.AnonymousUser
 
-    :class:`django.contrib.auth.models.AnonymousUser` is a class that
-    implements the :class:`django.contrib.auth.models.User` interface, with
-    these differences:
+    :class:`django.contrib.auth.models.AnonymousUser` 是一个
+    :class:`django.contrib.auth.models.User` 接口实现的类，区别如下：
 
-    * :attr:`~django.contrib.auth.models.User.id` is always ``None``.
-    * :attr:`~django.contrib.auth.models.User.is_staff` and
-      :attr:`~django.contrib.auth.models.User.is_superuser` are always
-      ``False``.
-    * :attr:`~django.contrib.auth.models.User.is_active` is always ``False``.
-    * :attr:`~django.contrib.auth.models.User.groups` and
-      :attr:`~django.contrib.auth.models.User.user_permissions` are always
-      empty.
-    * :meth:`~django.contrib.auth.models.User.is_anonymous()` returns ``True``
-      instead of ``False``.
-    * :meth:`~django.contrib.auth.models.User.is_authenticated()` returns
-      ``False`` instead of ``True``.
-    * :meth:`~django.contrib.auth.models.User.has_perm()` always returns
-      ``False``.
-    * :meth:`~django.contrib.auth.models.User.set_password()`,
-      :meth:`~django.contrib.auth.models.User.check_password()`,
-      :meth:`~django.contrib.auth.models.User.save()`,
-      :meth:`~django.contrib.auth.models.User.delete()`,
-      :meth:`~django.contrib.auth.models.User.set_groups()` and
-      :meth:`~django.contrib.auth.models.User.set_permissions()` raise
-      :exc:`NotImplementedError`.
+    * :attr:`~django.contrib.auth.models.User.id` 总是 ``None`` 。
+    * :attr:`~django.contrib.auth.models.User.is_staff` 和
+      :attr:`~django.contrib.auth.models.User.is_superuser` 都总是
+      ``False`` 。
+    * :attr:`~django.contrib.auth.models.User.is_active` 总是 ``False`` 。
+    * :attr:`~django.contrib.auth.models.User.groups` 和
+      :attr:`~django.contrib.auth.models.User.user_permissions` 都总是空的。
+    * :meth:`~django.contrib.auth.models.User.is_anonymous()` 返回 ``True`` ，
+      而不是 ``False`` 。
+    * :meth:`~django.contrib.auth.models.User.is_authenticated()` 返回
+      ``False`` ，而不是 ``True`` 。
+    * :meth:`~django.contrib.auth.models.User.has_perm()` 总是返回 ``False`` 。
+    * :meth:`~django.contrib.auth.models.User.set_password()` 、
+      :meth:`~django.contrib.auth.models.User.check_password()` 、
+      :meth:`~django.contrib.auth.models.User.save()` 、
+      :meth:`~django.contrib.auth.models.User.delete()` 、
+      :meth:`~django.contrib.auth.models.User.set_groups()` 和
+      :meth:`~django.contrib.auth.models.User.set_permissions()` 引发
+      :exc:`NotImplementedError` 。
 
-In practice, you probably won't need to use
-:class:`~django.contrib.auth.models.AnonymousUser` objects on your own, but
-they're used by Web requests, as explained in the next section.
+在实践中，你一般不会自己使用
+:class:`~django.contrib.auth.models.AnonymousUser` 对象，但是 Web 请求会使用，
+在下节会详述。
 
 .. _topics-auth-creating-superusers:
 
-Creating superusers
+创建超级用户
 -------------------
 
 .. versionadded:: 1.0
-   The ``manage.py createsuperuser`` command is new.
+   ``manage.py createsuperuser`` 命令是新增的。
 
-:djadmin:`manage.py syncdb <syncdb>` prompts you to create a superuser the
-first time you run it after adding ``'django.contrib.auth'`` to your
-:setting:`INSTALLED_APPS`. If you need to create a superuser at a later date,
-you can use a command line utility::
+在 :setting:`INSTALLED_APPS` 中添加 ``'django.contrib.auth'`` 后第一次运行
+:djadmin:`manage.py syncdb <syncdb>` 会提示你创建一个超级用户。如何在以后单独
+创建可以使用以下命令行工具::
 
     manage.py createsuperuser --username=joe --email=joe@example.com
 
-You will be prompted for a password. After you enter one, the user will be
-created immediately. If you leave off the :djadminopt:`--username` or the
-:djadminopt:`--email` options, it will prompt you for those values.
+运行后会提供输入密码。输入密码后，用户会被立即创建。如果没有写明
+:djadminopt:`--username` 或 :djadminopt:`--email` ，会提示你输入这两个值。
 
-If you're using an older release of Django, the old way of creating a superuser
-on the command line still works::
+如果你使用的是老版本的 Django ，则可以使用如下命令::
 
     python /path/to/django/contrib/auth/create_superuser.py
 
-...where :file:`/path/to` is the path to the Django codebase on your
-filesystem. The ``manage.py`` command is preferred because it figures out the
-correct path and environment for you.
+...这里的 :file:`/path/to` 是你系统中 Django 代码所在路径。推荐使用
+``manage.py`` 命令，因为它为你提供了恰当的路径和环境。
 
 .. _auth-profiles:
 
-Storing additional information about users
+为用户储存额外的信息
 ------------------------------------------
 
 If you'd like to store additional information related to your users, Django
