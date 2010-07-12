@@ -241,7 +241,7 @@ API 手册
         如果没有提供密码，就会调用
         :meth:`~django.contrib.auth.models.User.set_unusable_password()` 。
 
-        使用举例参见 `Creating users`_ 。
+        使用举例参见 `创建用户`_ 。
 
     .. method:: models.UserManager.make_random_password(length=10, allowed_chars='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
 
@@ -262,7 +262,7 @@ API 手册
 ~~~~~~~~~~~~~~
 
 最基本的创建用户的方法是使用 Django 自带的
-:meth:`~django.contrib.auth.models.UserManager.create_user` 帮助函数::
+:meth:`~django.contrib.auth.models.UserManager.create_user` 助理函数::
 
     >>> from django.contrib.auth.models import User
     >>> user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
@@ -389,118 +389,102 @@ API 手册
 为用户储存额外的信息
 ------------------------------------------
 
-If you'd like to store additional information related to your users, Django
-provides a method to specify a site-specific related model -- termed a "user
-profile" -- for this purpose.
+如果要储存用户相关的额外信息， Django 提供了一个方法来定义一个站点相关模型，称
+之为“用户概况（ user profile ）”。
 
-To make use of this feature, define a model with fields for the additional
-information you'd like to store, or additional methods you'd like to have
-available, and also add a :class:`~django.db.models.Field.ForeignKey` from your
-model to the :class:`~django.contrib.auth.models.User` model, specified with
-``unique=True`` to ensure only one instance of your model can be created for
-each :class:`~django.contrib.auth.models.User`.
+具体实现的方式是定义一个用于储存额外信息或附加方法的模型，同时在模型中添加一个
+:class:`~django.db.models.Field.ForeignKey` 关联到
+:class:`~django.contrib.auth.models.User` 模型，还在模型中定义
+``unique=True`` ，以保证每个 :class:`~django.contrib.auth.models.User` 只能创建
+唯一的你的模型的实例。
 
-To indicate that this model is the user profile model for a given site, fill in
-the setting :setting:`AUTH_PROFILE_MODULE` with a string consisting of the
-following items, separated by a dot:
+为了使定义的模型成为站点的用户概况模型，必须有 :setting:`AUTH_PROFILE_MODULE` 
+设置中定义一个包含以下条目的字符串，条目间以点号分隔：
 
-1. The name of the application (case sensitive) in which the user
-   profile model is defined (in other words, the
-   name which was passed to :djadmin:`manage.py startapp <startapp>` to create
-   the application).
+1. 使用用户概况模型的应用名称（大小写敏感）。亦即用来创建应用而传递给
+   :djadmin:`manage.py startapp <startapp>` 的名称。
 
-2. The name of the model (not case sensitive) class.
+2. 模型的名称（大小写不敏感）。
 
-For example, if the profile model was a class named ``UserProfile`` and was
-defined inside an application named ``accounts``, the appropriate setting would
-be::
+例如，如果用户概况模型名称为 ``UserProfile`` 且定义在一个名称为 ``accounts`` 的
+应用中，那么正确的设置是::
 
     AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
-When a user profile model has been defined and specified in this manner, each
-:class:`~django.contrib.auth.models.User` object will have a method --
-:class:`~django.contrib.auth.models.User.get_profile()` -- which returns the
-instance of the user profile model associated with that
-:class:`~django.contrib.auth.models.User`.
+当一个用户概况模型定义好并按上述方法指定之后，每个
+:class:`~django.contrib.auth.models.User` 对象就会有一个
+:class:`~django.contrib.auth.models.User.get_profile()` 方法，这个方法可以返回
+与 :class:`~django.contrib.auth.models.User` 相关联的用户概况模型。
 
-The method :class:`~django.contrib.auth.models.User.get_profile()`
-does not create the profile, if it does not exist. You need to
-register a handler for the signal
-:attr:`django.db.models.signals.post_save` on the User model, and, in
-the handler, if created=True, create the associated user profile.
+如果用户概况不存在，则 :class:`~django.contrib.auth.models.User.get_profile()`
+方法不会创建用户概况。你必需在用户模型中为
+:attr:`django.db.models.signals.post_save` 信号注册一个句柄，并且在句柄中，如果
+created=True ，则创建相关的用户概况。
 
-For more information, see `Chapter 12 of the Django book`_.
+更多信息，参见 `Django 之书第十二章`_.
 
-.. _Chapter 12 of the Django book: http://www.djangobook.com/en/1.0/chapter12/#cn222
+.. _Django 之书第十二章: http://www.djangobook.com/en/1.0/chapter12/#cn222
 
-Authentication in Web requests
-==============================
+Web 请求中的认证
+================
 
-Until now, this document has dealt with the low-level APIs for manipulating
-authentication-related objects. On a higher level, Django can hook this
-authentication framework into its system of
-:class:`request objects <django.http.HttpRequest>`.
+到这里本文谈得是手动处理认证相关对象的低级 API ，在更高的级别 Django 可以把这个
+认证框架挂接到 :class:`request objects <django.http.HttpRequest>` 系统中。
 
-First, install the
-:class:`~django.contrib.sessions.middleware.SessionMiddleware` and
-:class:`~django.contrib.auth.middleware.AuthenticationMiddleware`
-middlewares by adding them to your :setting:`MIDDLEWARE_CLASSES` setting. See
-the :ref:`session documentation <topics-http-sessions>` for more information.
+首先，通过 :setting:`MIDDLEWARE_CLASSES` 设置安装
+:class:`~django.contrib.sessions.middleware.SessionMiddleware` 和
+:class:`~django.contrib.auth.middleware.AuthenticationMiddleware` 中间件。详见
+:ref:`session documentation <topics-http-sessions>` 。
 
-Once you have those middlewares installed, you'll be able to access
-:attr:`request.user <django.http.HttpRequest.user>` in views.
-:attr:`request.user <django.http.HttpRequest.user>` will give you a
-:class:`~django.contrib.auth.models.User` object representing the currently
-logged-in user. If a user isn't currently logged in,
-:attr:`request.user <django.http.HttpRequest.user>` will be set to an instance
-of :class:`~django.contrib.auth.models.AnonymousUser` (see the previous
-section). You can tell them apart with
-:meth:`~django.contrib.auth.models.User.is_authenticated()`, like so::
+安装完中间件后就可以在视图中操作
+:attr:`request.user <django.http.HttpRequest.user>` 了。
+:attr:`request.user <django.http.HttpRequest.user>` 会给你一个
+:class:`~django.contrib.auth.models.User` 对象来表现当前已登录的用户。如果用户
+还没有登录，那么 :attr:`request.user <django.http.HttpRequest.user>` 会被设置为
+一个 :class:`~django.contrib.auth.models.AnonymousUser` 的实例（参见前一节）。
+你可以用于 :meth:`~django.contrib.auth.models.User.is_authenticated()` 来区别
+对待，如下例::
 
     if request.user.is_authenticated():
-        # Do something for authenticated users.
+        # 做一些已登录用户的事。
     else:
-        # Do something for anonymous users.
+        # 做一些匿名用户的事。
 
 .. _howtologauserin:
 
-How to log a user in
+如何登录一个用户
 --------------------
 
-Django provides two functions in :mod:`django.contrib.auth`:
-:func:`~django.contrib.auth.authenticate()` and
-:func:`~django.contrib.auth.login()`.
+Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
+:func:`~django.contrib.auth.authenticate()` 和
+:func:`~django.contrib.auth.login()` .
 
 .. function:: authenticate()
 
-    To authenticate a given username and password, use
-    :func:`~django.contrib.auth.authenticate()`. It takes two keyword
-    arguments, ``username`` and ``password``, and it returns a
-    :class:`~django.contrib.auth.models.User` object if the password is valid
-    for the given username. If the password is invalid,
-    :func:`~django.contrib.auth.authenticate()` returns ``None``. Example::
+    :func:`~django.contrib.auth.authenticate()` 用于验证指定用户的用户名和
+    密码。这个函数有两个关键字参数， ``username`` 和 ``password`` ，如果密码与
+    用户匹配则返回一个 :class:`~django.contrib.auth.models.User` 对象。否则返回
+    ``None`` 。例如::
 
         from django.contrib.auth import authenticate
         user = authenticate(username='john', password='secret')
         if user is not None:
             if user.is_active:
-                print "You provided a correct username and password!"
+                print "你提供了一个正确的用户名和密码！"
             else:
-                print "Your account has been disabled!"
+                print "帐户已禁用！"
         else:
-            print "Your username and password were incorrect."
+            print "用户名或密码不正确。"
 
 .. function:: login()
 
-    To log a user in, in a view, use :func:`~django.contrib.auth.login()`. It
-    takes an :class:`~django.http.HttpRequest` object and a
-    :class:`~django.contrib.auth.models.User` object.
-    :func:`~django.contrib.auth.login()` saves the user's ID in the session,
-    using Django's session framework, so, as mentioned above, you'll need to
-    make sure to have the session middleware installed.
+    :func:`~django.contrib.auth.login()` 用于在视图中登录用户。它带有一个
+    :class:`~django.http.HttpRequest` 对象和一个
+    :class:`~django.contrib.auth.models.User` 对象。
+    :func:`~django.contrib.auth.login()` 使用 Django 的会话框架在会话中保存用户
+    的 ID 。因此如前文所述，会话中间件必须已经安装。
 
-    This example shows how you might use both
-    :func:`~django.contrib.auth.authenticate()` and
+    本例展示如何同时使用 :func:`~django.contrib.auth.authenticate()` 和
     :func:`~django.contrib.auth.login()`::
 
         from django.contrib.auth import authenticate, login
@@ -512,67 +496,59 @@ Django provides two functions in :mod:`django.contrib.auth`:
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    # Redirect to a success page.
+                    # 重定向到一个登录成功页面。
                 else:
-                    # Return a 'disabled account' error message
+                    # 返回一个“帐户已禁用”错误信息。
             else:
-                # Return an 'invalid login' error message.
+                # 返回一个“非法用户名或密码”错误信息。
 
-.. admonition:: Calling ``authenticate()`` first
+.. admonition:: 首先调用 ``authenticate()``
 
-    When you're manually logging a user in, you *must* call
-    :func:`~django.contrib.auth.authenticate()` before you call
-    :func:`~django.contrib.auth.login()`.
-    :func:`~django.contrib.auth.authenticate()`
-    sets an attribute on the :class:`~django.contrib.auth.models.User` noting
-    which authentication backend successfully authenticated that user (see the
-    `backends documentation`_ for details), and this information is needed
-    later during the login process.
+    当你手动登录一个用户时， *必须* 在调用
+    :func:`~django.contrib.auth.login()` 之前调用
+    :func:`~django.contrib.auth.authenticate()` 。在成功验证用户后，
+    :func:`~django.contrib.auth.authenticate()` 会在
+    :class:`~django.contrib.auth.models.User` 上设置一个空属性（详见
+    `后台处理文档`_ ），这个信息在以后登录过程中要用到。
 
-.. _backends documentation: #other-authentication-sources
+.. _后台处理文档: #other-authentication-sources
 
-Manually checking a user's password
------------------------------------
+手动检查一个用户的密码
+----------------------
 
 .. function:: check_password()
 
-    If you'd like to manually authenticate a user by comparing a plain-text
-    password to the hashed password in the database, use the convenience
-    function :func:`django.contrib.auth.models.check_password`. It takes two
-    arguments: the plain-text password to check, and the full value of a user's
-    ``password`` field in the database to check against, and returns ``True``
-    if they match, ``False`` otherwise.
+    如果要通过比较明文密码和数据库中的哈希密码来手动认证用户，可以使用便捷的
+    :func:`django.contrib.auth.models.check_password` 函数。它带有两个参数：要
+    比较的明文密码和被比较的数据库中用户 ``密码`` 字段的完整值。如果匹配则返回
+    ``True`` ，否则返回 ``False`` 。
 
-How to log a user out
----------------------
+如何登出一个用户
+----------------
 
 .. function:: logout()
 
-    To log out a user who has been logged in via
-    :func:`django.contrib.auth.login()`, use
-    :func:`django.contrib.auth.logout()` within your view. It takes an
-    :class:`~django.http.HttpRequest` object and has no return value.
-    Example::
+    在视图中可以使用 :func:`django.contrib.auth.logout()` 来登出通过
+    :func:`django.contrib.auth.login()` 登录的用户。它带有一个
+    :class:`~django.http.HttpRequest` 对象，没有返回值。
+    例如::
 
         from django.contrib.auth import logout
 
         def logout_view(request):
             logout(request)
-            # Redirect to a success page.
+            # 重定向到一个登出成功页面。
 
-    Note that :func:`~django.contrib.auth.logout()` doesn't throw any errors if
-    the user wasn't logged in.
+    注意当用户没有登录时，调用 :func:`~django.contrib.auth.logout()` 函数不会
+    引发任何错误。
 
     .. versionchanged:: 1.0
-       Calling ``logout()`` now cleans session data.
+       调用 ``logout()`` ，现在会清除会话数据。
 
-    When you call :func:`~django.contrib.auth.logout()`, the session data for
-    the current request is completely cleaned out. All existing data is
-    removed. This is to prevent another person from using the same web browser
-    to log in and have access to the previous user's session data. If you want
-    to put anything into the session that will be available to the user
-    immediately after logging out, do that *after* calling
-    :func:`django.contrib.auth.logout()`.
+    当调用 :func:`~django.contrib.auth.logout()` 时，当前请求的会话数据会清空。
+    这是为了防止另一个用户使用同一个浏览器登录时会使用到前一个用户的会话数据。
+    如果要在用户登出后有会话中储存一些数据，那么得在
+    :func:`django.contrib.auth.logout()` *之后* 储存。
 
 Limiting access to logged-in users
 ----------------------------------
