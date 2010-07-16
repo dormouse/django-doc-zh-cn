@@ -550,16 +550,15 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
     如果要在用户登出后有会话中储存一些数据，那么得在
     :func:`django.contrib.auth.logout()` *之后* 储存。
 
-Limiting access to logged-in users
+控制非登录用户的页面权限
 ----------------------------------
 
-The raw way
+原始方式
 ~~~~~~~~~~~
 
-The simple, raw way to limit access to pages is to check
-:meth:`request.user.is_authenticated()
-<django.contrib.auth.models.User.is_authenticated()>` and either redirect to a
-login page::
+页面限制的简单原始方式是检查 :meth:`request.user.is_authenticated()
+<django.contrib.auth.models.User.is_authenticated()>` 并且重定向到一个登录
+页面::
 
     from django.http import HttpResponseRedirect
 
@@ -568,20 +567,20 @@ login page::
             return HttpResponseRedirect('/login/?next=%s' % request.path)
         # ...
 
-...or display an error message::
+...或显示一个出错页面::
 
     def my_view(request):
         if not request.user.is_authenticated():
             return render_to_response('myapp/login_error.html')
         # ...
 
-The login_required decorator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+登录要求饰件
+~~~~~~~~~~~~
 
 .. function:: decorators.login_required()
 
-    As a shortcut, you can use the convenient
-    :func:`~django.contrib.auth.decorators.login_required` decorator::
+    做为一个捷径，可以使用方便的
+    :func:`~django.contrib.auth.decorators.login_required` 饰件::
 
         from django.contrib.auth.decorators import login_required
 
@@ -589,8 +588,7 @@ The login_required decorator
             # ...
         my_view = login_required(my_view)
 
-    Here's an equivalent example, using the more compact decorator syntax
-    introduced in Python 2.4::
+    换一种方式，使用 Python 2.4 中引入的紧凑的装饰语法::
 
         from django.contrib.auth.decorators import login_required
 
@@ -598,8 +596,8 @@ The login_required decorator
         def my_view(request):
             # ...
 
-    :func:`~django.contrib.auth.decorators.login_required` also takes an
-    optional ``redirect_field_name`` parameter. Example::
+    :func:`~django.contrib.auth.decorators.login_required` 也可以接受一个可选的
+    ``redirect_field_name`` 参数。例如::
 
         from django.contrib.auth.decorators import login_required
 
@@ -607,8 +605,7 @@ The login_required decorator
             # ...
         my_view = login_required(redirect_field_name='redirect_to')(my_view)
 
-    Again, an equivalent example of the more compact decorator syntax
-    introduced in Python 2.4::
+    同上，紧凑型的::
 
         from django.contrib.auth.decorators import login_required
 
@@ -616,54 +613,46 @@ The login_required decorator
         def my_view(request):
             # ...
 
-    :func:`~django.contrib.auth.decorators.login_required` does the following:
+    :func:`~django.contrib.auth.decorators.login_required` 做以下式作：
 
-        * If the user isn't logged in, redirect to
-          :setting:`settings.LOGIN_URL <LOGIN_URL>` (``/accounts/login/`` by
-          default), passing the current absolute URL in the query string. The
-          name of the GET argument is determined by the ``redirect_field_name``
-          argument provided to the decorator. The default argument name is
-          ``next``. For example:
+        * 如果用户没有登录，则重定向到
+          :setting:`settings.LOGIN_URL <LOGIN_URL>` （缺少情况下为
+          ``/accounts/login/`` ），并在查询字符串中传递当前绝对路径。 GET 参数
+          的名称由饰件的 ``redirect_field_name`` 参数决定。缺省的参数是
+          ``next`` 。例如：
           ``/accounts/login/?next=/polls/3/``.
 
-        * If the user is logged in, execute the view normally. The view code is
-          free to assume the user is logged in.
+        * 如果用户已登录，则正常的执行视图。
 
-Note that you'll need to map the appropriate Django view to
-:setting:`settings.LOGIN_URL <LOGIN_URL>`. For example, using the defaults, add
-the following line to your URLconf::
+注意：你需要为 :setting:`settings.LOGIN_URL <LOGIN_URL>` 映射适当的视图。例如，
+在缺省情况下，在你的 URLconf 中加入以下一行::
 
     (r'^accounts/login/$', 'django.contrib.auth.views.login'),
 
 .. function:: views.login(request, [template_name, redirect_field_name])
 
-    Here's what ``django.contrib.auth.views.login`` does:
+    以下是 ``django.contrib.auth.views.login`` 做了什么：
 
-        * If called via ``GET``, it displays a login form that POSTs to the
-          same URL. More on this in a bit.
+        * 如果是通过 ``GET`` 调用的，则显示一个 POST 到相同 URL 的登录表单。
+          稍后会以更多的说明。
 
-        * If called via ``POST``, it tries to log the user in. If login is
-          successful, the view redirects to the URL specified in ``next``. If
-          ``next`` isn't provided, it redirects to
-          :setting:`settings.LOGIN_REDIRECT_URL <LOGIN_REDIRECT_URL>` (which
-          defaults to ``/accounts/profile/``). If login isn't successful, it
-          redisplays the login form.
+        * 如果是通过 ``POST`` 调用的，则会尝试登录用户。如果登录成功，则会重
+          定向到 ``next`` 指定的 URL 。如果 ``next`` 没有提供，则重定向到
+          :setting:`settings.LOGIN_REDIRECT_URL <LOGIN_REDIRECT_URL>` （缺省
+          的是 ``/accounts/profile/`` ）。如果登录不成功，则重新显示登录表单。
 
-    It's your responsibility to provide the login form in a template called
-    ``registration/login.html`` by default. This template gets passed four
-    template context variables:
+    缺省情况下，在名为 ``registration/login.html`` 的模板中提供一个登录表单是
+    你的责任。这个模板要传递四个环境变量：
 
-        * ``form``: A :class:`~django.forms.Form` object representing the login
-          form. See the :ref:`forms documentation <topics-forms-index>` for
-          more on ``Form`` objects.
+        * ``form``: 一个表现登录表单的 :class:`~django.forms.Form` 对象。关于
+          ``Form`` 对象的更多内容
+          :ref:`表单文档 <topics-forms-index>` 。
 
-        * ``next``: The URL to redirect to after successful login. This may
-          contain a query string, too.
+        * ``next``: 登录成功后要重定向的 URL 。也可以包含一个查询字符串。
 
-        * ``site``: The current :class:`~django.contrib.sites.models.Site`,
-          according to the :setting:`SITE_ID` setting. If you don't have the
-          site framework installed, this will be set to an instance of
-          :class:`~django.contrib.sites.models.RequestSite`, which derives the
+        * ``site``: 当前的 :class:`~django.contrib.sites.models.Site` ，依赖于
+          :setting:`SITE_ID` 设置。如果没有安装站点框架，则会被设置为一个
+          :class:`~django.contrib.sites.models.RequestSite` 实例, which derives the
           site name and domain from the current
           :class:`~django.http.HttpRequest`.
 
