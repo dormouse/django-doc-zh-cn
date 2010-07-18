@@ -616,11 +616,10 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
     :func:`~django.contrib.auth.decorators.login_required` 做以下式作：
 
         * 如果用户没有登录，则重定向到
-          :setting:`settings.LOGIN_URL <LOGIN_URL>` （缺少情况下为
+          :setting:`settings.LOGIN_URL <LOGIN_URL>` （缺省情况下为
           ``/accounts/login/`` ），并在查询字符串中传递当前绝对路径。 GET 参数
           的名称由饰件的 ``redirect_field_name`` 参数决定。缺省的参数是
-          ``next`` 。例如：
-          ``/accounts/login/?next=/polls/3/``.
+          ``next`` 。例如： ``/accounts/login/?next=/polls/3/`` 。
 
         * 如果用户已登录，则正常的执行视图。
 
@@ -652,29 +651,26 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
 
         * ``site``: 当前的 :class:`~django.contrib.sites.models.Site` ，依赖于
           :setting:`SITE_ID` 设置。如果没有安装站点框架，则会被设置为一个
-          :class:`~django.contrib.sites.models.RequestSite` 实例, which derives the
-          site name and domain from the current
-          :class:`~django.http.HttpRequest`.
+          :class:`~django.contrib.sites.models.RequestSite` 实例,这个实例会使用
+          从当前 :class:`~django.http.HttpRequest` 中派生出的站点名称和域名。
 
-        * ``site_name``: An alias for ``site.name``. If you don't have the site
-          framework installed, this will be set to the value of
-          :attr:`request.META['SERVER_NAME'] <django.http.HttpRequest.META>`.
-          For more on sites, see :ref:`ref-contrib-sites`.
+        * ``site_name``: ``site.name`` 的一个别名。如果没有安装站点框架，则会被
+          设置为
+          :attr:`request.META['SERVER_NAME'] <django.http.HttpRequest.META>` 的
+          值。更多关于站点的内容参见 :ref:`ref-contrib-sites` 。
 
-    If you'd prefer not to call the template :file:`registration/login.html`,
-    you can pass the ``template_name`` parameter via the extra arguments to
-    the view in your URLconf. For example, this URLconf line would use
-    :file:`myapp/login.html` instead::
+    如果你不想调用模板文件 :file:`registration/login.html` ，那么可以在 URLconf 
+    通过额外参数把 ``template_name`` 传递给视图。例如，以下的 URLconf 设置会
+    使用 :file:`myapp/login.html` 来代替缺省的模板::
 
         (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'myapp/login.html'}),
 
-    You can also specify the name of the ``GET`` field which contains the URL
-    to redirect to after login by passing ``redirect_field_name`` to the view.
-    By default, the field is called ``next``.
+    你还可以通过传递 ``redirect_field_name`` 给视图来指定包含登录后重定向 URL
+    的 ``GET`` 字段的名称。这个字段缺省值为 ``next`` 。
 
-    Here's a sample :file:`registration/login.html` template you can use as a
-    starting point. It assumes you have a :file:`base.html` template that
-    defines a ``content`` block:
+    这里有一个例子模板文件 :file:`registration/login.html` ，你可以作为一个
+    基础。它假设你有一个 :file:`base.html` 模板，模板中定义了一个 ``content``
+    块:
 
     .. code-block:: html
 
@@ -707,211 +703,190 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
     .. _forms documentation: ../forms/
     .. _site framework docs: ../sites/
 
-Other built-in views
+其他内建视图
 --------------------
 
-In addition to the :func:`~views.login` view, the authentication system
-includes a few other useful built-in views located in
-:mod:`django.contrib.auth.views`:
+除了 :func:`~views.login` 视图外，认证系统还有其他一些有用的内建视图。这些
+视图都在 :mod:`django.contrib.auth.views` 中:
 
 .. function:: views.logout(request, [next_page, template_name, redirect_field_name])
 
-    Logs a user out.
+    登出用户。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``next_page``: The URL to redirect to after logout.
+        * ``next_page``: 登出后转向的 URL 。
 
-        * ``template_name``: The full name of a template to display after
-          logging the user out. This will default to
-          :file:`registration/logged_out.html` if no argument is supplied.
+        * ``template_name``: 登出后要显示的模板的全名。如果没有提供这个参数，
+          缺省为 :file:`registration/logged_out.html` 。
 
-        * ``redirect_field_name``: The name of a ``GET`` field containing the
-          URL to redirect to after log out. Overrides ``next_page`` if the given
-          ``GET`` parameter is passed.
+        * ``redirect_field_name``: 包含登出后转向的 URL 的 ``GET`` 字段的名称。
+          如果给出则覆盖 ``next_page`` 。
 
-    **Template context:**
+    **模板语境：**
 
-        * ``title``: The string "Logged out", localized.
+        * ``title``: 本地化的 "Logged out" 字符串。
 
 .. function:: views.logout_then_login(request[, login_url])
 
-    Logs a user out, then redirects to the login page.
+    登出用户，并重定向到登录页面。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``login_url``: The URL of the login page to redirect to. This will
-          default to :setting:`settings.LOGIN_URL <LOGIN_URL>` if not supplied.
+        * ``login_url``: 要重定向到的登录页面的 URL 。如果没有给出这个参数，则
+          缺省为 :setting:`settings.LOGIN_URL <LOGIN_URL>` 。
 
 .. function:: views.password_change(request[, template_name, post_change_redirect])
 
-    Allows a user to change their password.
+    允许一个用户更改自己的密码。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``template_name``: The full name of a template to use for
-          displaying the password change form. This will default to
-          :file:`registration/password_change_form.html` if not supplied.
+        * ``template_name``: 显示用户更改页面的模板全名。如果没有给出，则缺省为
+          :file:`registration/password_change_form.html` 。
 
-        * ``post_change_redirect``: The URL to redirect to after a successful
-          password change.
+        * ``post_change_redirect``: 成功更改密码后要转向到的 URL 。
 
-    **Template context:**
+    **模板语境：**
 
-        * ``form``: The password change form.
+        * ``form``: 密码变更表单。
 
 .. function:: views.password_change_done(request[, template_name])
 
-    The page shown after a user has changed their password.
+    用户变更密码后要显示的页面。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``template_name``: The full name of a template to use. This will
-          default to :file:`registration/password_change_done.html` if not
-          supplied.
+        * ``template_name``: 模板的全名。缺省为
+          :file:`registration/password_change_done.html` 。
 
 .. function:: views.password_reset(request[, is_admin_site, template_name, email_template_name, password_reset_form, token_generator, post_reset_redirect])
 
-    Allows a user to reset their password, and sends them the new password
-    in an e-mail.
+    允许用户重置密码，并通过电子邮件发送新的密码。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``template_name``: The full name of a template to use for
-          displaying the password reset form. This will default to
-          :file:`registration/password_reset_form.html` if not supplied.
+        * ``template_name``: 用于显示密码重置页面的模板全名。如果没有给出，则
+          缺省为 :file:`registration/password_reset_form.html` 。
 
-        * ``email_template_name``: The full name of a template to use for
-          generating the e-mail with the new password. This will default to
-          :file:`registration/password_reset_email.html` if not supplied.
+        * ``email_template_name``: 用于生成包含新密码的电子邮件的页面的模板
+          全名。如果没有给出，则缺省为
+          :file:`registration/password_reset_email.html` 。
 
-        * ``password_reset_form``: Form that will be used to set the password.
-          Defaults to ``SetPasswordForm``.
+        * ``password_reset_form``: 用于设置密码的表单。缺省为
+          ``SetPasswordForm`` 。
 
-        * ``token_generator``: Instance of the class to check the password. This
-          will default to ``default_token_generator``, it's an instance of
-          ``django.contrib.auth.tokens.PasswordResetTokenGenerator``.
+        * ``token_generator``: 检查密码的类的实例。缺省为
+          ``default_token_generator`` ，它是一个
+          ``django.contrib.auth.tokens.PasswordResetTokenGenerator`` 的实例。
 
-        * ``post_reset_redirect``: The URL to redirect to after a successful
-          password change.
+        * ``post_reset_redirect``: 成功变更密码后要转向的 URL 。
 
-    **Template context:**
+    **模板语境：**
 
-        * ``form``: The form for resetting the user's password.
+        * ``form``: 用于重置密码的表单。
 
 .. function:: views.password_reset_done(request[, template_name])
 
-    The page shown after a user has reset their password.
+    重置密码显示的页面。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``template_name``: The full name of a template to use. This will
-          default to :file:`registration/password_reset_done.html` if not
-          supplied.
+        * ``template_name``: 模板的全名。缺省为
+          :file:`registration/password_reset_done.html` 。
 
 .. function:: views.redirect_to_login(next[, login_url, redirect_field_name])
 
-    Redirects to the login page, and then back to another URL after a
-    successful login.
+    重定向到登录页面，成功登录后回到另一个 URL 。
 
-    **Required arguments:**
+    **必选参数：**
 
-        * ``next``: The URL to redirect to after a successful login.
+        * ``next``: 成功登录后到转向的 URL 。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``login_url``: The URL of the login page to redirect to. This will
-          default to :setting:`settings.LOGIN_URL <LOGIN_URL>` if not supplied.
+        * ``login_url``: 登录页面的 URL 。缺省为
+          :setting:`settings.LOGIN_URL <LOGIN_URL>` 。
 
-        * ``redirect_field_name``: The name of a ``GET`` field containing the
-          URL to redirect to after log out. Overrides ``next`` if the given
-          ``GET`` parameter is passed.
+        * ``redirect_field_name``: 包含登录后要转向的 URL 的 ``GET`` 字段的
+          名称。如果给出则覆盖 ``next`` 。
 
 .. function:: password_reset_confirm(request[, uidb36, token, template_name, token_generator, set_password_form, post_reset_redirect])
 
-    Presents a form for entering a new password.
+    给出一个输入新密码的表单。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``uidb36``: The user's id encoded in base 36. This will default to
-          ``None``.
-        * ``token``: Token to check that the password is valid. This will default to ``None``.
-        * ``template_name``: The full name of a template to display the confirm
-          password view. Default value is :file:`registration/password_reset_confirm.html`.
-        * ``token_generator``: Instance of the class to check the password. This
-          will default to ``default_token_generator``, it's an instance of
-          ``django.contrib.auth.tokens.PasswordResetTokenGenerator``.
-        * ``set_password_form``: Form that will be used to set the password.
-          This will default to ``SetPasswordForm``.
-        * ``post_reset_redirect``: URL to redirect after the password reset
-          done. This will default to ``None``.
+        * ``uidb36``: 用户的 id 以 base 36 方式编码。缺省为 ``None`` 。
+        * ``token``: 检查密码是否有效的标志。缺省为 ``None``.
+        * ``template_name``: 显示确认密码视图的模板的全名。缺省为
+          :file:`registration/password_reset_confirm.html` 。
+        * ``token_generator``: 检查密码的类的实例。缺省为
+          ``default_token_generator`` ，它是一个
+          ``django.contrib.auth.tokens.PasswordResetTokenGenerator`` 的实例。
+        * ``set_password_form``: 用于设置密码的表单。缺省为
+          ``SetPasswordForm`` 。
+        * ``post_reset_redirect``: 重置密码的要转向的 URL 。缺省为 ``None`` 。
 
 .. function:: password_reset_complete(request[,template_name])
 
-   Presents a view which informs the user that the password has been
-   successfully changed.
+   展现一个通知用户密码已成功变更的视图。
 
-   **Optional arguments:**
+   **可选参数：**
 
-       * ``template_name``: The full name of a template to display the view.
-         This will default to :file:`registration/password_reset_complete.html`.
+       * ``template_name``: 显示视图的模板的全名。缺省为
+         :file:`registration/password_reset_complete.html` 。
 
-Built-in forms
+内建表单
 --------------
 
 .. module:: django.contrib.auth.forms
 
-If you don't want to use the built-in views, but want the convenience of not
-having to write forms for this functionality, the authentication system
-provides several built-in forms located in :mod:`django.contrib.auth.forms`:
+如果你不想使用内建的视图，但是想自己写表单，那么认证系统在
+:mod:`django.contrib.auth.forms` 中提供了一些内建的表单：
 
 .. class:: AdminPasswordChangeForm
 
-    A form used in the admin interface to change a user's password.
+    在管理接口中改变用户密码的表单。
 
 .. class:: AuthenticationForm
 
-    A form for logging a user in.
+    登录表单。
 
 .. class:: PasswordChangeForm
 
-    A form for allowing a user to change their password.
+    变更密码表单。
 
 .. class:: PasswordResetForm
 
-    A form for resetting a user's password and e-mailing the new password to
-    them.
+    重置密码并通过电子邮件发送新密码的表单。
 
 .. class:: SetPasswordForm
 
-    A form that lets a user change his/her password without entering the old
-    password.
+    不需要输入旧密码就可以变更用户密码的表单。
 
 .. class:: UserChangeForm
 
-    A form used in the admin interface to change a user's information and
-    permissions.
+    在管理接口中变更用户信息和权限的表单。
 
 .. class:: UserCreationForm
 
-    A form for creating a new user.
+    创建新用户的表单。
 
-Limiting access to logged-in users that pass a test
+通过测试来限制页面操作
 ---------------------------------------------------
 
 .. currentmodule:: django.contrib.auth
 
-To limit access based on certain permissions or some other test, you'd do
-essentially the same thing as described in the previous section.
+要基于一定的权限或测试来限制页面的操作，其本质上和上一节的内容相同。
 
-The simple way is to run your test on :attr:`request.user
-<django.http.HttpRequest.user>` in the view directly. For example, this view
-checks to make sure the user is logged in and has the permission
-``polls.can_vote``::
+最简单的方式是在社图中直接在 :attr:`request.user
+<django.http.HttpRequest.user>` 上直接运行你的测试。例如，这个视图调试用户是否
+已登录并拥有 ``polls.can_vote`` 权限::
 
     def my_view(request):
         if not (request.user.is_authenticated() and request.user.has_perm('polls.can_vote')):
-            return HttpResponse("You can't vote in this poll.")
+            return HttpResponse("在这个选举中你不能投票。")
         # ...
 
 .. function:: decorators.user_passes_test()
