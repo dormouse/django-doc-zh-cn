@@ -891,7 +891,7 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
 
 .. function:: decorators.user_passes_test()
 
-    As a shortcut, you can use the convenient ``user_passes_test`` decorator::
+    作为一个捷径，你可使用方便的 ``user_passes_test`` 装饰件::
 
         from django.contrib.auth.decorators import user_passes_test
 
@@ -899,12 +899,12 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
             # ...
         my_view = user_passes_test(lambda u: u.has_perm('polls.can_vote'))(my_view)
 
-    We're using this particular test as a relatively simple example. However,
-    if you just want to test whether a permission is available to a user, you
-    can use the :func:`~django.contrib.auth.decorators.permission_required()`
-    decorator, described later in this document.
+    我们使用这个特定的测试作为一个相关的简单的例子。然而，如果你只要测试一个
+    用户是否有一个权限，那么你可以使用
+    :func:`~django.contrib.auth.decorators.permission_required()` 装饰件，稍后
+    会谈到这个装饰件。
 
-    Here's the same thing, using Python 2.4's decorator syntax::
+    以下是同样作用的代码，使用 Python 2.4's 装饰件语法::
 
         from django.contrib.auth.decorators import user_passes_test
 
@@ -912,19 +912,17 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
         def my_view(request):
             # ...
 
-    :func:`~django.contrib.auth.decorators.user_passes_test` takes a required
-    argument: a callable that takes a
-    :class:`~django.contrib.auth.models.User` object and returns ``True`` if
-    the user is allowed to view the page. Note that
-    :func:`~django.contrib.auth.decorators.user_passes_test` does not
-    automatically check that the :class:`~django.contrib.auth.models.User` is
-    not anonymous.
+    :func:`~django.contrib.auth.decorators.user_passes_test` 有一个必选参数：
+    带有一个 :class:`~django.contrib.auth.models.User` 对象的可调用的函数，并且
+    如果用户被允许查看页面时返回 ``True`` 。注意
+    :func:`~django.contrib.auth.decorators.user_passes_test` 不自动检查
+    :class:`~django.contrib.auth.models.User` 是否是匿名用户。
 
-    :func:`~django.contrib.auth.decorators.user_passes_test()` takes an
-    optional ``login_url`` argument, which lets you specify the URL for your
-    login page (:setting:`settings.LOGIN_URL <LOGIN_URL>` by default).
+    :func:`~django.contrib.auth.decorators.user_passes_test()` 有一个可选的
+    ``login_url`` 参数，这个参数让你指定登录页面的 URL （缺省为
+    :setting:`settings.LOGIN_URL <LOGIN_URL>` ）。
 
-    Example in Python 2.3 syntax::
+    Python 2.3 语法格式的例子::
 
         from django.contrib.auth.decorators import user_passes_test
 
@@ -932,7 +930,7 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
             # ...
         my_view = user_passes_test(lambda u: u.has_perm('polls.can_vote'), login_url='/login/')(my_view)
 
-    Example in Python 2.4 syntax::
+    Python 2.4 语法格式的例子::
 
         from django.contrib.auth.decorators import user_passes_test
 
@@ -940,15 +938,15 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
         def my_view(request):
             # ...
 
-The permission_required decorator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+权限需求装饰件
+~~~~~~~~~~~~~~
 
 .. function:: decorators.permission_required()
 
-    It's a relatively common task to check whether a user has a particular
-    permission. For that reason, Django provides a shortcut for that case: the
-    :func:`~django.contrib.auth.decorators.permission_required()` decorator.
-    Using this decorator, the earlier example can be written as::
+    检查用户是否有特定的权限是一个比较常见的任务。因此， Django 为此提供了一个
+    捷径：
+    :func:`~django.contrib.auth.decorators.permission_required()` 装饰件。
+    使用这个装饰件，先前的例子可以写成::
 
         from django.contrib.auth.decorators import permission_required
 
@@ -956,12 +954,12 @@ The permission_required decorator
             # ...
         my_view = permission_required('polls.can_vote')(my_view)
 
-    As for the :meth:`User.has_perm` method, permission names take the form
-    ``"<app label>.<permission codename>"`` (i.e. ``polls.can_vote`` for a
-    permission on a model in the ``polls`` application).
+    至于 :meth:`User.has_perm` 方法，权限名称以
+    ``"<app label>.<permission codename>"`` 形式组成（例如 ``polls.can_vote`` 
+    就是 ``poll`` 应用中的模型中的一个权限）。
 
-    Note that :func:`~django.contrib.auth.decorators.permission_required()`
-    also takes an optional ``login_url`` parameter. Example::
+    注意 :func:`~django.contrib.auth.decorators.permission_required()`
+    也有一个可选的 ``login_url`` 参数。例如::
 
         from django.contrib.auth.decorators import permission_required
 
@@ -969,15 +967,14 @@ The permission_required decorator
             # ...
         my_view = permission_required('polls.can_vote', login_url='/loginpage/')(my_view)
 
-    As in the :func:`~decorators.login_required` decorator, ``login_url``
-    defaults to :setting:`settings.LOGIN_URL <LOGIN_URL>`.
+    在 :func:`~decorators.login_required` 装饰件中 ``login_url`` 缺省为
+    :setting:`settings.LOGIN_URL <LOGIN_URL>` 。
 
-Limiting access to generic views
---------------------------------
+限制通用视图的操作
+------------------
 
-To limit access to a :ref:`generic view <ref-generic-views>`, write a thin
-wrapper around the view, and point your URLconf to your wrapper instead of the
-generic view itself. For example::
+要限制一个 :ref:`通用视图 <ref-generic-views>` 操作，可以写一个视图的薄包装，
+然后把你的 URLconf 指向薄包装而不是通用视图本身。例如::
 
     from django.views.generic.date_based import object_detail
 
@@ -985,57 +982,43 @@ generic view itself. For example::
     def limited_object_detail(*args, **kwargs):
         return object_detail(*args, **kwargs)
 
-Permissions
-===========
+权限
+====
 
-Django comes with a simple permissions system. It provides a way to assign
-permissions to specific users and groups of users.
+Django 自带了一个简单的权限系统，它可以管理特定的用户和用户组的权限。
 
-It's used by the Django admin site, but you're welcome to use it in your own
-code.
+这个系统是用于 Django 管理站点的，但是欢迎在你自己的代码中使用它。
 
-The Django admin site uses permissions as follows:
+Django 管理站点使用如下权限：
 
-    * Access to view the "add" form and add an object is limited to users with
-      the "add" permission for that type of object.
-    * Access to view the change list, view the "change" form and change an
-      object is limited to users with the "change" permission for that type of
-      object.
-    * Access to delete an object is limited to users with the "delete"
-      permission for that type of object.
+    * 查看“增加”表单和增加对象需要有该种对象的“增加”权限。
+    * 查看变更列表、“变更”表单和变更对象需要有该种对象的“变更”权限。
+    * 删除对象需要有该种对象的“删除”权限。
 
-Permissions are set globally per type of object, not per specific object
-instance. For example, it's possible to say "Mary may change news stories," but
-it's not currently possible to say "Mary may change news stories, but only the
-ones she created herself" or "Mary may only change news stories that have a
-certain status, publication date or ID." The latter functionality is something
-Django developers are currently discussing.
+权限是针对某种对象的全局性的设置，而不是针对某种对象的某个特定实例的。例如，
+我们可以说“玛丽可以改写故事”，但是不能说“玛丽可以改写故事，但只限于她自己的
+故事”，也不能说“玛丽只能改写符合特定条件（如出版日期、编号）的故事”。后面的
+两种情况是 Django 的开发者正在讨论的东西，现在还不支持。
 
-Default permissions
--------------------
+缺省权限
+--------
 
-When ``django.contrib.auth`` is listed in your :setting:`INSTALLED_APPS`
-setting, it will ensure that three default permissions -- add, change and
-delete -- are created for each Django model defined in one of your installed
-applications.
+当 ``django.contrib.auth`` 存在于你的 :setting:`INSTALLED_APPS` 设置中时，会
+确保你安装的应用中每个 Django 模型在三个缺省的权限——增加、变更和删除。
 
-These permissions will be created when you run :djadmin:`manage.py syncdb
-<syncdb>`; the first time you run ``syncdb`` after adding
-``django.contrib.auth`` to :setting:`INSTALLED_APPS`, the default permissions
-will be created for all previously-installed models, as well as for any new
-models being installed at that time. Afterward, it will create default
-permissions for new models each time you run :djadmin:`manage.py syncdb
-<syncdb>`.
+当你运行 :djadmin:`manage.py syncdb <syncdb>` 时这些权限会被创建。在向
+:setting:`INSTALLED_APPS` 增加 ``django.contrib.auth`` 后第一次运行 ``syncdb``
+时，会为以前已安装的模型和正在安装的模型创建缺省权限。以后每次运行
+:djadmin:`manage.py syncdb <syncdb>` 都会为所有模型创建缺省权限。
 
 .. _custom-permissions:
 
-Custom permissions
-------------------
+自定义权限
+----------
 
-To create custom permissions for a given model object, use the ``permissions``
-:ref:`model Meta attribute <meta-options>`.
+使用 ``权限`` :ref:`模型元属性 <meta-options>` 可以创建自定义权限。
 
-This example model creates three custom permissions::
+以下例子模型创建了三个自定义权限::
 
     class USCitizen(models.Model):
         # ...
@@ -1046,11 +1029,11 @@ This example model creates three custom permissions::
                 ("can_drink", "Can drink alcohol"),
             )
 
-The only thing this does is create those extra permissions when you run
-:djadmin:`manage.py syncdb <syncdb>`.
+以下代码只做了一件事：在运行 :djadmin:`manage.py syncdb <syncdb>` 时创建了三个
+额外的权限。
 
-API reference
--------------
+API 手册
+--------
 
 .. class:: models.Permission
 
