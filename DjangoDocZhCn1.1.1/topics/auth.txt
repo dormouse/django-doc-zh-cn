@@ -1037,146 +1037,139 @@ API 手册
 
 .. class:: models.Permission
 
-    Just like users, permissions are implemented in a Django model that lives
-    in `django/contrib/auth/models.py`_.
+    和用户一样，权限也在 `django/contrib/auth/models.py`_ Django 模型中实现。
 
 .. _django/contrib/auth/models.py: http://code.djangoproject.com/browser/django/trunk/django/contrib/auth/models.py
 
-Fields
-~~~~~~
+字段
+~~~~
 
-:class:`~django.contrib.auth.models.Permission` objects have the following
-fields:
+:class:`~django.contrib.auth.models.Permission` 对象有以下字段：
 
 .. attribute:: models.Permission.name
 
-    Required. 50 characters or fewer. Example: ``'Can vote'``.
+    必需的。 50 个字符以下。例如： ``'Can vote'`` 。
 
 .. attribute:: models.Permission.content_type
 
-    Required. A reference to the ``django_content_type`` database table, which
-    contains a record for each installed Django model.
+    属于的。一个 ``django_content_type`` 数据库表的引用，包含每一个已安装的
+    Django 模型。
 
 .. attribute:: models.Permission.codename
 
-    Required. 100 characters or fewer. Example: ``'can_vote'``.
+    必需的。 100 个字符以下。例如： ``'Can_vote'`` 。
 
-Methods
-~~~~~~~
+方法
+~~~~
 
-:class:`~django.contrib.auth.models.Permission` objects have the standard
-data-access methods like any other :ref:`Django model <ref-models-instances>`.
+:class:`~django.contrib.auth.models.Permission` 对象和其它
+:ref:`Django 模型 <ref-models-instances>` 一样有标准数据操作方法。
 
-Authentication data in templates
-================================
+模板中的认证数据
+================
 
-The currently logged-in user and his/her permissions are made available in the
-:ref:`template context <ref-templates-api>` when you use
-:class:`~django.template.context.RequestContext`.
+当你使用 :class:`~django.template.context.RequestContext` 时，当前已登录的用户
+及其权限在 :ref:`模板环境 <ref-templates-api>` 中提供。
 
-.. admonition:: Technicality
+.. admonition:: 技术细节
 
-   Technically, these variables are only made available in the template context
-   if you use :class:`~django.template.context.RequestContext` *and* your
-   :setting:`TEMPLATE_CONTEXT_PROCESSORS` setting contains
-   ``"django.core.context_processors.auth"``, which is default. For more, see
-   the :ref:`RequestContext docs <subclassing-context-requestcontext>`.
+   在技术细节上，这些变量只有当你使用
+   :class:`~django.template.context.RequestContext` ， *并且* 你的
+   :setting:`TEMPLATE_CONTEXT_PROCESSORS` 设置中包含
+   ``"django.core.context_processors.auth"`` 时才在模板环境中可用，这是缺省
+   情况。更多见容，详见
+   :ref:`请求环境文档 <subclassing-context-requestcontext>` 。
 
-Users
------
+用户
+----
 
-When rendering a template :class:`~django.template.context.RequestContext`, the
-currently logged-in user, either a  :class:`~django.contrib.auth.models.User`
-instance or an :class:`~django.contrib.auth.models.AnonymousUser` instance, is
-stored in the template variable ``{{ user }}``:
+当渲染一个模板 :class:`~django.template.context.RequestContext` 时，当前已登录
+的用户（要么是一个 :class:`~django.contrib.auth.models.User` 实例，要么是一个
+:class:`~django.contrib.auth.models.AnonymousUser` 实例）被储存在模板变量
+``{{ user }}`` 中：
 
 .. code-block:: html
 
     {% if user.is_authenticated %}
-        <p>Welcome, {{ user.username }}. Thanks for logging in.</p>
+        <p>欢迎， {{ user.username }} 。谢谢登录。</p>
     {% else %}
-        <p>Welcome, new user. Please log in.</p>
+        <p>欢迎，新用户。请登录。</p>
     {% endif %}
 
-This template context variable is not available if a ``RequestContext`` is not
-being used.
+如果一个 ``RequestContext`` 未使用则这个模板环境变量不可用。
 
-Permissions
------------
+权限
+----
 
-The currently logged-in user's permissions are stored in the template variable
-``{{ perms }}``. This is an instance of
-:class:`django.core.context_processors.PermWrapper`, which is a
-template-friendly proxy of permissions.
+当前已登录用户的权限储存在模板变量 ``{{ perms }}`` 中。这是一个
+:class:`django.core.context_processors.PermWrapper` 的实例。它是一个模板友好的
+权限的代理。
 
-In the ``{{ perms }}`` object, single-attribute lookup is a proxy to
-:meth:`User.has_module_perms <django.contrib.auth.models.User.has_module_perms>`.
-This example would display ``True`` if the logged-in user had any permissions
-in the ``foo`` app::
+在 ``{{ perms }}`` 对象中，单个属性的查找是
+:meth:`User.has_module_perms <django.contrib.auth.models.User.has_module_perms>`
+方法的一个代理。
+
+如果已登录用户在 ``foo`` 应用中有权限，那么以下例子会显示 ``True`` ::
 
     {{ perms.foo }}
 
-Two-level-attribute lookup is a proxy to
-:meth:`User.has_perm <django.contrib.auth.models.User.has_perm>`. This example
-would display ``True`` if the logged-in user had the permission
-``foo.can_vote``::
+二维属性查找是 :meth:`User.has_perm <django.contrib.auth.models.User.has_perm>`
+方法的一个代理。如果已登录用户有 ``foo.can_vote`` 权限，那么以下例子会显示
+``True`` ::
 
     {{ perms.foo.can_vote }}
 
-Thus, you can check permissions in template ``{% if %}`` statements:
+然而，你可以在模板 ``{% if %}`` 语句中检查权限：
 
 .. code-block:: html
 
     {% if perms.foo %}
-        <p>You have permission to do something in the foo app.</p>
+        <p>你在 foo 应用中有权限。</p>
         {% if perms.foo.can_vote %}
-            <p>You can vote!</p>
+            <p>你可以投票！</p>
         {% endif %}
         {% if perms.foo.can_drive %}
-            <p>You can drive!</p>
+            <p>你可以驾驶！</p>
         {% endif %}
     {% else %}
-        <p>You don't have permission to do anything in the foo app.</p>
+        <p>你在 foo 应用中没有权限。</p>
     {% endif %}
 
-Groups
-======
+组
+==
 
-Groups are a generic way of categorizing users so you can apply permissions, or
-some other label, to those users. A user can belong to any number of groups.
+组是一种把用户分类以便于分配权限或打上标签的常用方式。一个用户可以属于任意多个
+组。
 
-A user in a group automatically has the permissions granted to that group. For
-example, if the group ``Site editors`` has the permission
-``can_edit_home_page``, any user in that group will have that permission.
+组中的用户自动被赋予这个组所拥有的权限。例如，如果 ``网站编辑`` 组拥有
+``can_edit_home_page`` 权限，那么这个组中的用户都有这个权限。
 
-Beyond permissions, groups are a convenient way to categorize users to give
-them some label, or extended functionality. For example, you could create a
-group ``'Special users'``, and you could write code that could, say, give them
-access to a members-only portion of your site, or send them members-only e-mail
-messages.
+除了权限外，组还是一个把用户分类以便于打上标签或给予特定功能的便捷方式。例如，
+你可创建一个 ``特别用户`` 组，然后就可以为这个编写特定的程序，给予站点特定的
+部分的全员专有访问权限或发送会员专有电子邮件等等。
 
-Messages
+消息
 ========
 
-The message system is a lightweight way to queue messages for given users.
+消息系统是一个指定用户的消息队列的轻度实现。
 
-A message is associated with a :class:`~django.contrib.auth.models.User`.
-There's no concept of expiration or timestamps.
+每个消息与一个 :class:`~django.contrib.auth.models.User` 相关联。消息没有期限或
+时间戳。
 
-Messages are used by the Django admin after successful actions. For example,
-``"The poll Foo was created successfully."`` is a message.
+消息用于 Django 管理站点提示某个动作已成功完成。例如 ``"投票已成功创建"`` 就是
+一个消息。
 
-The API is simple:
+API 很简单：
 
 .. method:: models.User.message_set.create(message)
 
-    To create a new message, use
-    ``user_obj.message_set.create(message='message_text')``.
+    使用 ``user_obj.message_set.create(message='message_text')`` 可以创建一个新
+    消息。
 
-    To retrieve/delete messages, use
-    :meth:`user_obj.get_and_delete_messages() <django.contrib.auth.models.User.get_and_delete_messages>`,
-    which returns a list of ``Message`` objects in the user's queue (if any)
-    and deletes the messages from the queue.
+    取得或删除消息使用
+    :meth:`user_obj.get_and_delete_messages() <django.contrib.auth.models.User.get_and_delete_messages>`。
+    这个方法从用户的消息队列中取回（如果有消息的话）一个 ``消息`` 对象的列表并
+    在队列中删除这些消息。
 
 In this example view, the system saves a message for the user after creating
 a playlist::
