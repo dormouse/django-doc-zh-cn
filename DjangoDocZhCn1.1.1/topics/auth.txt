@@ -509,9 +509,9 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
     :func:`~django.contrib.auth.authenticate()` 。在成功验证用户后，
     :func:`~django.contrib.auth.authenticate()` 会在
     :class:`~django.contrib.auth.models.User` 上设置一个空属性（详见
-    `后台处理文档`_ ），这个信息在以后登录过程中要用到。
+    `其他认证资源`_ ），这个信息在以后登录过程中要用到。
 
-.. _后台处理文档: #other-authentication-sources
+.. _其他认证资源: #other-authentication-sources
 
 手动检查一个用户的密码
 ----------------------
@@ -1171,20 +1171,18 @@ API 很简单：
     这个方法从用户的消息队列中取回（如果有消息的话）一个 ``消息`` 对象的列表并
     在队列中删除这些消息。
 
-In this example view, the system saves a message for the user after creating
-a playlist::
+在以下的例子视图中，系统为用户保存了创建节目单后产生的一个消息::
 
     def create_playlist(request, songs):
         # Create the playlist with the given songs.
         # ...
-        request.user.message_set.create(message="Your playlist was added successfully.")
+        request.user.message_set.create(message="你的节目单已成功添加。")
         return render_to_response("playlists/create.html",
             context_instance=RequestContext(request))
 
-When you use :class:`~django.template.context.RequestContext`, the currently
-logged-in user and his/her messages are made available in the
-:ref:`template context <ref-templates-api>` as the template variable
-``{{ messages }}``. Here's an example of template code that displays messages:
+当你使用 :class:`~django.template.context.RequestContext` 时，当前的已登录用户
+及其消息可由 :ref:`模板环境 <ref-templates-api>` 中模板变量 ``{{ messages }}``
+来提供。下面就是显示消息的模板例子：
 
 .. code-block:: html
 
@@ -1196,92 +1194,80 @@ logged-in user and his/her messages are made available in the
     </ul>
     {% endif %}
 
-Note that :class:`~django.template.context.RequestContext` calls
-:meth:`~django.contrib.auth.models.User.get_and_delete_messages` behind the
-scenes, so any messages will be deleted even if you don't display them.
+注意 :class:`~django.template.context.RequestContext` 在后台调用
+:meth:`~django.contrib.auth.models.User.get_and_delete_messages` ，因此即使你不
+显示消息，消息也会被删除。
 
-Finally, note that this messages framework only works with users in the user
-database. To send messages to anonymous users, use the
-:ref:`session framework <topics-http-sessions>`.
+最后，注意消息框架只能用于用户数据库中已存在的用户。如果要向匿名用户发送消息，
+请使用 :ref:`会话框架 <topics-http-sessions>` 。
 
 .. _authentication-backends:
 
-Other authentication sources
-============================
+其他认证资源
+============
 
-The authentication that comes with Django is good enough for most common cases,
-but you may have the need to hook into another authentication source -- that
-is, another source of usernames and passwords or authentication methods.
+Django 自带的认证系统对于一般情况已经够用了，但是你可能需要挂接其他的认证资源，
+即另一个用户名和密码资源或认证方法。
 
-For example, your company may already have an LDAP setup that stores a username
-and password for every employee. It'd be a hassle for both the network
-administrator and the users themselves if users had separate accounts in LDAP
-and the Django-based applications.
+例如，你的公司可能已有一个 LDAP ，其中已储存了每个员工的用户名和密码。如果在
+LDAP 和 基于 Django 的应用中使用两套帐户，那么对于管理员和用户来说都是不方便
+的。
 
-So, to handle situations like this, the Django authentication system lets you
-plug in other authentication sources. You can override Django's default
-database-based scheme, or you can use the default system in tandem with other
-systems.
+因此，为了应对这种情况， Django 的认证系统可以让你挂接其他认证资源。你可以重载
+Django 的缺省数据库计划或使缺省系统与其他系统协作。
 
-See the :ref:`authentication backend reference <ref-authentication-backends>`
-for information on the authentication backends included with Django.
+关于 Django 认证后台处理的内容参见
+:ref:`认证后台参考 <ref-authentication-backends>` 。
 
-Specifying authentication backends
-----------------------------------
+指定认证后端
+------------
 
-Behind the scenes, Django maintains a list of "authentication backends" that it
-checks for authentication. When somebody calls
-:func:`django.contrib.auth.authenticate()` -- as described in :ref:`How to log
-a user in` above -- Django tries authenticating across all of its
-authentication backends. If the first authentication method fails, Django tries
-the second one, and so on, until all backends have been attempted.
+在后台， Django 维护着一个用于认证的“认证后端”列表。当象前文
+:ref:`如何登录一个用户` 一节中提到的，使用
+:func:`django.contrib.auth.authenticate()` 时， Django 会尝试列表中的所有
+后端。如果第一个不行，则尝试第二个，以此类推，直到最后一个。
 
-The list of authentication backends to use is specified in the
-:setting:`AUTHENTICATION_BACKENDS` setting. This should be a tuple of Python
-path names that point to Python classes that know how to authenticate. These
-classes can be anywhere on your Python path.
+认证后端的列表中 :setting:`AUTHENTICATION_BACKENDS` 设置中定义。设置内容应当是
+一个指向可以用于认证的 Python 类的路径名的元组。这些类可以放在 Python 路径下的
+任意位置。
 
-By default, :setting:`AUTHENTICATION_BACKENDS` is set to::
+缺省情况下， :setting:`AUTHENTICATION_BACKENDS` 被设置为::
 
     ('django.contrib.auth.backends.ModelBackend',)
 
-That's the basic authentication scheme that checks the Django users database.
+这是检查 Django 用户数据库的基本认证方案。
 
-The order of :setting:`AUTHENTICATION_BACKENDS` matters, so if the same
-username and password is valid in multiple backends, Django will stop
-processing at the first positive match.
+:setting:`AUTHENTICATION_BACKENDS` 的顺序是重要的，所以如果相同的用户名和密码在
+多个后端中同时存在， Django 会在第一个匹配的地方停止。
 
 .. note::
 
-    Once a user has authenticated, Django stores which backend was used to
-    authenticate the user in the user's session, and re-uses the same backend
-    for subsequent authentication attempts for that user. This effectively means
-    that authentication sources are cached, so if you change
-    :setting:`AUTHENTICATION_BACKENDS`, you'll need to clear out session data if
-    you need to force users to re-authenticate using different methods. A simple
-    way to do that is simply to execute ``Session.objects.all().delete()``.
+    一旦一个用户通过认证， Django 会在会话中储存该用户所使用的后端，并且在随后
+    的认证中使用已储存的后端。即认证资源会被缓存，如果你改变
+    :setting:`AUTHENTICATION_BACKENDS` ，并且要强迫用户使用不同的后端重新认证，
+    那么需要清除会话数据。一个简单的方法是执行
+    ``Session.objects.all().delete()`` 。
 
-Writing an authentication backend
----------------------------------
+编写一个认证后端
+----------------
 
-An authentication backend is a class that implements two methods:
-``get_user(user_id)`` and ``authenticate(**credentials)``.
+一个认证后端是一个执行两个方法的类：
+``get_user(user_id)`` 和 ``authenticate(**credentials)`` 。
 
-The ``get_user`` method takes a ``user_id`` -- which could be a username,
-database ID or whatever -- and returns a ``User`` object.
+``get_user`` 方法需要一个 ``user_id`` （可以是一个用户名、数据库 ID 或其他
+东东），并且返回一个 ``用户`` 对象。
 
-The ``authenticate`` method takes credentials as keyword arguments. Most of
-the time, it'll just look like this::
+``authenticate`` 方法有一个证书关键字参数。多数情况下看上去如下::
 
     class MyBackend:
         def authenticate(self, username=None, password=None):
-            # Check the username/password and return a User.
+            # 检查用户名和密码并返回一个用户。
 
-But it could also authenticate a token, like so::
+但是也可以认证一个标志，象下面这样::
 
     class MyBackend:
         def authenticate(self, token=None):
-            # Check the token and return a User.
+            # 检查标志并返回一个用户。
 
 Either way, ``authenticate`` should check the credentials it gets, and it
 should return a ``User`` object that matches those credentials, if the
