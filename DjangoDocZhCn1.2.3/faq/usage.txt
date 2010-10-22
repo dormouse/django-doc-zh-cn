@@ -1,77 +1,67 @@
-FAQ: Using Django
+FAQ: 使用 Django
 =================
 
-Why do I get an error about importing DJANGO_SETTINGS_MODULE?
+为什么我导入 DJANGO_SETTINGS_MODULE 时会出错？
 -------------------------------------------------------------
 
-Make sure that:
+请确定以下内容是否正确：
 
-    * The environment variable DJANGO_SETTINGS_MODULE is set to a
-      fully-qualified Python module (i.e. "mysite.settings").
+    * 环境变量 DJANGO_SETTINGS_MODULE 应当设置为一个 Python 模块的完全名称（如
+      "mysite.settings" ）。
 
-    * Said module is on ``sys.path`` (``import mysite.settings`` should work).
+    * 模块应当在 ``sys.path`` 中（即 ``import mysite.settings`` 应当不出错）。
 
-    * The module doesn't contain syntax errors (of course).
+    * 模块本身不能有语法错误（这是当然的）。
 
-    * If you're using mod_python but *not* using Django's request handler,
-      you'll need to work around a mod_python bug related to the use of
-      ``SetEnv``; before you import anything from Django you'll need to do
-      the following::
+    * 如果你使用的是 mod_python ，而 *不是* Django 请求句柄，那么你需要处理一个
+      mod_python 中有关 ``SetEnv`` 的  的缺陷。在你从 Django 中导入任何东西前，
+      你需要::
 
             os.environ.update(req.subprocess_env)
 
-      (where ``req`` is the mod_python request object).
+      （其中的 ``req`` 就是 mod_python 的请求对象）
 
-I can't stand your template language. Do I have to use it?
-----------------------------------------------------------
+我弄不懂你们的模板语言，我一定要用吗？
+--------------------------------------
 
-We happen to think our template engine is the best thing since chunky bacon,
-but we recognize that choosing a template language runs close to religion.
-There's nothing about Django that requires using the template language, so
-if you're attached to ZPT, Cheetah, or whatever, feel free to use those.
+我们恰恰认为我们的模板引擎是自 chunky bacon 以来最好的东西。但是使用什么模板
+似乎和信仰哪种宗教是同一类问题。 Django 对使用哪种模板没有限制，你可以用于
+ZPT 模板、 Cheetah 模板或者其他任何你喜欢的模板。
 
-Do I have to use your model/database layer?
--------------------------------------------
-
-Nope. Just like the template system, the model/database layer is decoupled from
-the rest of the framework.
-
-The one exception is: If you use a different database library, you won't get to
-use Django's automatically-generated admin site. That app is coupled to the
-Django database layer.
-
-How do I use image and file fields?
+我一定要使用你们的模型/数据库层吗？
 -----------------------------------
 
-Using a :class:`~django.db.models.FileField` or an
-:class:`~django.db.models.ImageField` in a model takes a few steps:
+不是，和模板系统一样，模型/数据库层和其他的组件是解耦的。
 
-    #. In your settings file, you'll need to define :setting:`MEDIA_ROOT` as
-       the full path to a directory where you'd like Django to store uploaded
-       files. (For performance, these files are not stored in the database.)
-       Define :setting:`MEDIA_URL` as the base public URL of that directory.
-       Make sure that this directory is writable by the Web server's user
-       account.
+有一个例外：如果你使用其他的数据库代码库，你不能使用 Django 自动生成的管理
+站点，因为这个程序是与 Django 的数据库层耦合的。
 
-    #. Add the :class:`~django.db.models.FileField` or
-       :class:`~django.db.models.ImageField` to your model, making sure to
-       define the :attr:`~django.db.models.FileField.upload_to` option to tell
-       Django to which subdirectory of :setting:`MEDIA_ROOT` it should upload
-       files.
+如何使用图像和文件字段？
+------------------------
 
-    #. All that will be stored in your database is a path to the file
-       (relative to :setting:`MEDIA_ROOT`). You'll most likely want to use the
-       convenience :attr:`~django.core.files.File.url` attribute provided by
-       Django. For example, if your :class:`~django.db.models.ImageField` is
-       called ``mug_shot``, you can get the absolute URL to your image in a
-       template with ``{{ object.mug_shot.url }}``.
+在模型中使用一个 :class:`~django.db.models.FileField` 或
+:class:`~django.db.models.ImageField` 需要做如下几步：
 
-How do I make a variable available to all my templates?
--------------------------------------------------------
+    #. 在你的设置文件中，首先要定义 :setting:`MEDIA_ROOT` 的值为一个完全路径，
+       Django 中上传的文件就会放在这个路径下。同时确保这个目录对于 Web 服务用户
+       是可写的。（基于性能的考虑，上传的文件不存储在数据库中。）接着定义
+       :setting:`MEDIA_URL` 的值为对应于路径的基础公共 URL 。
 
-Sometimes your templates just all need the same thing. A common example would
-be dynamically-generated menus. At first glance, it seems logical to simply
-add a common dictionary to the template context.
+    #. 在你的模型中添加 :class:`~django.db.models.FileField` 或
+       :class:`~django.db.models.ImageField` ，并定义
+       :attr:`~django.db.models.FileField.upload_to` 参数来告诉 Django ，上传的
+       文件会放在 :setting:`MEDIA_ROOT` 下的哪个子目录。
 
-The correct solution is to use a ``RequestContext``. Details on how to do this
-are here: :ref:`subclassing-context-requestcontext`.
+    #. 在数据库中保存的只是文件的路径（相对于 MEDIA_ROOT 的相对路径）。你可能会
+       喜欢使用 Django 提供的方便的 :attr:`~django.core.files.File.url` 属性。
+       例如：你的 :class:`~django.db.models.ImageField` 被称为 ``mug_shot`` ，
+       可以在模板中使用 ``{{ object.mug_shot.url }}`` 来得到图像的绝对路径。
+
+如何使一个变量可用于所有模板？
+------------------------------
+
+有时候你的模板都需要一个同样在东西，比如一个动态创建的菜单。粗看，给模板环境
+增加一个共用字典是合理的。
+
+其实，正确的解决方法是使用一个 ``RequestContext`` 。详见：
+:ref:`subclassing-context-requestcontext` 。

@@ -1,102 +1,73 @@
-FAQ: Contributing code
-======================
+FAQ: 贡献代码
+=============
 
-How can I get started contributing code to Django?
---------------------------------------------------
+我如何向 Django 贡献代码？
+--------------------------
 
-Thanks for asking! We've written an entire document devoted to this question.
-It's titled :doc:`Contributing to Django </internals/contributing>`.
+感谢你的提问！关于这个问题我们一份名为 :doc:`向 Django 贡献代码
+</internals/contributing>` 的详细文档。
 
-I submitted a bug fix in the ticket system several weeks ago. Why are you ignoring my patch?
---------------------------------------------------------------------------------------------
-
-Don't worry: We're not ignoring you!
-
-It's important to understand there is a difference between "a ticket is being
-ignored" and "a ticket has not been attended to yet." Django's ticket system
-contains hundreds of open tickets, of various degrees of impact on end-user
-functionality, and Django's developers have to review and prioritize.
-
-On top of that: the people who work on Django are all volunteers. As a result,
-the amount of time that we have to work on the framework is limited and will
-vary from week to week depending on our spare time. If we're busy, we may not
-be able to spend as much time on Django as we might want.
-
-The best way to make sure tickets do not get hung up on the way to checkin is
-to make it dead easy, even for someone who may not be intimately familiar with
-that area of the code, to understand the problem and verify the fix:
-
-    * Are there clear instructions on how to reproduce the bug? If this
-      touches a dependency (such as PIL), a contrib module, or a specific
-      database, are those instructions clear enough even for someone not
-      familiar with it?
-
-    * If there are several patches attached to the ticket, is it clear what
-      each one does, which ones can be ignored and which matter?
-
-    * Does the patch include a unit test? If not, is there a very clear
-      explanation why not? A test expresses succinctly what the problem is,
-      and shows that the patch actually fixes it.
-
-If your patch stands no chance of inclusion in Django, we won't ignore it --
-we'll just close the ticket. So if your ticket is still open, it doesn't mean
-we're ignoring you; it just means we haven't had time to look at it yet.
-
-When and how might I remind the core team of a patch I care about?
+几周前我在小票系统中提交了一个缺陷修正。为什么你们忽视了我的补丁？
 ------------------------------------------------------------------
 
-A polite, well-timed message to the mailing list is one way to get attention.
-To determine the right time, you need to keep an eye on the schedule. If you
-post your message when the core developers are trying to hit a feature
-deadline or manage a planning phase, you're not going to get the sort of
-attention you require. However, if you draw attention to a ticket when the
-core developers are paying particular attention to bugs -- just before a bug
-fixing sprint, or in the lead up to a beta release for example -- you're much
-more likely to get a productive response.
+不要担心，我们没有忽略你！
 
-Gentle IRC reminders can also work -- again, strategically timed if possible.
-During a bug sprint would be a very good time, for example.
+理解“一个小票已经被忽略”和“一个小票还没有被处理”之间的不同是非常重要的。
+Django 的小票系统中有上百个公开的小票，每个小票对最终用户的影响程度是不同的，
+所以 Djanog 的开发者必须检查每个小票并按重要性先后处理。
 
-Another way to get traction is to pull several related tickets together. When
-the core developers sit down to fix a bug in an area they haven't touched for
-a while, it can take a few minutes to remember all the fine details of how
-that area of code works. If you collect several minor bug fixes together into
-a similarly themed group, you make an attractive target, as the cost of coming
-up to speed on an area of code can be spread over multiple tickets.
+更重要的是：为 Django 工作的人都是志愿者。因此花费在开发上的时间是有限的，并且
+会随着业余时间的多寡而变化。如果他们很忙，那么他们就抽不出足够的时间。
 
-Please refrain from emailing core developers personally, or repeatedly raising
-the same issue over and over. This sort of behavior will not gain you any
-additional attention -- certainly not the attention that you need in order to
-get your pet bug addressed.
+不让你的小票搁置的最好方法是让你的小票尽可能地简单易懂，甚至是外行也可以轻易
+理解并验证你的补丁。提交补丁之前应当考虑以下问题：
 
-But I've reminded you several times and you keep ignoring my patch!
+    * 是否有关于如何重现缺陷的明确说明？如果涉及到依赖（如 PIL ）、已发行的
+      模型、或特定的数据库，是否有外行也可以明白的说明？
+
+    * 如果有多个补丁，那么有没有明确每个补丁的用途？哪一个可以被忽略？哪一个
+      重要？
+
+    * 补丁是否包含单元测试？如果不包含，是否有为什么不包含的明确理由？因为测试
+      可以简明地说明问题并且验证补丁是否有用。
+
+如果你提交的补丁不会包含在 Django 中，那么我们也不会忽略它，我们会关闭你的
+小票。所以，如果你的小票还是开放的，那么表明我们没有忽略它，只是我们还没有时间
+来处理。
+
+我何时或如何提醒核心开发者关注我的补丁？
+------------------------------------------------------------------
+
+一种引起关注的方法是向邮件列表发一条有礼貌的，合时宜的消息。是否合时宜由开发
+进度表决定。如果你发消息时核心开发者正在忙于开发一个新功能或安排开发计划时，
+那么你可能得不到你想要的关注。如果核心开发者正在全力修复缺陷或准备发布一个测试
+版本时，那么你就容易得到关注。
+
+通常 IRC 提醒也可以，但是时机也是非常重要的。例如在全力修复缺陷阶段就是一个好
+时机。
+
+还有一种方法就是把相关小票集中起来。当核心开发者坐下来研究某个方面的代码时，
+如果一段时间没有接触过这方面的代码，那么他们要花时间来回忆这些代码。所以如果你
+把几个小缺陷集中为一个大补丁时，你就容易被关注。这样也可以加速这方面的代码的
+改进。
+
+不要为了你的补丁私下发邮件给核心开发者，也不要重复发送同样的信息。这种行为不会
+增加你的关注度，当然也得不到你想要的关注。
+
+我已经提醒过多次，可是你们还是忽略了我们补丁！
 -------------------------------------------------------------------
 
-Seriously - we're not ignoring you. If your patch stands no chance of
-inclusion in Django, we'll close the ticket. For all the other tickets, we
-need to prioritize our efforts, which means that some tickets will be
-addressed before others.
+认真地说，我们没有忽略你。如果你的补丁不会包含在 Django 中，那么我们会关闭相应
+的小票。所有小票我们将按重要性顺序处理。
 
-One of the criteria that is used to prioritize bug fixes is the number of
-people that will likely be affected by a given bug. Bugs that have the
-potential to affect many people will generally get priority over those that
-are edge cases.
+重要性顺序的一个原则是一个缺陷会影响到多少人。影响人数越多的缺陷通常会越早处理。
 
-Another reason that bugs might be ignored for while is if the bug is a symptom
-of a larger problem. While we can spend time writing, testing and applying
-lots of little patches, sometimes the right solution is to rebuild. If a
-rebuild or refactor of a particular component has been proposed or is
-underway, you may find that bugs affecting that component will not get as much
-attention. Again, this is just a matter of prioritizing scarce resources. By
-concentrating on the rebuild, we can close all the little bugs at once, and
-hopefully prevent other little bugs from appearing in the future.
+另一个补丁可能被忽略的原因是相关的缺陷是一个大问题的冰山一角。当某个方面有大
+问题时，相比不断改进一个又一个小缺陷，也许更好的方法是彻底重写。当你的补丁是
+涉及要重写的部分时，我们会关闭所有的小补丁，这样可以节省有限的资源。
 
-Whatever the reason, please keep in mind that while you may hit a particular
-bug regularly, it doesn't necessarily follow that every single Django user
-will hit the same bug. Different users use Django in different ways, stressing
-different parts of the code under different conditions. When we evaluate the
-relative priorities, we are generally trying to consider the needs of the
-entire community, not just the severity for one particular user. This doesn't
-mean that we think your problem is unimportant -- just that in the limited
-time we have available, we will always err on the side of making 10 people
-happy rather than making 1 person happy.
+不管是什么原因，请记住当你不断重复提交一个缺陷时，不代表每个 Django 用户都会
+遇到同样的问题。不同的用户使用 Django 的方法是不同的，使用 Django 的组件也是
+不同的。当我们考虑缺陷修复的优先顺序时，我们关注的是整个社区而不是特定的某一个
+人。当然这不代表你的问题不重要，只不过因为我们的时间有限，而且我们总是认为独乐
+乐不如众乐乐。

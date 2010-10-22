@@ -1,16 +1,15 @@
-=====================================
-Writing your first Django app, part 4
-=====================================
+====================================
+编写你的第一个 Django 程序，第四部分
+====================================
 
-This tutorial begins where :doc:`Tutorial 3 </intro/tutorial03>` left off. We're
-continuing the Web-poll application and will focus on simple form processing and
-cutting down our code.
+本文继续 :doc:`教程第三部分 </intro/tutorial03>` 讨论的内容。我们会继续开发网络
+投票程序并将重点研究简单的表单处理和缩减代码。
 
-Write a simple form
+编写一个简单的表单
 ===================
 
-Let's update our poll detail template ("polls/detail.html") from the last
-tutorial, so that the template contains an HTML ``<form>`` element:
+现在把教程第三部分中提到的 ``polls/detail.html`` 升级一下，在模板代码中加入
+``<form>`` 标签：
 
 .. code-block:: html+django
 
@@ -27,35 +26,27 @@ tutorial, so that the template contains an HTML ``<form>`` element:
     <input type="submit" value="Vote" />
     </form>
 
-A quick rundown:
+总结一下：
 
-    * The above template displays a radio button for each poll choice. The
-      ``value`` of each radio button is the associated poll choice's ID. The
-      ``name`` of each radio button is ``"choice"``. That means, when somebody
-      selects one of the radio buttons and submits the form, it'll send the
-      POST data ``choice=3``. This is HTML Forms 101.
+    * 上面的模板会给每个投票选择项设置一个收音机按钮。每个收音机按钮的值对应
+      Choice 对象的 ID 字段值，名称对应 Choice 对象的 choice 字段。也就是说，当
+      有人点选了收音机按钮并提交时，浏览器会提交表单，提交的 POST 数据为
+      ``choice=3`` 。这就是HTML的基本法则。
 
-    * We set the form's ``action`` to ``/polls/{{ poll.id }}/vote/``, and we
-      set ``method="post"``. Using ``method="post"`` (as opposed to
-      ``method="get"``) is very important, because the act of submitting this
-      form will alter data server-side. Whenever you create a form that alters
-      data server-side, use ``method="post"``. This tip isn't specific to
-      Django; it's just good Web development practice.
+    * 这里我们设置了 ``action="/polls/{{ poll.id }}/vote/" method="post"`` 。
+      因为提交表单的动作会改变服务器端的数据，所以使用 post （而不使用 get ）
+      是非常重要的。这个技巧不只针对 Django 开发，而且通用于所有 Web 开发。
 
-    * ``forloop.counter`` indicates how many times the :ttag:`for` tag has gone
-      through its loop
+    * ``forloog.counter`` 表明 :ttag:`for` 标记循环了多少次。
 
-    * Since we're creating a POST form (which can have the effect of modifying
-      data), we need to worry about Cross Site Request Forgeries.
-      Thankfully, you don't have to worry too hard, because Django comes with
-      a very easy-to-use system for protecting against it. In short, all POST
-      forms that are targeted at internal URLs should use the ``{% csrf_token %}``
-      template tag.
+    * 既然我们创建了一个 POST 表单（这个表单可以使用数据的修改生效），那么我们
+      就需要考虑跨站请求伪造问题。谢天谢地，我们不必为这个问题大费脑筋，因为
+      Django 带有一个易用的系统来避免这个问题。简短地说，所有指向内部 URL 的
+      POST 表单都应当使用 ``{% csrf_token %}`` 模板标记。
 
-The ``{% csrf_token %}`` tag requires information from the request object, which
-is not normally accessible from within the template context. To fix this, a
-small adjustment needs to be made to the ``detail`` view, so that it looks like
-the following::
+``{% csrf_token %}`` 标记需要从请求对象获得信息，但是通常这些信息一般是不能从
+模板上下文中获得的。要修正这个问题，就必需对 ``detail`` 视图做一些小改动，象
+如下这样::
 
     from django.template import RequestContext
     # ...
@@ -64,17 +55,16 @@ the following::
         return render_to_response('polls/detail.html', {'poll': p},
                                    context_instance=RequestContext(request))
 
-The details of how this works are explained in the documentation for
-:ref:`RequestContext <subclassing-context-requestcontext>`.
+以上代码是如何动作的，详见
+:ref:`RequestContext <subclassing-context-requestcontext>` 文档。
 
-Now, let's create a Django view that handles the submitted data and does
-something with it. Remember, in :doc:`Tutorial 3 </intro/tutorial03>`, we
-created a URLconf for the polls application that includes this line::
+现在创建一个 Django 视图来处理提交的数据。在 :doc:`教程第三部分
+</intro/tutorial03>` 中，我们的 URLconf 设置有下面的内容::
 
     (r'^(?P<poll_id>\d+)/vote/$', 'vote'),
 
-We also created a dummy implementation of the ``vote()`` function. Let's
-create a real version. Add the following to ``mysite/polls/views.py``::
+我们还创建了一个假的 ``vote()`` 函数。现在让我们来创建一个真的，把以下内容添加
+到 ``mysite/polls/views.py`` 中::
 
     from django.shortcuts import get_object_or_404, render_to_response
     from django.http import HttpResponseRedirect, HttpResponse
@@ -100,67 +90,59 @@ create a real version. Add the following to ``mysite/polls/views.py``::
             # user hits the Back button.
             return HttpResponseRedirect(reverse('mysite.polls.views.results', args=(p.id,)))
 
-This code includes a few things we haven't covered yet in this tutorial:
+这段代码有些内容我们目前还没有提及到：
 
-    * :attr:`request.POST <django.http.HttpRequest.POST>` is a dictionary-like
-      object that lets you access submitted data by key name. In this case,
-      ``request.POST['choice']`` returns the ID of the selected choice, as a
-      string. :attr:`request.POST <django.http.HttpRequest.POST>` values are
-      always strings.
+    * :attr:`request.POST <django.http.HttpRequest.POST>` 是一个类似于字典的
+      对象，你可以通过关键字索引来引用提交的数据。这种情况下，
+      ``request.POST['choice']`` 会以字符串的形式返回被选中的投票选项的 ID 。
+      :attr:`request.POST <django.http.HttpRequest.POST>` 的值永远都是字符串。
+      
+      注意，Django 也提供  :attr:`request.GET <django.http.HttpRequest.GET>` ，
+      可以用同样的方法获取GET数据。但是在这里我们使用 :attr:`request.POST
+      <django.http.HttpRequest.POST>` ，以保证数据是从 POST 方法提交过来的。
 
-      Note that Django also provides :attr:`request.GET
-      <django.http.HttpRequest.GET>` for accessing GET data in the same way --
-      but we're explicitly using :attr:`request.POST
-      <django.http.HttpRequest.POST>` in our code, to ensure that data is only
-      altered via a POST call.
+    * 如果 ``choice`` 在 POST 数据中不存在，调用``request.POST['choice']`` 就会
+      引发 :exc:`KeyError` 异常。上面的代码会检查是否触发 :exc:`KeyError`
+      异常，如果有异常就会重新显示提交表单和一段报错信息。
 
-    * ``request.POST['choice']`` will raise :exc:`KeyError` if ``choice`` wasn't
-      provided in POST data. The above code checks for :exc:`KeyError` and
-      redisplays the poll form with an error message if ``choice`` isn't given.
+    * 在增加了投票选择项的计数之后，最后返回了
+      :class:`~django.http.HttpResponseRedirect` 对象而不是通常的
+      :class:`~django.http.HttpResponse` 。
+      :class:`~django.http.HttpResponseRedirect` 对象只接收一个参数：重定向
+      URL 。（下面会说明怎么样构建这种 URL ）。
+      
+      上面代码的注释里说明，你必须在成功处理完 POST 数据之后总是返回一个
+      :class:`~django.http.HttpResponseRedirect` 对象。这个技巧不仅仅适用于
+      Django ，这是一个良好的 Web 开发习惯。
 
-    * After incrementing the choice count, the code returns an
-      :class:`~django.http.HttpResponseRedirect` rather than a normal
-      :class:`~django.http.HttpResponse`.
-      :class:`~django.http.HttpResponseRedirect` takes a single argument: the
-      URL to which the user will be redirected (see the following point for how
-      we construct the URL in this case).
-
-      As the Python comment above points out, you should always return an
-      :class:`~django.http.HttpResponseRedirect` after successfully dealing with
-      POST data. This tip isn't specific to Django; it's just good Web
-      development practice.
-
-    * We are using the :func:`~django.core.urlresolvers.reverse` function in the
-      :class:`~django.http.HttpResponseRedirect` constructor in this example.
-      This function helps avoid having to hardcode a URL in the view function.
-      It is given the name of the view that we want to pass control to and the
-      variable portion of the URL pattern that points to that view. In this
-      case, using the URLconf we set up in Tutorial 3, this
-      :func:`~django.core.urlresolvers.reverse` call will return a string like
-      ::
+    * 在这个例子中我们在构造
+      :class:`~django.http.HttpResponseRedirect` 对象时使用了
+      :func:`~django.core.urlresolvers.reverse` 函数。这个函数解决了在视图中
+      硬编码 URL 问题。我们只要给出要重定向的视图的名称和这个视图需要的参数就
+      可以了。在本例中，根据教程第三部分的 URLconf 设置，
+      :func:`~django.core.urlresolvers.reverse` 会返回下面的字符串::
 
         '/polls/3/results/'
 
-      ... where the ``3`` is the value of ``p.id``. This redirected URL will
-      then call the ``'results'`` view to display the final page. Note that you
-      need to use the full name of the view here (including the prefix).
+      ... 这里的 ``3`` 就是 ``p.id`` 的值。重定向 URL 会调用 ``results`` 视图来
+      显示最终的页面。在这里你要使用视图的全名（包括前缀）。
 
-As mentioned in Tutorial 3, ``request`` is a :class:`~django.http.HttpRequest`
-object. For more on :class:`~django.http.HttpRequest` objects, see the
-:doc:`request and response documentation </ref/request-response>`.
+在教程第三部分中提到， ``request`` 是一个
+:func:`~django.core.urlresolvers.reverse` 对象。要了解
+:func:`~django.core.urlresolvers.reverse` 的更多内容，请参考
+:doc:`request and response documentation </ref/request-response>` 。
 
-After somebody votes in a poll, the ``vote()`` view redirects to the results
-page for the poll. Let's write that view::
+当提交投票之后， ``vote()`` 视图会重定向到该投票的投票结果页面。
+现在来编写投票结果页面的视图::
 
     def results(request, poll_id):
         p = get_object_or_404(Poll, pk=poll_id)
         return render_to_response('polls/results.html', {'poll': p})
 
-This is almost exactly the same as the ``detail()`` view from :doc:`Tutorial 3
-</intro/tutorial03>`. The only difference is the template name. We'll fix this
-redundancy later.
+这基本上和 :doc:`教程第三部分 </intro/tutorial03>` 中的 ``detail()`` 视图
+一模一样。唯一的区别就是模板名称不同。在后面我们会解决这个问题。
 
-Now, create a ``results.html`` template:
+现在创建一个 ``results.html`` 模板：
 
 .. code-block:: html+django
 
@@ -172,53 +154,44 @@ Now, create a ``results.html`` template:
     {% endfor %}
     </ul>
 
-    <a href="/polls/{{ poll.id }}/">Vote again?</a>
+现在，在浏览器中访问 ``/polls/1/`` 并完成投票，你就能看到结果页面了，每次投票后
+都能看到数据有所更新。如果没有点选任何一个选择项，那么你会看到错误信息。
 
-Now, go to ``/polls/1/`` in your browser and vote in the poll. You should see a
-results page that gets updated each time you vote. If you submit the form
-without having chosen a choice, you should see the error message.
+使用通用视图：代码越简洁越好
+============================
 
-Use generic views: Less code is better
-======================================
+``detail()`` （来自 :doc:`教程第三部分 </intro/tutorial03>` ）和 ``results()``
+都太简单了，而且代码上也有重复。显示投票列表的 ``index()`` （同样来自教程第三
+部分）也有类似的问题。
 
-The ``detail()`` (from :doc:`Tutorial 3 </intro/tutorial03>`) and ``results()``
-views are stupidly simple -- and, as mentioned above, redundant. The ``index()``
-view (also from Tutorial 3), which displays a list of polls, is similar.
+这些视图反映了 Web 开发中的基本流程：根据 URL 中的参数从数据库中获取数据，加载
+模板并返回渲染后的内容。因为这种流程太普遍了，因此 Django 提供了快捷方法，称之
+为“通用视图”系统。
 
-These views represent a common case of basic Web development: getting data from
-the database according to a parameter passed in the URL, loading a template and
-returning the rendered template. Because this is so common, Django provides a
-shortcut, called the "generic views" system.
+通用视图对通用模式进行了概括，所以你甚至不需要写任何 Python 代码就可以完成任务。
 
-Generic views abstract common patterns to the point where you don't even need
-to write Python code to write an app.
+现在用通用视图系统来修改投票程序，我们可以删除大量自己的代码。转换工作只需以下
+几步：
 
-Let's convert our poll app to use the generic views system, so we can delete a
-bunch of our own code. We'll just have to take a few steps to make the
-conversion. We will:
+    1. 转换 URLconf 。
 
-    1. Convert the URLconf.
+    2. 重命名一些模板。
 
-    2. Rename a few templates.
+    3. 删除一些旧的，不再需要的视图。
 
-    3. Delete some of the old, unneeded views.
+    4. 根据新的视图调整 URL。
 
-    4. Fix up URL handling for the new views.
+详情下面分解。
 
-Read on for details.
+.. admonition:: 为什么要梳理代码？
 
-.. admonition:: Why the code-shuffle?
+    一般，编写 Django 程序时，你需要估计一下使用通用视图是否适合你的系统。
+    如果适合，那从一开始就应该使用通用视图而不是开发了一半再来重写代码。但是
+    本文有意从一开始就介绍自行编写视图的方法，是为了让读者理解核心内容。
+    
+    这好比在使用计算器之前你应当掌握基本的数学知识。
 
-    Generally, when writing a Django app, you'll evaluate whether generic views
-    are a good fit for your problem, and you'll use them from the beginning,
-    rather than refactoring your code halfway through. But this tutorial
-    intentionally has focused on writing the views "the hard way" until now, to
-    focus on core concepts.
-
-    You should know basic math before you start using a calculator.
-
-First, open the ``polls/urls.py`` URLconf. It looks like this, according to the
-tutorial so far::
+首先，打开 ``polls/urls.py`` ，其中的 URLconf 如下所示::
 
     from django.conf.urls.defaults import *
 
@@ -229,7 +202,7 @@ tutorial so far::
         (r'^(?P<poll_id>\d+)/vote/$', 'vote'),
     )
 
-Change it like so::
+将代码改成下面的样子::
 
     from django.conf.urls.defaults import *
     from mysite.polls.models import Poll
@@ -240,107 +213,98 @@ Change it like so::
 
     urlpatterns = patterns('',
         (r'^$', 'django.views.generic.list_detail.object_list', info_dict),
-        (r'^(?P<object_id>\d+)/$', 'django.views.generic.list_detail.object_detail', info_dict),
-        url(r'^(?P<object_id>\d+)/results/$', 'django.views.generic.list_detail.object_detail', dict(info_dict, template_name='polls/results.html'), 'poll_results'),
+        (r'^(?P<object_id>\d+)/$',
+            'django.views.generic.list_detail.object_detail',
+            info_dict),
+        url(r'^(?P<object_id>\d+)/results/$',
+            'django.views.generic.list_detail.object_detail',
+            dict(info_dict, template_name='polls/results.html'),
+            'poll_results'),
         (r'^(?P<poll_id>\d+)/vote/$', 'mysite.polls.views.vote'),
     )
 
-We're using two generic views here:
-:func:`~django.views.generic.list_detail.object_list` and
-:func:`~django.views.generic.list_detail.object_detail`. Respectively, those two
-views abstract the concepts of "display a list of objects" and "display a detail
-page for a particular type of object."
+我们这里用了两个通用视图：
+:func:`~django.views.generic.list_detail.object_list` 和
+:func:`~django.views.generic.list_detail.object_detail` 。这两个视图分别用于
+显示对象列表和特定对象的内容。
 
-    * Each generic view needs to know what data it will be acting upon. This
-      data is provided in a dictionary. The ``queryset`` key in this dictionary
-      points to the list of objects to be manipulated by the generic view.
+    * 每个通用视图都需要知道处理哪些数据。这些数据通过一个字典类型对象提供。
+      上例中的 ``queryset`` 指向的的数据就是通用视图要处理的对象。
 
-    * The :func:`~django.views.generic.list_detail.object_detail` generic view
-      expects the ID value captured from the URL to be called ``"object_id"``,
-      so we've changed ``poll_id`` to ``object_id`` for the generic views.
+    * :func:`~django.views.generic.list_detail.object_detail` 通用视图需要一个
+      从 URL 中捕获的 ID 值，名称限定为 ``"object_id"`` 。所以我们把
+      ``poll_id`` 改成了 ``object_id`` 。
 
-    * We've added a name, ``poll_results``, to the results view so that we have
-      a way to refer to its URL later on (see the documentation about
-      :ref:`naming URL patterns <naming-url-patterns>` for information). We're
-      also using the :func:`~django.conf.urls.default.url` function from
-      :mod:`django.conf.urls.defaults` here. It's a good habit to use
-      :func:`~django.conf.urls.defaults.url` when you are providing a pattern
-      name like this.
+    * 在 results 视图里我们加上了一个 ``poll_results`` 参数，这样就能在以后引用
+      它的 URL 了（参见 :ref:`命名 URL 样式 <naming-url-patterns>` 文档）。我们
+      还使用了 :mod:`django.conf.urls.defaults` 中的
+      :func:`~django.conf.urls.default.url` 。当我们以这种方式提供 URL 样式时，
+      使用 :func:`~django.conf.urls.default.url` 是一个好习惯。
 
-By default, the :func:`~django.views.generic.list_detail.object_detail` generic
-view uses a template called ``<app name>/<model name>_detail.html``. In our
-case, it'll use the template ``"polls/poll_detail.html"``. Thus, rename your
-``polls/detail.html`` template to ``polls/poll_detail.html``, and change the
-:func:`~django.shortcuts.render_to_response` line in ``vote()``.
+缺省情况下， :func:`~django.views.generic.list_detail.object_detail` 视图使用
+名为 ``<app name>/<model name>_detail.html`` 的模板。因此，在我们的例子中就应当
+使用的是名为 ``polls/poll_detail.html`` 的模板。所以，把 ``polls/detail.html``
+更名为 ``polls/poll_detail.html`` ，然后在 ``vote()`` 中修改
+:func:`~django.shortcuts.render_to_response` 这一行。
 
-Similarly, the :func:`~django.views.generic.list_detail.object_list` generic
-view uses a template called ``<app name>/<model name>_list.html``. Thus, rename
-``polls/index.html`` to ``polls/poll_list.html``.
+同理， :func:`~django.views.generic.list_detail.object_list` 通用视图使用名为
+``<app name>/<model name>_list.html`` 的模板。所以，把 ``polls/index.html``更名
+为 ``polls/poll_list.html`` 。
 
-Because we have more than one entry in the URLconf that uses
-:func:`~django.views.generic.list_detail.object_detail` for the polls app, we
-manually specify a template name for the results view:
-``template_name='polls/results.html'``. Otherwise, both views would use the same
-template. Note that we use ``dict()`` to return an altered dictionary in place.
+由于在这个投票程序中的 URLconf 设置里，有多个纪录都用到了
+:func:`~django.views.generic.list_detail.object_detail` 视图，所以我们要手工给
+results 视图指定名为 ``template_name='polls/results.html'`` 的模板。否则，这些
+这些通用视图就会使用同一个模板。注意这里我们用 ``dict()`` 来返回一个新的字典。
 
-.. note:: :meth:`django.db.models.QuerySet.all` is lazy
+.. note:: :meth:`django.db.models.QuerySet.all` 是惰性的。
 
-    It might look a little frightening to see ``Poll.objects.all()`` being used
-    in a detail view which only needs one ``Poll`` object, but don't worry;
-    ``Poll.objects.all()`` is actually a special object called a
-    :class:`~django.db.models.QuerySet`, which is "lazy" and doesn't hit your
-    database until it absolutely has to. By the time the database query happens,
-    the :func:`~django.views.generic.list_detail.object_detail` generic view
-    will have narrowed its scope down to a single object, so the eventual query
-    will only select one row from the database.
+    在 detail 视图中只需要使用一条 ``Poll`` 对象，而在这里使用
+    ``Poll.objects.all()`` 方法可能让人觉得有点恐怖。但是，不用担心，
+    ``Poll.objects.all()`` 实际上是一个特殊的
+    :class:`~django.db.models.QuerySet` 对象，这个对象是惰性的，只有在真正必要
+    的时候才会去访问数据库。在查询数据库时，
+    :func:`~django.views.generic.list_detail.object_detail` 视图会将范围缩小到
+    单个纪录，所以最终数据库中的查询只会返回一条纪录。
+    
+    如果你想知道这其中到底是怎么工作的，Django 数据库 API 文档会告诉你
+    :ref:`QuerySet对象的懒惰特性 <querysets-are-lazy>` 。
 
-    If you'd like to know more about how that works, The Django database API
-    documentation :ref:`explains the lazy nature of QuerySet objects
-    <querysets-are-lazy>`.
+在教程前面部分中，模板内都传入了一个包含 ``poll`` 和 ``latest_poll_list`` 
+的 context 对象。但是通用视图提供 ``object`` 和 ``object_list`` 作为context
+对象。所以，需要修改模板文件来适应新的 context 变量。在你的模板中，将所有
+``latest_poll_list`` 替换为 ``object_list`` ，所有 ``poll`` 替换为
+``object`` 。
 
-In previous parts of the tutorial, the templates have been provided with a
-context that contains the ``poll`` and ``latest_poll_list`` context variables.
-However, the generic views provide the variables ``object`` and ``object_list``
-as context. Therefore, you need to change your templates to match the new
-context variables. Go through your templates, and modify any reference to
-``latest_poll_list`` to ``object_list``, and change any reference to ``poll``
-to ``object``.
+你现在可以从 ``polls/views.py`` 中删除 ``index()`` 、 ``detail()`` 和
+``result()`` 视图了。我们不再需要这些代码了，它们已经被通用视图代替了。
 
-You can now delete the ``index()``, ``detail()`` and ``results()`` views
-from ``polls/views.py``. We don't need them anymore -- they have been replaced
-by generic views.
+``vote()`` 视图还是需要的，但是要修改变量名。在
+:func:`~django.shortcuts.render_to_response` 中，将 ``poll`` 重命名为
+``object`` 。
 
-The ``vote()`` view is still required. However, it must be modified to match the
-new context variables. In the :func:`~django.shortcuts.render_to_response` call,
-rename the ``poll`` context variable to ``object``.
-
-The last thing to do is fix the URL handling to account for the use of generic
-views. In the vote view above, we used the
-:func:`~django.core.urlresolvers.reverse` function to avoid hard-coding our
-URLs. Now that we've switched to a generic view, we'll need to change the
-:func:`~django.core.urlresolvers.reverse` call to point back to our new generic
-view. We can't simply use the view function anymore -- generic views can be (and
-are) used multiple times -- but we can use the name we've given::
+最后一件要做的事就是根据通用视图调整 URL 的处理。在vote视图中，我们使用了
+:func:`~django.core.urlresolvers.reverse` 函数来解决硬编码 URL 的问题。现在我们
+使用了通用视图，需要修改:func:`~django.core.urlresolvers.reverse` 重新指向通用
+视图。我们不能简单地再直接用视图的名称了，因为通用视图是可以而且应当多次使用的，
+所以我们使用给定的名称::
 
     return HttpResponseRedirect(reverse('poll_results', args=(p.id,)))
 
-Run the server, and use your new polling app based on generic views.
+重新启动测试服务器，看看这个使用了通用视图的全新程序。
 
-For full details on generic views, see the :doc:`generic views documentation
-</topics/http/generic-views>`.
+要全面了解通用视图的详细内容，请参考 :ref:`通用视图文档
+</topics/http-generic-views>` 。
 
-Coming soon
-===========
+敬请期待
+========
 
-The tutorial ends here for the time being. Future installments of the tutorial
-will cover:
+由于时间关系，新手入门的文章就只能到这里了。将来的文档里会加入下面的内容：
 
-    * Advanced form processing
-    * Using the RSS framework
-    * Using the cache framework
-    * Using the comments framework
-    * Advanced admin features: Permissions
-    * Advanced admin features: Custom JavaScript
+    * 高级表单处理
+    * 使用 RSS 组件
+    * 使用缓存组件
+    * 使用评论组件
+    * 高级管理站点功能：权限
+    * 高级管理站点功能：定制 JavaScript
 
-In the meantime, you might want to check out some pointers on :doc:`where to go
-from here </intro/whatsnext>`
+接下来，你可能想看看 :doc:`接下来干什么 </intro/whatsnext>` 。

@@ -1,1 +1,1 @@
-sphinx-build DjangoDocZhCn1.1.1 d:\DjangoDocZhCn1.1.1
+sphinx-build DjangoDocZhCn1.2.3 d:\DjangoDocZhCn1.2.3

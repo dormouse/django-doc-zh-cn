@@ -1,192 +1,165 @@
-FAQ: General
+FAQ: 综合
 ============
 
-Why does this project exist?
+为什么会有这个项目？
 ----------------------------
 
-Django grew from a very practical need: World Online, a newspaper Web
-operation, is responsible for building intensive Web applications on journalism
-deadlines. In the fast-paced newsroom, World Online often has only a matter of
-hours to take a complicated Web application from concept to public launch.
+Django 起源于网络新闻业公司环球在线（ World Online ）的运作需要，主要用于在新闻
+业规定的期限内创建复杂的 Web 应用程序。在快节奏的新闻编辑室中，环球在线经常需要
+在数小时内把一个概念变成一个复杂的 Web 应用程序。
 
-At the same time, the World Online Web developers have consistently been
-perfectionists when it comes to following best practices of Web development.
+同时，环球在线的 Web 开发者们对 Web 开发的最优方法一直保持不懈的追求。
 
-In fall 2003, the World Online developers (Adrian Holovaty and Simon Willison)
-ditched PHP and began using Python to develop its Web sites. As they built
-intensive, richly interactive sites such as Lawrence.com, they began to extract
-a generic Web development framework that let them build Web applications more
-and more quickly. They tweaked this framework constantly, adding improvements
-over two years.
+在 2003 年秋天，环球在线的开发者（ Adrian Holovaty 和 Simon Willison ）放弃了
+PHP 并开始使用 Python 开发网站程序。当开始象创建 Lawrence.com 之类多功能的互动
+网站时，他们就开始开发一个通用 Web 开发框架，以更加速 Web 应用程序的开发。在接
+下来的两年时间中，他们不断优化这个框架，并丰富其功能。
 
-In summer 2005, World Online decided to open-source the resulting software,
-Django. Django would not be possible without a whole host of open-source
-projects -- `Apache`_, `Python`_, and `PostgreSQL`_ to name a few -- and we're
-thrilled to be able to give something back to the open-source community.
+在 2005 年夏天，环球在线决定把这个框架的开发成果开源，这就是 Django 。Django 的
+成功离不开 `Apache`_ 、 `Python`_ 、 和 `PostgreSQL`_ 等开源项目的支持。这里，
+我们为能够为开源社区做出一点小小的贡献而感到荣幸。
 
 .. _Apache: http://httpd.apache.org/
 .. _Python: http://www.python.org/
 .. _PostgreSQL: http://www.postgresql.org/
 
-What does "Django" mean, and how do you pronounce it?
+“ Django ”是什么意思？这个单词怎么读？
 -----------------------------------------------------
 
-Django is named after `Django Reinhardt`_, a gypsy jazz guitarist from the 1930s
-to early 1950s. To this day, he's considered one of the best guitarists of all time.
+Django 取自一个人名： `Django Reinhardt`_ 。这个人是一名吉普赛爵士吉他演奏家，
+生于三十年代，死于五十年代早期。直到今日，他仍以最优秀的吉他演奏家之一为人们所
+尊重。
 
-Listen to his music. You'll like it.
+欣赏一下他的音乐吧，你会迷上的。
 
-Django is pronounced **JANG**-oh. Rhymes with FANG-oh. The "D" is silent.
+Django 读作 **JANG**-oh 。以 FANG-oh 作韵脚。字母 “ D ”不发声。
 
-We've also recorded an `audio clip of the pronunciation`_.
+我们还录制了一个 `发音片段`_ 。
 
 .. _Django Reinhardt: http://en.wikipedia.org/wiki/Django_Reinhardt
-.. _audio clip of the pronunciation: http://red-bean.com/~adrian/django_pronunciation.mp3
+.. _发音片段: http://red-bean.com/~adrian/django_pronunciation.mp3
 
-Is Django stable?
------------------
+Django 稳定吗？
+---------------
 
-Yes. World Online has been using Django for more than three years. Sites built
-on Django have weathered traffic spikes of over one million hits an hour and a
-number of Slashdottings. Yes, it's quite stable.
+是的。环球在线使用 Django 已经三年多了，曾承受过峰值一百万次每小时的点击量和
+许多考验。是的，非常稳定。
 
-Does Django scale?
-------------------
+Django 是否可扩展？
+-------------------
 
-Yes. Compared to development time, hardware is cheap, and so Django is
-designed to take advantage of as much hardware as you can throw at it.
+是的。与开发所花费的时间成本比，硬件是相对便宜的。所以， Django 可以充分利用你
+所投入的硬件。
 
-Django uses a "shared-nothing" architecture, which means you can add hardware
-at any level -- database servers, caching servers or Web/application servers.
+Django 使用一种“零共享”结构，即你可以在任何层面（数据库服务，缓存服务或 Web
+应用服务等）添加硬件。
 
-The framework cleanly separates components such as its database layer and
-application layer. And it ships with a simple-yet-powerful
-:doc:`cache framework </topics/cache>`.
+Django 的组件可以清楚的分隔开，比如它的数据库层和应用层就分得很清楚。同时它还
+带有一个简单而强大的 :doc:`缓存组件 </topics/cache>` 。
 
-Who's behind this?
-------------------
+背后的开发维护人员是谁？
+------------------------
 
-Django was originally developed at World Online, the Web department of a
-newspaper in Lawrence, Kansas, USA. Django's now run by an international team of
-volunteers; you can read all about them over at the :doc:`list of committers
-</internals/committers>`
+Django 原来是由环球在线开发的。环球在线是美国堪萨斯州劳伦斯市一份新闻报纸的 Web
+部门。现在则是由世界各地的志愿者组成的团队来开发维护。你可以通过阅读
+:doc:`开发维护人员名单 </internals/committers>` 来了解他们。
 
-Which sites use Django?
------------------------
+有哪些站点使用 Django ？
+------------------------
 
-The Django wiki features a consistently growing `list of Django-powered sites`_.
-Feel free to add your Django-powered site to the list.
+Django 维基中有一份不断增加的 `使用 Django 驱动的网站列表`_ 。欢迎添加你自己的
+Django 驱动的网站。
 
-.. _list of Django-powered sites: http://code.djangoproject.com/wiki/DjangoPoweredSites
+.. _使用 Django 驱动的网站列表: http://code.djangoproject.com/wiki/DjangoPoweredSites
 
 .. _mtv:
 
-Django appears to be a MVC framework, but you call the Controller the "view", and the View the "template". How come you don't use the standard names?
------------------------------------------------------------------------------------------------------------------------------------------------------
+Django 看上去是一个 MVC 构架，但你们把控制器（ Controller ）称为 “视图”（ view ），把视图称为“模板”（ template ）。为什么不用标准的名称呢？
+-------------------------------------------------------------------------------------------------------------------------------------------
 
-Well, the standard names are debatable.
+标准的名称是值得商榷的。
 
-In our interpretation of MVC, the "view" describes the data that gets presented
-to the user. It's not necessarily *how* the data *looks*, but *which* data is
-presented. The view describes *which data you see*, not *how you see it.* It's
-a subtle distinction.
+根据我们对 MVC 的理解，“视图”应当用于向用户展示数据。视图的用途不是
+*如何展示* 数据，而应该是展示 *哪些* 数据。两者是有区别的。
 
-So, in our case, a "view" is the Python callback function for a particular URL,
-because that callback function describes which data is presented.
+所以，在 Django 中，视图就是对应于特定 URL 的 Python 回调函数，这个回调函数描述
+展示哪些数据。
 
-Furthermore, it's sensible to separate content from presentation -- which is
-where templates come in. In Django, a "view" describes which data is presented,
-but a view normally delegates to a template, which describes *how* the data is
-presented.
+进而，把内容与表现分离是明智的选择，这样就需要“模板”了。在 Django 中，视图描述
+展示哪些数据，模板来决定“如何”展示数据。
 
-Where does the "controller" fit in, then? In Django's case, it's probably the
-framework itself: the machinery that sends a request to the appropriate view,
-according to the Django URL configuration.
+那么控制器在什么地方呢？在 Django 中，可能藏在框架本身之中。根据 Django 的 URL
+设置，一个请求会自动发给适当的视图。
 
-If you're hungry for acronyms, you might say that Django is a "MTV" framework
--- that is, "model", "template", and "view." That breakdown makes much more
-sense.
+如果你对首字母缩写敏感，可能会说 Django 是一个“ MTV “架构。（模型、模板和视图
+对应的英文为 model 、template 和 view 。）这样的分析更易于理解。
 
-At the end of the day, of course, it comes down to getting stuff done. And,
-regardless of how things are named, Django gets stuff done in a way that's most
-logical to us.
+总而言之，饭总要吃的，事总是要做的。不管这些东西怎么命名， Django 总是按照自己
+认为最符合逻辑的方式办事。
 
-<Framework X> does <feature Y> -- why doesn't Django?
------------------------------------------------------
+某框架有某功能，为什么 Django 没有？
+------------------------------------
 
-We're well aware that there are other awesome Web frameworks out there, and
-we're not averse to borrowing ideas where appropriate. However, Django was
-developed precisely because we were unhappy with the status quo, so please be
-aware that "because <Framework X> does it" is not going to be sufficient reason
-to add a given feature to Django.
+我们完全同意 Django 之外还有更优秀的框架，我们也不反对从别的框架中借用优秀的
+做法。我们并没有固步自封， Django 正在不断地完善和发展之中。所以有一点应当明白：
+其他框架有某个功能并不代表现在 Django 一定要增加这个功能。
 
-Why did you write all of Django from scratch, instead of using other Python libraries?
---------------------------------------------------------------------------------------
+为什么要从头开始开发 Django ，而不使用其他 Python 库？
+------------------------------------------------------
 
-When Django was originally written a couple of years ago, Adrian and Simon
-spent quite a bit of time exploring the various Python Web frameworks
-available.
+在数年前， Adrian 和 Simon 开始写 Django 之前，曾花费了大量时间来研究当时已存在
+的框架。
 
-In our opinion, none of them were completely up to snuff.
+结果，没有一个是完全符合要求的。
 
-We're picky. You might even call us perfectionists. (With deadlines.)
+我们是相当挑剔的。你可以认为我们是至善论者。
 
-Over time, we stumbled across open-source libraries that did things we'd
-already implemented. It was reassuring to see other people solving similar
-problems in similar ways, but it was too late to integrate outside code: We'd
-already written, tested and implemented our own framework bits in several
-production settings -- and our own code met our needs delightfully.
+随着时间的推移，我们偶然发现开源库中有了和 Django 功能相同的项目。有人以相同的
+方式实现了相同的功能。但是已经来不及相合这些项目了，因为我们已经编写了自己的
+框架，并且经测试后已经布置使用了。现在 Django 完全符合我们的需求。
 
-In most cases, however, we found that existing frameworks/tools inevitably had
-some sort of fundamental, fatal flaw that made us squeamish. No tool fit our
-philosophies 100%.
+然而，多数情况下，我们觉得现存的种种框架或工具有基础性的、重大的足以令我们抓狂
+的缺陷。没有一个工具百分百符合我们哲学。
 
-Like we said: We're picky.
+就象我们说过的：我们是相当挑剔的。
 
-We've documented our philosophies on the
-:doc:`design philosophies page </misc/design-philosophies>`.
+我们的哲学参见： :doc:`设计哲学页面 </misc/design-philosophies>` 。
 
-Is Django a content-management-system (CMS)?
+Django 是一个内容管理系统（ CMS ）吗？
 --------------------------------------------
 
-No, Django is not a CMS, or any sort of "turnkey product" in and of itself.
-It's a Web framework; it's a programming tool that lets you build Web sites.
+Django 不是一个 CMS 或 一种“成品”。 Django 是一种框架，一种用于创建 Web 网站的
+工具。
 
-For example, it doesn't make much sense to compare Django to something like
-Drupal_, because Django is something you use to *create* things like Drupal.
+例如，把 Django 和 Drupal_ 放在一起比较是没有意义的，因为 Django 是用于 *创建*
+Drupal 之类东西的工具。
 
-Of course, Django's automatic admin site is fantastic and timesaving -- but
-the admin site is one module of Django the framework. Furthermore, although
-Django has special conveniences for building "CMS-y" apps, that doesn't mean
-it's not just as appropriate for building "non-CMS-y" apps (whatever that
-means!).
+当然， Django 自动生成的管理站点是优秀的、省时省力的，但是管理站点仅仅是
+Django 的一个模块而已。进一步说，虽然用 Django 创建 CMS 是非常方便的，但是
+Django 不仅仅只能用于创建 CMS 。
 
 .. _Drupal: http://drupal.org/
 
-How can I download the Django documentation to read it offline?
----------------------------------------------------------------
+如何下载 Django 文档并在线下阅读？
+----------------------------------
 
-The Django docs are available in the ``docs`` directory of each Django tarball
-release. These docs are in ReST (ReStructured Text) format, and each text file
-corresponds to a Web page on the official Django site.
+Django 文档放在每个发行版本的“ docs ”目录下。这些文档是 ReST （ ReStructured
+文本）格式的，每个文本文件对应于一个网页。
 
-Because the documentation is `stored in revision control`_, you can browse
-documentation changes just like you can browse code changes.
+因为文档 `存放在版本控制系统`_ 中，你可以象浏览代码变动一样浏览文档的的变动。
 
-Technically, the docs on Django's site are generated from the latest development
-versions of those ReST documents, so the docs on the Django site may offer more
-information than the docs that come with the latest Django release.
+从技术上说， Django 官方网站中的文档是根据最新的开发版本 ReST 文档创建的，所以
+Django 官方网站的文档可以提供比已发行版本中文档更多的信息。
 
-.. _stored in revision control: http://code.djangoproject.com/browser/django/trunk/docs
+.. _存放在版本控制系统: http://code.djangoproject.com/browser/django/trunk/docs
 
-Where can I find Django developers for hire?
+我在哪里可以雇到 Django 开发人员？
 --------------------------------------------
 
-Consult our `developers for hire page`_ for a list of Django developers who
-would be happy to help you.
+请参考我们的 `可雇用的开发人员页面`_ ，那里有一份乐意帮助你的 Django 开发人员
+名单。
 
-You might also be interested in posting a job to http://djangogigs.com/ .
-If you want to find Django-capable people in your local area, try
-http://djangopeople.net/ .
+你也可能对发送工作任务到 http://djangogigs.com/ 感兴趣。
+如果你想找本地 Django 开发人员，请试试访问 http://djangopeople.net/ 。
 
-.. _developers for hire page: http://code.djangoproject.com/wiki/DevelopersForHire
+.. _可雇用的开发人员页面: http://code.djangoproject.com/wiki/DevelopersForHire
