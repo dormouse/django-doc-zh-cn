@@ -1,5 +1,3 @@
-.. _topics-auth:
-
 =============================
 Django 中的用户认证
 =============================
@@ -20,6 +18,9 @@ Django 自带一个用户认证系统，这个系统处理用户帐户、组、�
     * 组：一种为多个用户加上标签和权限的常用方式。
     * 消息：一种为指定用户生成简单消息队列的方式。
 
+.. deprecated:: 1.2
+   认证系统的消息部分将会在 Django 1.4 版中去除。
+
 安装
 ====
 
@@ -27,7 +28,7 @@ Django 自带一个用户认证系统，这个系统处理用户帐户、组、�
 
     1. 把 ``'django.contrib.auth'`` 和 ``'django.contrib.contenttypes'`` 放到
        :setting:`INSTALLED_APPS` 设置中。（ :mod:`django.contrib.auth` 中的
-       :class:`~django.contrib.auth.models.Permisson` 模型依赖于
+       :class:`~django.contrib.auth.models.Permission` 模型依赖于
        :mod:`django.contrib.contenttypes` 。）
     2. 运行命令 ``manage.py syncdb`` 。
 
@@ -62,6 +63,9 @@ API 手册
 
         必选项。 小于等于 30 个字符。 只能是字母数字（字母、数字和下划线）。
 
+        .. versionchanged:: 1.2
+           用户名现在可以包含 ``@`` 、 ``+`` 、 ``.`` 和 ``-`` 字符。
+
     .. attribute:: models.User.first_name
 
         可选项。 小于等于 30 个字符。
@@ -85,13 +89,16 @@ API 手册
 
     .. attribute:: models.User.is_active
 
-        布尔值。指明这个用户帐户是否是活动的。一般我们不删除帐户而是把这个标记
-        设置为 ``False`` 。
+        布尔值。指明这个用户帐户是否是活动的。我们建议把这个标记设置为
+        ``False`` 来代替删除用户帐户，这样就不会影响指向用户的外键。
 
         这个属性不控制用户是否可以登录。登录验证时不会核查 ``is_active`` 标志。
         因此，如果在登录时需要检查 ``is_active`` 标志，需要你在自己的登录视图中
-        实现。但是当使用象 :meth:`~models.User.has_perm` 的方法检查权限时会检查
-        这个标志，如果不是活动用户就会返回 ``False`` 。
+        实现。但是用于 :func:`~django.contrib.auth.views.login` 视图的
+        :class:`~django.contrib.auth.forms.AuthenticationForm` *会* 执行这个
+        检查，因此应当在 Django 站点中进行认证并执行
+        :meth:`~models.User.has_perm` 之类的权限检查方法。所有那些方法或函数
+        对于不活动的用户都会返回 ``False`` 。
 
     .. attribute:: models.User.is_superuser
 
@@ -114,7 +121,7 @@ API 手册
     fields: models.User. ``组（ groups  ）`` 和
     ``用户权限（ user_permissions ）`` 。3
     :class:`~django.contrib.auth.models.User` 对象可以象其它
-    :ref:`Django 模型 <topics-db-models>` 一样操作关联对象：
+    :doc:`Django 模型 </topics/db/models>` 一样操作关联对象：
 
     .. code-block:: python
 
@@ -177,25 +184,44 @@ API 手册
         :meth:`~django.contrib.auth.models.User.set_unusable_password()` 则返回
         ``False`` 。
 
-    .. method:: models.User.get_group_permissions()
+    .. method:: models.User.get_group_permissions(obj=None)
 
         通过用户的组返回一个其权限列表。
 
-    .. method:: models.User.get_all_permissions()
+        .. versionadded:: 1.2
+
+        如果有 ``obj`` 参数，则只返回这个特定对象的组权限。
+
+
+    .. method:: models.User.get_all_permissions(obj=None)
 
         通过用户的组和用户权限返回一个用户权限列表。
 
-    .. method:: models.User.has_perm(perm)
+        .. versionadded:: 1.2
+
+        如果有 ``obj`` 参数，则只返回这个特定对象的组权限。
+
+    .. method:: models.User.has_perm(perm, obj=None)
 
         如果用户有特定的权限则返回 ``True`` ，这里的 perm 的格式为
-        ``"<app label>.<permission codename>"`` 。如果用户是不活动的，这个方法
-        总是返回 ``False`` 。
+        ``"<app label>.<permission codename>"`` 。（参见下面 `权限`_ 一节。）
+        如果用户是不活动的，这个方法总是返回 ``False`` 。
 
-    .. method:: models.User.has_perms(perm_list)
+        .. versionadded:: 1.2
+
+        如果有 ``obj`` 参数，这个方法不会检查模型的权限，只会检查这个特定对象的
+        权限。
+
+    .. method:: models.User.has_perms(perm_list, obj=None)
 
         如果用户有列表中每个特定的权限则返回 ``True`` ，这里的 perm 的格式为
         ``"<app label>.<permission codename>"`` 。如果用户是不活动的，这个方法
         总是返回 ``False`` 。
+
+        .. versionadded:: 1.2
+
+        如果有 ``obj`` 参数，这个方法不会检查模型的权限，只会检查这个特定对象的
+        权限。
 
     .. method:: models.User.has_module_perms(package_name)
 
@@ -232,11 +258,12 @@ API 手册
     .. method:: models.UserManager.create_user(username, email, password=None)
 
         创建、保存并返回一个 :class:`~django.contrib.auth.models.User` 。
-        :attr:`~django.contrib.auth.models.User.username` 属性、
-        :attr:`~django.contrib.auth.models.User.email` 属性和
+
+        :attr:`~django.contrib.auth.models.User.username` 属性和
         :attr:`~django.contrib.auth.models.User.password` 属性根据给出的参数
-        设置， :class:`~django.contrib.auth.models.User` 设置为
-        ``is_active=True`` 。
+        设置。 :attr:`~django.contrib.auth.models.User.email` 属性自动转换为
+        小写字母，且返回的 :class:`~django.contrib.auth.models.User` 对象会有
+        一个设置为 ``True`` 的 :attr:`~models.User.is_active` 属性。
 
         如果没有提供密码，就会调用
         :meth:`~django.contrib.auth.models.User.set_unusable_password()` 。
@@ -286,7 +313,16 @@ API 手册
 变更密码
 ~~~~~~~~~~~~~~~~~~
 
-变更密码使用 :meth:`~django.contrib.auth.models.User.set_password()`:
+.. versionadded:: 1.2
+   增加了 ``manage.py changepassword`` 命令。
+
+:djadmin:`manage.py changepassword <username>` 提供了一个用命令行方式变更用户
+密码的途径。如果给定了用户名，这个命令会提示你输入两次密码。当两次输入的密码
+相同时，该用户的新密码会立即生效。如果没有给定用户，这个命令会尝试改变与当前
+用户名匹配的用户的密码。
+
+你也可以使用 :meth:`~django.contrib.auth.models.User.set_password()` 来变更
+密码:
 
 .. code-block:: python
 
@@ -347,7 +383,6 @@ API 手册
       而不是 ``False`` 。
     * :meth:`~django.contrib.auth.models.User.is_authenticated()` 返回
       ``False`` ，而不是 ``True`` 。
-    * :meth:`~django.contrib.auth.models.User.has_perm()` 总是返回 ``False`` 。
     * :meth:`~django.contrib.auth.models.User.set_password()` 、
       :meth:`~django.contrib.auth.models.User.check_password()` 、
       :meth:`~django.contrib.auth.models.User.save()` 、
@@ -391,6 +426,8 @@ API 手册
 
 如果要储存用户相关的额外信息， Django 提供了一个方法来定义一个站点相关模型，称
 之为“用户概况（ user profile ）”。
+
+**yt mark
 
 具体实现的方式是定义一个用于储存额外信息或附加方法的模型，同时在模型中添加一个
 :class:`~django.db.models.Field.ForeignKey` 关联到
