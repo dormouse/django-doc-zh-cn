@@ -427,8 +427,6 @@ API 手册
 如果要储存用户相关的额外信息， Django 提供了一个方法来定义一个站点相关模型，称
 之为“用户概况（ user profile ）”。
 
-**yt mark
-
 具体实现的方式是定义一个用于储存额外信息或附加方法的模型，同时在模型中添加一个
 :class:`~django.db.models.Field.OneToOneField` 关联到
 :class:`~django.contrib.auth.models.User` 模型。这样就可以保证每个
@@ -1000,7 +998,7 @@ Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
     def limited_object_detail(*args, **kwargs):
         return object_detail(*args, **kwargs)
 
-.. _permissions:
+.. _权限:
 
 权限
 ====
@@ -1375,67 +1373,52 @@ LDAP 目录中，你的 SQL 数据库中等等）。你要么写一个脚本，�
             else:
                 return False
 
-This gives full permissions to the user granted access in the above example.
-Notice that the backend auth functions all take the user object as an argument,
-and they also accept the same arguments given to the associated
-:class:`django.contrib.auth.models.User` functions.
+上例中通过验证的用户得到了所有权限。注意，后端认证函数都把用户对象作为一个参数
+并且接受与 :class:`django.contrib.auth.models.User` 同样的参数。 
 
-A full authorization implementation can be found in
-`django/contrib/auth/backends.py`_, which is the default backend and queries
-the ``auth_permission`` table most of the time.
+一个完整的认证实现参见 `django/contrib/auth/backends.py`_ 。通常情况下这是缺省
+后端，查询的是 ``auth_permission`` 表。
 
 .. _django/contrib/auth/backends.py: http://code.djangoproject.com/browser/django/trunk/django/contrib/auth/backends.py
 
 
-Authorization for anonymous users
+匿名用户认证
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 1.2
 
-An anonymous user is one that is not authenticated i.e. they have provided no
-valid authentication details. However, that does not necessarily mean they are
-not authorized to do anything. At the most basic level, most Web sites
-authorize anonymous users to browse most of the site, and many allow anonymous
-posting of comments etc.
+匿名用户是指没有经过认证的用户，如没有提供有效认证信息的用户。但是不等于说匿名
+用户就什么事也不能做。多数网站可以允许匿名用户浏览大多数网页，而且很多网站还允许
+匿名用户发表评论等。
 
-Django's permission framework does not have a place to store permissions for
-anonymous users. However, it has a foundation that allows custom authentication
-backends to specify authorization for anonymous users. This is especially useful
-for the authors of re-usable apps, who can delegate all questions of authorization
-to the auth backend, rather than needing settings, for example, to control
-anonymous access.
+Django 认证框架中没有地方储存匿名用户的权限，但是它允许自定义认证后端来处理匿名
+用户的认证。这个能力在重用应用时尤其有用，这样不用设置就可以解决认证后端的所有
+问题。
 
-To enable this in your own backend, you must set the class attribute
-``supports_anonymous_user`` to ``True``. (This precaution is to maintain
-compatibility with backends that assume that all user objects are actual
-instances of the :class:`django.contrib.auth.models.User` class). With this
-in place, :class:`django.contrib.auth.models.AnonymousUser` will delegate all
-the relevant permission methods to the authentication backends.
+在你的认证后端中要启用匿名用户认证，必须把类属性
+``supports_anonymous_user`` 设置为 ``True`` 。（这样是为了认证后端的兼容性，确保
+所有用户对象都是 :class:`django.contrib.auth.models.User` 类的真正实例。）这样，
+:class:`django.contrib.auth.models.AnonymousUser` 就会把相应的权限方法委派给认证
+后端。
 
-A nonexistent ``supports_anonymous_user`` attribute will raise a hidden
-``PendingDeprecationWarning`` if used in Django 1.2. In Django 1.3, this
-warning will be upgraded to a ``DeprecationWarning``, which will be displayed
-loudly. Additionally ``supports_anonymous_user`` will be set to ``False``.
-Django 1.4 will assume that every backend supports anonymous users being
-passed to the authorization methods.
+在 Django 1.2 中一个不存在的 ``supports_anonymous_user`` 属性会引发一个隐藏的
+``PendingDeprecationWarning`` 。在 Django 1.3 中，这个警告会升级为一个
+``DeprecationWarning`` ，非常显眼。附加的 ``supports_anonymous_user`` 会被设置为
+``False`` 。 Django 1.4 会假设每一个后端都支持传递给认证方法的匿名用户。
 
-Handling object permissions
+处理对象权限
 ---------------------------
 
-Django's permission framework has a foundation for object permissions, though
-there is no implementation for it in the core. That means that checking for
-object permissions will always return ``False`` or an empty list (depending on
-the check performed).
+Django 的权限框架支持对象权限。但是不是在框架的核心中实现的，这就意味着在检查
+对象权限时总是返回 ``False`` 或一个空列表（取决于如何检查）。
 
-To enable object permissions in your own
-:doc:`authentication backend </ref/authbackends>` you'll just have
-to allow passing an ``obj`` parameter to the permission methods and set the
-``supports_object_permissions`` class attribute to ``True``.
+要在你自己的 :doc:`认证后端 </ref/authbackends>` 中使用对象权限，只要允许向权限
+传递一个 ``obj`` 参数并且设置 ``supports_object_permissions`` 类属性为
+``True`` 。
 
-A nonexistent ``supports_object_permissions`` will raise a hidden
-``PendingDeprecationWarning`` if used in Django 1.2. In Django 1.3, this
-warning will be upgraded to a ``DeprecationWarning``, which will be displayed
-loudly. Additionally ``supports_object_permissions`` will be set to ``False``.
-Django 1.4 will assume that every backend supports object permissions and
-won't check for the existence of ``supports_object_permissions``, which
-means not supporting ``obj`` as a parameter will raise a ``TypeError``.
+在 Django 1.2 中一个不存在的 ``supports_object_permissions`` 属性会引发一个隐藏
+的 ``PendingDeprecationWarning`` 。在 Django 1.3 中，这个警告会升级为一个
+``DeprecationWarning`` ，非常显眼。附加的 ``supports_object_permissions`` 会被
+设置为 ``False`` 。 Django 1.4 会假设每一个后端都支持对象权限并且不会检查
+``supports_object_permissions`` 是否存在，意即不支持 ``obj`` 作为一个参数就会
+引发一个 ``TypeError`` 。
