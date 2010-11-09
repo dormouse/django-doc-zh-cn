@@ -1,9 +1,8 @@
-Models and databases
-====================
+模型和数据库
+============
 
-A model is the single, definitive source of data about your data. It contains
-the essential fields and behaviors of the data you're storing. Generally, each
-model maps to a single database table.
+一个模型是你的数据的唯一的，精确的数据来源。它包含你所储存的数据的字段的本质和
+行为。通常每个模型对应一个数据库中的表。
 
 .. toctree::
    :maxdepth: 1
