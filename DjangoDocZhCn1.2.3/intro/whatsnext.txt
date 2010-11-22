@@ -36,7 +36,8 @@ Django 的主文档根据需要分成了不同的“块”：
       的“感觉”。
       
     * :doc:`专题指导 </topics/index>` 则深入探讨了 Django 的各个部分，包括
-      :doc:`模型系统 </topics/db/index>`, :doc:`模板引擎 </topics/templates>` ，
+      :doc:`模型系统 </topics/db/index>` ，
+      :doc:`模板引擎 </topics/templates>` ，
       :doc:`表单构架 </topics/forms/index>` 等等。
       
       这部分内容将占用你学习文档的大部分时间。如果你把这部分内容研究透彻了，
@@ -54,7 +55,7 @@ Django 的主文档根据需要分成了不同的“块”：
       :doc:`参考手册 </ref/index>` 中。在手册中你可以查到最详尽的细节。
     
     * 最后，还有一些多数开发者不常用到的“专用”文档。包括
-      :doc:`发布说明 </releases/index>` 、:doc:`关于已过时功能的文档
+      :doc:`发布说明 </releases/index>` 、 :doc:`关于已过时功能的文档
       </obsolete/index>` 、用于开发 Django 本身的 :doc:`内部文档
       </internals/index>` 和 :doc:`一些只适于于特殊场合的东西 </misc/index>` 。
       

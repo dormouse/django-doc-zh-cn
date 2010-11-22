@@ -66,7 +66,7 @@ Django从第一个正则表达式开始进行迭代，将用户请求的 URL 与
 
     ROOT_URLCONF = 'mysite.urls'
 
-来个例子吧，。编辑 ``mysite/urls.py`` ，修改成如下代码::
+来个例子吧，编辑 ``mysite/urls.py`` ，修改成如下代码::
 
     from django.conf.urls.defaults import *
 

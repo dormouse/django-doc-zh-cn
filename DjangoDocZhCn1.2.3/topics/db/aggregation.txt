@@ -1,20 +1,16 @@
 ===========
-Aggregation
+统计
 ===========
 
 .. versionadded:: 1.1
 
 .. currentmodule:: django.db.models
 
-The topic guide on :doc:`Django's database-abstraction API </topics/db/queries>`
-described the way that you can use Django queries that create,
-retrieve, update and delete individual objects. However, sometimes you will
-need to retrieve values that are derived by summarizing or *aggregating* a
-collection of objects. This topic guide describes the ways that aggregate values
-can be generated and returned using Django queries.
+:doc:`Django 数据库抽象 API </topics/db/queries>` 描述了如何创建、检索、更新和
+删除独立的对象。但是，有时你会需要处理一些有关对象的集合的统计。本文描述如何
+使用 Django 查询来处理统计。
 
-Throughout this guide, we'll refer to the following models. These models are
-used to track the inventory for a series of online bookstores:
+本文我们将使用以下模型。这些模型用于在线书店图书清单：
 
 .. _queryset-model-example:
 
@@ -44,69 +40,56 @@ used to track the inventory for a series of online bookstores:
        books = models.ManyToManyField(Book)
 
 
-Generating aggregates over a QuerySet
+生成整个查询集的统计
 =====================================
 
-Django provides two ways to generate aggregates. The first way is to generate
-summary values over an entire ``QuerySet``. For example, say you wanted to
-calculate the average price of all books available for sale. Django's query
-syntax provides a means for describing the set of all books::
+Django 提供两种方法来产生统计。第一种方法是产生整个 ``查询集`` 的统计。假设我们
+要统计所有书的平均价格。 Djnago 中查询所有书的语句为::
 
     >>> Book.objects.all()
 
-What we need is a way to calculate summary values over the objects that
-belong to this ``QuerySet``. This is done by appending an ``aggregate()``
-clause onto the ``QuerySet``::
+在这个语句后加上一个 ``aggregate()`` 子句就行了::
 
     >>> from django.db.models import Avg
     >>> Book.objects.all().aggregate(Avg('price'))
     {'price__avg': 34.35}
 
-The ``all()`` is redundant in this example, so this could be simplified to::
+上例中的 ``all()`` 是多余的。所以可以简写为::
 
     >>> Book.objects.aggregate(Avg('price'))
     {'price__avg': 34.35}
 
-The argument to the ``aggregate()`` clause describes the aggregate value that
-we want to compute - in this case, the average of the ``price`` field on the
-``Book`` model. A list of the aggregate functions that are available can be
-found in the :ref:`QuerySet reference <aggregation-functions>`.
+``aggregate()`` 子句的参数代表我们要统计的内容，本例中我们要统计 ``Book`` 模型
+中 ``price`` 字段的平均值。 :ref:`查询集参考 <aggregation-functions>` 中可以
+找到完整的统计函数列表。
 
-``aggregate()`` is a terminal clause for a ``QuerySet`` that, when invoked,
-returns a dictionary of name-value pairs. The name is an identifier for the
-aggregate value; the value is the computed aggregate. The name is
-automatically generated from the name of the field and the aggregate function.
-If you want to manually specify a name for the aggregate value, you can do so
-by providing that name when you specify the aggregate clause::
+``aggregate()`` 是一个 ``查询集`` 的未端子句，调用后会返回一个由名称－值配对
+组成的字典。名称是指统计的名称，值就是统计的值。名称由字段名称加上函数名自动
+组成。如果你想手动指定统计名称，可以象下例在统计子句中定义::
 
     >>> Book.objects.aggregate(average_price=Avg('price'))
     {'average_price': 34.35}
 
-If you want to generate more than one aggregate, you just add another
-argument to the ``aggregate()`` clause. So, if we also wanted to know
-the maximum and minimum price of all books, we would issue the query::
+如果你想要生成多个统计，那么只要在统计子句后加上另外的统计子句就可以了。例如，
+如果要计算所有书价中最高价和最低价，可以这样写::
 
     >>> from django.db.models import Avg, Max, Min, Count
     >>> Book.objects.aggregate(Avg('price'), Max('price'), Min('price'))
     {'price__avg': 34.35, 'price__max': Decimal('81.20'), 'price__min': Decimal('12.99')}
 
-Generating aggregates for each item in a QuerySet
+生成查询集中每一个项目的统计
 =================================================
 
-The second way to generate summary values is to generate an independent
-summary for each object in a ``QuerySet``. For example, if you are retrieving
-a list of books, you may want to know how many authors contributed to
-each book. Each Book has a many-to-many relationship with the Author; we
-want to summarize this relationship for each book in the ``QuerySet``.
+第二种方法是为 ``查询集`` 中每个独立的对象生成统计。例如，当你检索一个书单时，
+可能想知道每本书有几个作者。每本书与每个作者之间是一个多对多的关系，我们要为每
+本书总结这个关系。
 
-Per-object summaries can be generated using the ``annotate()`` clause.
-When an ``annotate()`` clause is specified, each object in the ``QuerySet``
-will be annotated with the specified values.
+要产生每个对象的统计可以使用 ``annotate()`` 子句。当定义一个 ``annotate()``
+子句后， ``查询集`` 中的每个对象就可以与特定值关联，相当于每个对象有一个
+“注释”。
 
-The syntax for these annotations is identical to that used for the
-``aggregate()`` clause. Each argument to ``annotate()`` describes an
-aggregate that is to be calculated. For example, to annotate Books with
-the number of authors::
+这种注释的语法与 ``aggregate()`` 相同。 ``annotate()`` 的每个参数代表一个统计。
+例如，要计算每本书的作者人数::
 
     # Build an annotated queryset
     >>> q = Book.objects.annotate(Count('authors'))
@@ -121,10 +104,8 @@ the number of authors::
     >>> q[1].authors__count
     1
 
-As with ``aggregate()``, the name for the annotation is automatically derived
-from the name of the aggregate function and the name of the field being
-aggregated. You can override this default name by providing an alias when you
-specify the annotation::
+和 ``aggregate()`` 一样，统计的名称自动由字段名和函数名组成。你也可以在定义统计
+时指定名称::
 
     >>> q = Book.objects.annotate(num_authors=Count('authors'))
     >>> q[0].num_authors
@@ -132,10 +113,9 @@ specify the annotation::
     >>> q[1].num_authors
     1
 
-Unlike ``aggregate()``, ``annotate()`` is *not* a terminal clause. The output
-of the ``annotate()`` clause is a ``QuerySet``; this ``QuerySet`` can be
-modified using any other ``QuerySet`` operation, including ``filter()``,
-``order_by``, or even additional calls to ``annotate()``.
+与 ``aggregate()`` 不同的是 ``annotate()`` *不是* 一个未端子句。 ``annotate()``
+子句的输出是一个 ``查询集`` 。 这个 ``查询集`` 可以和其他查询集一样操作，包括
+ ``filter()`` 、 ``order_by`` 或者甚至再调用另一个 ``annotate()`` 。
 
 Joins and aggregates
 ====================
