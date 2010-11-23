@@ -117,85 +117,68 @@ Django 提供两种方法来产生统计。第一种方法是产生整个 ``查�
 子句的输出是一个 ``查询集`` 。 这个 ``查询集`` 可以和其他查询集一样操作，包括
  ``filter()`` 、 ``order_by`` 或者甚至再调用另一个 ``annotate()`` 。
 
-Joins and aggregates
+联合和统计
 ====================
 
-So far, we have dealt with aggregates over fields that belong to the
-model being queried. However, sometimes the value you want to aggregate
-will belong to a model that is related to the model you are querying.
+至此，我们统计的对象都是被查询的模块本身的字段。但是，有时我们要统计的是被查询
+模块的相关联的模块字段。
 
-When specifying the field to be aggregated in an aggregate function, Django
-will allow you to use the same :ref:`double underscore notation
-<field-lookups-intro>` that is used when referring to related fields in
-filters. Django will then handle any table joins that are required to retrieve
-and aggregate the related value.
+在统计函数中定义字段时，可以使用与过滤器中用于指定关联字段的
+:ref:`双下划线符号 <field-lookups-intro>` 。通过这种方法， Django 会自动使用
+联合来统计相关联的字段。
 
-For example, to find the price range of books offered in each store,
-you could use the annotation::
+例如，要统计每个书店中书的价格范围::
 
     >>> Store.objects.annotate(min_price=Min('books__price'), max_price=Max('books__price'))
 
-This tells Django to retrieve the Store model, join (through the
-many-to-many relationship) with the Book model, and aggregate on the
-price field of the book model to produce a minimum and maximum value.
+上面的例子告诉 Django 检索 Store 模型，联合（通过多对多关系） Book 模型，并且
+统计 book 模型中的价格字段，计算最大值和最小值。
 
-The same rules apply to the ``aggregate()`` clause. If you wanted to
-know the lowest and highest price of any book that is available for sale
-in a store, you could use the aggregate::
+``aggergate()`` 子句适用同样规则。如果你想知道所有书店中书的最高价和最低价，可以
+这样::
 
     >>> Store.objects.aggregate(min_price=Min('books__price'), max_price=Max('books__price'))
 
-Join chains can be as deep as you require. For example, to extract the
-age of the youngest author of any book available for sale, you could
-issue the query::
+联合的深度是无限的。例如，要统计所有书的作者的最小年龄，你可以这样::
 
     >>> Store.objects.aggregate(youngest_age=Min('books__authors__age'))
 
-Aggregations and other QuerySet clauses
+统计和其他查询子句
 =======================================
 
-``filter()`` and ``exclude()``
+``filter()`` 和 ``exclude()``
 ------------------------------
 
-Aggregates can also participate in filters. Any ``filter()`` (or
-``exclude()``) applied to normal model fields will have the effect of
-constraining the objects that are considered for aggregation.
+在过滤器中也可以使用统计。任何用于一般模型的 ``filter()`` （或 ``exclude()`` ）
+也可与统计联用。
 
-When used with an ``annotate()`` clause, a filter has the effect of
-constraining the objects for which an annotation is calculated. For example,
-you can generate an annotated list of all books that have a title starting
-with "Django" using the query::
+当与 ``annotate()`` 子句联用时，过滤器作用于被统计的对象上。例如要统计书名以
+"Django" 开头的书::
 
     >>> Book.objects.filter(name__startswith="Django").annotate(num_authors=Count('authors'))
 
-When used with an ``aggregate()`` clause, a filter has the effect of
-constraining the objects over which the aggregate is calculated.
-For example, you can generate the average price of all books with a
-title that starts with "Django" using the query::
+当与 ``aggregate()`` 子句联用时，过滤器作用于被统计的所有对象上。例如要统计书名
+以 "Django" 开头的书的平均价格::
 
     >>> Book.objects.filter(name__startswith="Django").aggregate(Avg('price'))
 
-Filtering on annotations
+过滤统计的值
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Annotated values can also be filtered. The alias for the annotation can be
-used in ``filter()`` and ``exclude()`` clauses in the same way as any other
-model field.
+统计出来的值也可以被过滤。和其他模型一样，统计的结果也可以使用 ``filter()`` 和
+``exclude()`` 子句来过滤。
 
-For example, to generate a list of books that have more than one author,
-you can issue the query::
+例如，要产生一个由两个以上作者的书单可以这样::
 
     >>> Book.objects.annotate(num_authors=Count('authors')).filter(num_authors__gt=1)
 
-This query generates an annotated result set, and then generates a filter
-based upon that annotation.
+上例先进行统计，然后在统计的结果上使用了过滤器。
 
-Order of ``annotate()`` and ``filter()`` clauses
+``annotate()`` 和 ``filter()`` 子句的顺序
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When developing a complex query that involves both ``annotate()`` and
-``filter()`` clauses, particular attention should be paid to the order
-in which the clauses are applied to the ``QuerySet``.
+当使用同时包含 ``annotate()`` 和 ``filter()`` 子句的复杂查询时，要特别小心两种
+子句的顺序。
 
 When an ``annotate()`` clause is applied to a query, the annotation is
 computed over the state of the query up to the point where the annotation
