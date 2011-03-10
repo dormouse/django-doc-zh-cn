@@ -405,10 +405,10 @@ __ irc://irc.freenode.net/django
 想了解 ``manage.py`` 工具更多的功能，请阅读
 :doc:`django-admin.py documentation </ref/django-admin>` 文档。
 
-玩味 API
+把玩 API
 ========
 
-现在，进入到 Python 的命令行环境中，开始玩味一下 Django 免费提供的 API 吧。要进
+现在，进入到 Python 的命令行环境中，开始把玩一下 Django 免费提供的 API 吧。要进
 入命令行，输入下面的命令：
 
 .. code-block:: bash

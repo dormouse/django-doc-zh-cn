@@ -115,7 +115,7 @@ Django 提供两种方法来产生统计。第一种方法是产生整个 ``查�
 
 与 ``aggregate()`` 不同的是 ``annotate()`` *不是* 一个未端子句。 ``annotate()``
 子句的输出是一个 ``查询集`` 。 这个 ``查询集`` 可以和其他查询集一样操作，包括
- ``filter()`` 、 ``order_by`` 或者甚至再调用另一个 ``annotate()`` 。
+``filter()`` 、 ``order_by`` 或者甚至再调用另一个 ``annotate()`` 。
 
 联合和统计
 ====================
@@ -180,36 +180,27 @@ Django 提供两种方法来产生统计。第一种方法是产生整个 ``查�
 当使用同时包含 ``annotate()`` 和 ``filter()`` 子句的复杂查询时，要特别小心两种
 子句的顺序。
 
-When an ``annotate()`` clause is applied to a query, the annotation is
-computed over the state of the query up to the point where the annotation
-is requested. The practical implication of this is that ``filter()`` and
-``annotate()`` are not commutative operations -- that is, there is a
-difference between the query::
+当一个 ``annotate()`` 子句作用于查询时，该统计只对子句之前的查询起作用。也就是
+说 ``filter()`` 和 ``annotate()`` 顺序不同，查询就不同了。查询::
 
     >>> Publisher.objects.annotate(num_books=Count('book')).filter(book__rating__gt=3.0)
 
-and the query::
+和查询::
 
     >>> Publisher.objects.filter(book__rating__gt=3.0).annotate(num_books=Count('book'))
 
-Both queries will return a list of Publishers that have at least one good
-book (i.e., a book with a rating exceeding 3.0). However, the annotation in
-the first query will provide the total number of all books published by the
-publisher; the second query will only include good books in the annotated
-count. In the first query, the annotation precedes the filter, so the
-filter has no effect on the annotation. In the second query, the filter
-preceeds the annotation, and as a result, the filter constrains the objects
-considered when calculating the annotation.
+是不同的。两个查询都会返回至少有一本好书（评分大于 3.0 ）的出版商。但是，第一个
+查询中的统计会提供出版商的所有书的数量；第二个查询中的统计只返回好书的数量。第
+一个查询中统计先于过滤器，所以过滤器对统计没有作用。而第二个查询过滤器先于统计，
+所以统计的对象是已经过滤过的。
 
 ``order_by()``
 --------------
 
-Annotations can be used as a basis for ordering. When you
-define an ``order_by()`` clause, the aggregates you provide can reference
-any alias defined as part of an ``annotate()`` clause in the query.
+统计可以作为排序的基础。当你定义一个 ``order_by`` 子句时，可以引用
+``annotate()`` 子句中的统计。
 
-For example, to order a ``QuerySet`` of books by the number of authors
-that have contributed to the book, you could use the following query::
+例如，要依据书的作者人数进行排序，可以这样::
 
     >>> Book.objects.annotate(num_authors=Count('authors')).order_by('num_authors')
 
