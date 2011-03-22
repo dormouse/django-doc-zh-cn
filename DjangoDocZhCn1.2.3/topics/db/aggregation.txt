@@ -207,49 +207,35 @@ Django 提供两种方法来产生统计。第一种方法是产生整个 ``查�
 ``values()``
 ------------
 
-Ordinarily, annotations are generated on a per-object basis - an annotated
-``QuerySet`` will return one result for each object in the original
-``QuerySet``. However, when a ``values()`` clause is used to constrain the
-columns that are returned in the result set, the method for evaluating
-annotations is slightly different. Instead of returning an annotated result
-for each result in the original ``QuerySet``, the original results are
-grouped according to the unique combinations of the fields specified in the
-``values()`` clause. An annotation is then provided for each unique group;
-the annotation is computed over all members of the group.
+通常,统计会针对 ``查询集`` 中每一个对象返回一个结果。但是，当使用 ``values``
+子句来约束要统计的列时，返回的结果会有所不同。原先统计结果中，统计字段的值相同
+的项会分组合并统计。
 
-For example, consider an author query that attempts to find out the average
-rating of books written by each author:
+例如，要统计每个作者各自所写的书的平均评分::
 
     >>> Author.objects.annotate(average_rating=Avg('book__rating'))
 
-This will return one result for each author in the database, annotated with
-their average book rating.
+返回的结果会包含每一个作者及其所写的书的平均计分。
 
-However, the result will be slightly different if you use a ``values()`` clause::
+但是，如果使用 ``values()`` 字句，返回的结果会有所不同::
 
     >>> Author.objects.values('name').annotate(average_rating=Avg('book__rating'))
 
-In this example, the authors will be grouped by name, so you will only get
-an annotated result for each *unique* author name. This means if you have
-two authors with the same name, their results will be merged into a single
-result in the output of the query; the average will be computed as the
-average over the books written by both authors.
+这个例子中会把作者按名字分组统计，返回的结果中不会有重复的作者名字。名字相同的
+作者在统计中会作为同一个作者来统计，同名作者所写的书的评分会合并为一个作者的书
+来统计。
 
-Order of ``annotate()`` and ``values()`` clauses
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``annotate()`` 和 ``values()`` 子句的顺序
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As with the ``filter()`` clause, the order in which ``annotate()`` and
-``values()`` clauses are applied to a query is significant. If the
-``values()`` clause precedes the ``annotate()``, the annotation will be
-computed using the grouping described by the ``values()`` clause.
+当使用 ``filter()`` 子句时， ``annotate()`` 和 ``values()`` 子句的顺序是非常
+重要的。如果 ``values()`` 子句先于 ``annotate()`` 子句，会按照前文所述的方式
+统计。
 
-However, if the ``annotate()`` clause precedes the ``values()`` clause,
-the annotations will be generated over the entire query set. In this case,
-the ``values()`` clause only constrains the fields that are generated on
-output.
+但是，如果 ``annotate()`` 子句先于 ``values()`` 子句，那么统计会作用于整个
+查询集，而 ``values()`` 子句只约束统计输出的字段。
 
-For example, if we reverse the order of the ``values()`` and ``annotate()``
-clause from our previous example::
+例如，如果我们把前一个例子中的 ``values()`` 和 ``annotate()`` 子句调换顺序::
 
     >>> Author.objects.annotate(average_rating=Avg('book__rating')).values('name', 'average_rating')
 
