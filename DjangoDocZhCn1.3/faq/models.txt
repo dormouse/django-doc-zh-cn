@@ -1,105 +1,97 @@
-FAQ: Databases and models
-=========================
+FAQ: 数据库和模型
+=================
 
 .. _faq-see-raw-sql-queries:
 
-How can I see the raw SQL queries Django is running?
+如何看到 Django 执行的原始 SQL 查询语句？
 ----------------------------------------------------
 
-Make sure your Django ``DEBUG`` setting is set to ``True``. Then, just do
-this::
+首先确认你的 Django 的 ``DEBUG`` 设置的值为 ``True`` 。然后执行如下命令::
 
     >>> from django.db import connection
     >>> connection.queries
     [{'sql': 'SELECT polls_polls.id,polls_polls.question,polls_polls.pub_date FROM polls_polls',
     'time': '0.002'}]
 
-``connection.queries`` is only available if ``DEBUG`` is ``True``. It's a list
-of dictionaries in order of query execution. Each dictionary has the following::
+``connection.queries`` 只有当 ``DEBUG`` 为 ``True`` 时才有用。它是一个按 SQL
+执行顺序排列的字典组成的列表。列表中的每个字典包含以下内容::
 
-    ``sql`` -- The raw SQL statement
-    ``time`` -- How long the statement took to execute, in seconds.
+    ``sql`` -- 原始 SQL 语句
+    ``time`` -- 以秒为单位的 SQL 语句执行时间
 
-``connection.queries`` includes all SQL statements -- INSERTs, UPDATES,
-SELECTs, etc. Each time your app hits the database, the query will be recorded.
-Note that the raw SQL logged in ``connection.queries`` may not include
-parameter quoting.  Parameter quoting is performed by the database-specific
-backend, and not all backends provide a way to retrieve the SQL after quoting.
+``connection.queries`` 包含所有执行过的 SQL 语句，包括 INSERT 、 UPDATES 和
+SELECT 等等。只要你的程序动了数据库，那么所执行的 SQL 就会被记录下来。注意：
+记录下来的 SQL 语句可能不包含参数引用，因为参数引用由数据库提供，而有的数据库
+没有这个功能。
 
 .. versionadded:: 1.2
 
-If you are using :doc:`multiple databases</topics/db/multi-db>`, you can use the
-same interface on each member of the ``connections`` dictionary::
+如果你正在使用 :doc:`multiple databases</topics/db/multi-db>` ，那么你可以对
+``connections`` 字典的每个成员使用相同的接口::
 
     >>> from django.db import connections
     >>> connections['my_db_alias'].queries
 
-Can I use Django with a pre-existing database?
+在 Django 中我可以使用已经存在的数据库吗？
 ----------------------------------------------
 
-Yes. See :doc:`Integrating with a legacy database </howto/legacy-databases>`.
+可以的。参见 :doc:`整合现有数据库 </howto/legacy-databases>` 。
 
-If I make changes to a model, how do I update the database?
+如果我修改了模型，那么我如何更新我的数据库呢？
 -----------------------------------------------------------
 
-If you don't mind clearing data, your project's ``manage.py`` utility has an
-option to reset the SQL for a particular application::
+如果你不介意清空数据，那么你的项目中的 ``manage.py`` 工具有一个选项可以用于重置
+本项目的数据库::
 
     manage.py reset appname
 
-This drops any tables associated with ``appname`` and recreates them.
+这命令会删除所有与 ``appname`` 数据库表并重新创建它们。
 
-If you do care about deleting data, you'll have to execute the ``ALTER TABLE``
-statements manually in your database. That's the way we've always done it,
-because dealing with data is a very sensitive operation that we've wanted to
-avoid automating. That said, there's some work being done to add partially
-automated database-upgrade functionality.
+如果你的数据不允许删除，那么你只能在你的数据库中手动执行 ``ALTER TABLE`` 语句。
+我们就是这样处理的，因为处理数据是一个非常敏感的操作，我们不想让这个操作自动
+化。尽管如此，我们正在进行为数据库更新操作增加一些自动化功能的工作。
 
-Do Django models support multiple-column primary keys?
+Django 模型支持多个主键吗？
 ------------------------------------------------------
 
-No. Only single-column primary keys are supported.
+不支持， Django 只支持单个主键。
 
-But this isn't an issue in practice, because there's nothing stopping you from
-adding other constraints (using the ``unique_together`` model option or
-creating the constraint directly in your database), and enforcing the
-uniqueness at that level. Single-column primary keys are needed for things such
-as the admin interface to work; e.g., you need a simple way of being able to
-specify an object to edit or delete.
+但是这在实践中不会成为一个问题，因为你可以添加其他约束（通过使用
+``unique_together`` 模型参数或直接在数据库中创建约束）来强制一定级别的唯一性。
+单个主键是管理站点之类的站点所必须的，因为你需要一个简单的方式来修改或删除
+对象。
 
-How do I add database-specific options to my CREATE TABLE statements, such as specifying MyISAM as the table type?
+我如何为我的 CREATE TABLE 语句添加一个数据库特定的选项（例如定义 MyISAM 表类型）？
 ------------------------------------------------------------------------------------------------------------------
 
-We try to avoid adding special cases in the Django code to accommodate all the
-database-specific options such as table type, etc. If you'd like to use any of
-these options, create an :ref:`SQL initial data file <initial-sql>` that
-contains ``ALTER TABLE`` statements that do what you want to do. The initial
-data files are executed in your database after the ``CREATE TABLE`` statements.
+我们尽量避免在 Django 代码中添加特定的东西，包括所有如表类型之类的数据库特定的
+选项。如果你想要使用这些选项，那么你可以创建一个包含 ``ALTER TABLE`` 语句的
+:ref:`SQL 初始化数据文件 <initial-sql>` 。这个文件会在  ``CREATE TABLE`` 语句
+执行完后跟着执行。
 
-For example, if you're using MySQL and want your tables to use the MyISAM table
-type, create an initial data file and put something like this in it::
+例如，如果你使用的是 MySQL ，并且你想要使用 MyISAM 表类型，那么你先创建一个包含
+以下内容的初始化数据文件::
 
     ALTER TABLE myapp_mytable ENGINE=MyISAM;
 
-As explained in the :ref:`SQL initial data file <initial-sql>` documentation,
-this SQL file can contain arbitrary SQL, so you can make any sorts of changes
-you need to make.
+就象 :ref:`SQL 初始化数据文件 <initial-sql>` 中解释的一样，这个 SQL 文件可以
+包含任意 SQL 语句，这样你就可以为所欲为了。
 
-Why is Django leaking memory?
+为什么 Django 会泄漏内存？
 -----------------------------
 
-Django isn't known to leak memory. If you find your Django processes are
-allocating more and more memory, with no sign of releasing it, check to make
-sure your ``DEBUG`` setting is set to ``False``. If ``DEBUG`` is ``True``, then
-Django saves a copy of every SQL statement it has executed.
+Django 并不会泄漏内存。如果你发现你的 Django 正在泄漏内存，但是没有任何警示
+信号，那么你首先要检查你的 ``DEBUG`` 是否已经设置成为 ``False`` 。如果设置为
+``True`` ，那么 Django 会保存每一句已执行的 SQL 语句，这样就会占用越来越多的
+内存。
 
-(The queries are saved in ``django.db.connection.queries``. See
-`How can I see the raw SQL queries Django is running?`_.)
+（ SQL 语句被储存在 ``django.db.connection.queries`` 中，参见
+`如何看到 Django 执行的原始 SQL 查询语句？`_ 。）
 
-To fix the problem, set ``DEBUG`` to ``False``.
+要修正这个问题，只要把 ``DEBUG`` 设置为 ``False`` 就可以了。
 
-If you need to clear the query list manually at any point in your functions,
-just call ``reset_queries()``, like this::
+如果你要在程序中手动清除已储存的 SQL 语句列表，只要调用 ``reset_queries()`` 就
+可以了，例如::
 
     from django import db
     db.reset_queries()

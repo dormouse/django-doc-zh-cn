@@ -1,110 +1,89 @@
-FAQ: Installation
-=================
+FAQ: 安装
+=========
 
-How do I get started?
----------------------
+从哪里开始？
+------------
 
-    #. `Download the code`_.
-    #. Install Django (read the :doc:`installation guide </intro/install>`).
-    #. Walk through the :doc:`tutorial </intro/tutorial01>`.
-    #. Check out the rest of the :doc:`documentation </index>`, and `ask questions`_ if you
-       run into trouble.
+    #. `下载源代码`_ 。
+    #. 安装 Django （参见 :doc:`安装指南 </intro/install>` ）。
+    #. 学习 :doc:`新手指南 </intro/tutorial01>` 。
+    #. 研究其余 :doc:`文档 </index>` ，当遇到困难时 `提问`_ 。
 
-.. _`Download the code`: http://www.djangoproject.com/download/
-.. _ask questions: http://www.djangoproject.com/community/
+.. _`下载源代码`: http://www.djangoproject.com/download/
+.. _提问: http://www.djangoproject.com/community/
 
-What are Django's prerequisites?
+运行 Django 需要哪些前提条件？
 --------------------------------
 
-Django requires Python_, specifically any version of Python from 2.4
-through 2.7. No other Python libraries are required for basic Django
-usage.
+Django 需要版本从 2.4 到 2.7 之间的 Python_ 。 Django 基本功能的使用不需要其他
+Python 库。
 
-For a development environment -- if you just want to experiment with Django --
-you don't need to have a separate Web server installed; Django comes with its
-own lightweight development server. For a production environment, Django
-follows the WSGI_ spec, which means it can run on a variety of server
-platforms.  See :doc:`Deploying Django </howto/deployment/index>` for some
-popular alternatives.  Also, the `server arrangements wiki page`_ contains
-details for several deployment strategies.
+如果你只要通过一个开发环境体验一下 Django ，那么不需要一个独立的 Web 服务器。
+Django 自带一个轻型的开发服务器。如果要部署到生产环境，因为 Django 遵循 WSGI_
+标准，所以它可以运行在多种平台上。常见的部署参见 :doc:`部署 Django
+</howto/deployment/index>` 。你也可以看看 `服务器参数维基页面`_ ，这个页面包括
+多种部署策略的细节内容。
 
-If you want to use Django with a database, which is probably the case, you'll
-also need a database engine. PostgreSQL_ is recommended, because we're
-PostgreSQL fans, and MySQL_, `SQLite 3`_, and Oracle_ are also supported.
+如果你要和数据库一起使用 Django ，那么你还需要先安装数据库引擎。我们推荐
+PostgreSQL_ 数据库，因为我们是它的粉丝。当然其他数据库也是支持的，如 MySQL_ 、
+`SQLite 3`_ 和 Oracle_ 等等。
 
 .. _Python: http://www.python.org/
 .. _WSGI: http://www.python.org/dev/peps/pep-0333/
-.. _server arrangements wiki page: http://code.djangoproject.com/wiki/ServerArrangements
+.. _服务器参数维基页面: http://code.djangoproject.com/wiki/ServerArrangements
 .. _PostgreSQL: http://www.postgresql.org/
 .. _MySQL: http://www.mysql.com/
 .. _`SQLite 3`: http://www.sqlite.org/
 .. _Oracle: http://www.oracle.com/
 
-Do I lose anything by using Python 2.4 versus newer Python versions, such as Python 2.5 or 2.6?
+如果我使用 Python 2.4 ，那么相对于更高版本的 Python ，如 2.5 版本或 2.6 版本，我会有什么损失？
 -----------------------------------------------------------------------------------------------
 
-Not in the core framework. Currently, Django itself officially supports any
-version of Python from 2.4 through 2.7, inclusive. However, newer versions of
-Python are often faster, have more features, and are better supported. If you
-use a newer version of Python you will also have access to some APIs that
-aren't available under older versions of Python. For example Django provides
-some `context managers`_ for various operations. If you use Python 2.4 you
-won't be able to use them, however other APIs which provide the same
-functionality are always made available.
+在核心框架上不会。当前， Django 官方支持 Python 2.4 版本到 2.7 版本。但是，高
+版本的 Python 一般会速度更快，功能更丰富，并拥有更好的技术支持。如果你使用较新
+版本的 Python ，那么你可以使用一些旧版本 Python 不支持的 API 。例如 Django 为
+不同的操作提供了一些 `context managers`_ 。如果你使用 Python 2.4 ，这些 API 就
+不能用了，当然其他提供同样功能的 API 还是可以使用的。
 
-Third-party applications for use with Django are, of course, free to set their
-own version requirements.
+与 Django 一起工作的第三方程序还可能有自己的要求。
 
-Over the next year or two Django will begin dropping support for older Python
-versions as part of a migration which will end with Django running on Python 3
-(see below for details).
+在接下来的一年或两年时间中， Django 将逐渐停止对老版本的 Python 的支持，并最终
+迁移到支持 Python 3.0 （详情见下一个问题）。
 
-All else being equal, we recommend that you use the latest 2.x release
-(currently Python 2.7). This will let you take advantage of the numerous
-improvements and optimizations to the Python language since version 2.4, and
-will help ease the process of dropping support for older Python versions on
-the road to Python 3.
+我们建议你使用最新的 2.x 版本（当前最新的是 2.7 版）。这样有利于你享受自 Python
+2.4 版本以来的所有改进和优化成果，同时也有利于你以后向 Python 3.0 迁移。
 
 .. _context managers: http://docs.python.org/reference/datamodel.html#context-managers
 
-Can I use Django with Python 2.3?
+Django 支持 Python 2.3 吗？
+---------------------------
+
+Django 1.1 版本（包括更低的版本）是支持 Python 2.3 的。 Django 1.2 版本和更高
+版本就不支持了。如果可能的话我们强烈建议你升级你的 Python 。但是 Django 1.1
+版本将会继续支持 Python 2.3 。
+
+Django 支持 Python 3.0 吗？
 ---------------------------------
 
-Django 1.1 (and earlier) supported Python 2.3. Django 1.2 and newer does not.
-We highly recommend you upgrade Python if at all possible, but Django 1.1 will
-continue to work on Python 2.3.
+现在不支持。 Python 3.0 相对于较低的版本就许多不向后兼容的变化，虽然这些变化
+一般对于 Python 的功能改善来说是好事，但是也会延长大多数软件向 Python 3.0 迁移
+的时间。对于向 Django 这样大型的基于 Python 的程序，迁移过程可能花费一到两年的
+时间，因为包括去掉对旧版本 Python 的支持，所以要一步一步地来。
 
-Can I use Django with Python 3?
--------------------------------
+同时， Python 开发小组仍然在继续维护 2.x 版本，仍在进行除错和安全更新，所以在
+迁移过程中仍然使用 Python 2.x 版本是没有风险的。
 
-Not at the moment. Python 3.0 introduced a number of
-backwards-incompatible changes to the Python language, and although
-these changes are generally a good thing for Python's future, it will
-be a while before most Python software catches up and is able to run
-on Python 3.0. For larger Python-based software like Django, the
-transition is expected to take at least a year or two (since it
-involves dropping support for older Python releases and so must be
-done gradually).
-
-In the meantime, Python 2.x releases will be supported and provided
-with bug fixes and security updates by the Python development team, so
-continuing to use a Python 2.x release during the transition should
-not present any risk.
-
-Will Django run under shared hosting (like TextDrive or Dreamhost)?
+Django 可以在共享主机（如 TextDrive 或 Dreamhost ）上运行吗？
 -------------------------------------------------------------------
 
-See our `Django-friendly Web hosts`_ page.
+参见我们的 `支持 Django 的 Web 主机`_ 页面。
 
-.. _`Django-friendly Web hosts`: http://code.djangoproject.com/wiki/DjangoFriendlyWebHosts
+.. _`支持 Django 的 Web 主机`: http://code.djangoproject.com/wiki/DjangoFriendlyWebHosts
 
-Should I use the stable version or development version?
--------------------------------------------------------
+我应当使用稳定版还是开发版？
+---------------------------------------------------------
 
-Generally, if you're using code in production, you should be using a
-stable release. The Django project publishes a full stable release
-every nine months or so, with bugfix updates in between. These stable
-releases contain the API that is covered by our backwards
-compatibility guarantees; if you write code against stable releases,
-you shouldn't have any problems upgrading when the next official
-version is released.
+一般来说，如果你是用于生产环境，那就应该使用稳定版。 Django 项目约每九个月发布
+一个完整的稳定版本。发布稳定版本之间会有错误修正的升级版本。这些稳定版本包含的
+API 是有向后兼容的保证的，所以如果你的代码是针对稳定版本的，那么升级到下一个
+稳定版本时就不会有问题。
