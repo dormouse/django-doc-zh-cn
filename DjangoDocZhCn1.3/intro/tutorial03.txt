@@ -1,0 +1,478 @@
+====================================
+编写你的第一个 Django 程序，第三部分
+====================================
+
+本文继续 :doc:`教程第二部分 </intro/tutorial02>` 的内容。我们会继续开发网络投票
+程序并着重如何创建公共接口--“视图”。
+
+哲学
+==========
+
+视图是指 Django 程序中一种页面，通常可以完成一定的功能，并使用指定的模板。
+例如，在一个博客程序中，可能有以下视图：
+
+    * 博客首页——显示最新的几篇日志。
+
+    * 日志详细页面——显示一篇日志详细内容的页面。
+
+    * 基于年份的归档页面——显示给定年份所有月份的归档。
+
+    * 基于月份的归档页面——显示给定月份每天的归档。
+
+    * 基于日期的归档页面——显示给定日期所有的日志。
+
+    * 评论功能——处理日志对应的评论。
+
+在我们的投票程序中，我们有下列四个视图：
+
+    * 投票归档页面——显示最新的一些投票。
+
+    * 投票详细页面——显示一个投票的问题，可以进行投票但是不显示投票结果。
+
+    * 投票结果页面——显示一个指定投票的结果。
+
+    * 投票动作——处理投票的选项。
+
+在Django中，每个视图都表现为一个简洁的 Python 函数。
+
+设计你的URL
+================
+
+编写视图的第一步就是设计你的 URL 结构，这需要创建一个叫做 URLconf 的 Python
+模块。URLconf 是连接 URL 和相应 Python 代码的纽带。
+
+在 Django 驱动的网站中，当用户请求一个页面时，系统会查找
+:setting:`ROOT_URLCONF` 设置。这个设置包含一个 Python 包格式的字符串。
+Django 会加载设置的模块并查找一个叫做 ``urlpatterns`` 的模块变量。这个变量是由
+元组所组成的序列，格式如下::
+
+    (regular expression, Python callback function [, optional dictionary])
+
+Django从第一个正则表达式开始进行迭代，将用户请求的 URL 与正则表达式进行比较，直到
+找到相匹配的正则表达式。
+
+如果找到匹配的正则表达式， Django 会调用相应的 Python 回调函数，并传入一个
+:class:`~django.http.HttpRequest` 作为第一参数，任何根据正则表达式提取出的值将
+作为关键字参数传入。如果提供了 optional dictionary 参数，那么也会作为关键字参数
+传入。
+
+要了解更多关于 :class:`~django.http.HttpRequest` 的内容，参见
+:ref:`ref/request-response` 。关于 URLconfs ，详见
+:ref:`topics/http/urls` 。
+
+在第一部分开头，当你运行 ``python django-admin.py startproject mysite``时，就
+已经在 ``mysite/urls.py`` 中创建了一个默认的 URLconf 。它会自动将
+:setting:`ROOT_URLCONF` （在 `` ``settings.py`` `` 文件中）设置为::
+
+    ROOT_URLCONF = 'mysite.urls'
+
+来个例子吧，编辑 ``mysite/urls.py`` ，修改成如下代码::
+
+    from django.conf.urls.defaults import *
+
+    from django.contrib import admin
+    admin.autodiscover()
+
+    urlpatterns = patterns('',
+        (r'^polls/$', 'mysite.polls.views.index'),
+        (r'^polls/(?P<poll_id>\d+)/$', 'mysite.polls.views.detail'),
+        (r'^polls/(?P<poll_id>\d+)/results/$', 'mysite.polls.views.results'),
+        (r'^polls/(?P<poll_id>\d+)/vote/$', 'mysite.polls.views.vote'),
+        (r'^admin/', include(admin.site.urls)),
+    )
+
+让我们来回顾一下。当有人在你的网站上请求一个页面，例如“ /polls/23/ ”， Django
+会根据  :setting:`ROOT_URLCONF` 加载上面的模块。然后，在这个模块中查找
+``urlpatterns`` 变量并按顺序遍历其中的正则表达式。当它找到一个匹配 URL 的
+正则表达式 ``r'^polls/(?P<poll_id>\d+)/$'`` 时，就会加载
+``mysite/polls/views.py`` 中的 ``detail()`` 函数。最终，会像下面这样调用
+``detail()`` 函数::
+
+    detail(request=<HttpRequest object>, poll_id='23')
+
+The ``poll_id='23'`` 这个部分来自 ``(?P<poll_id>\d+)`` 。用括号包围一个
+正则表达式会捕获匹配这个正则表达式的文字并将文字参数传给视图函数。
+``?P<poll_id>`` 这个部分会给匹配到的内容赋予一个名称； ``\d+`` 则是用来匹配数字
+的正则表达式。
+
+因为 URL 匹配使用的是正则表达式，所以你可以毫无限制地来使用它们。而且你也没有
+必要加上多余的 URL 部分，比如 ``.php`` 这样的扩展名。除非你有病态的幽默感，你
+可以像下面这样做::
+
+    (r'^polls/latest\.php$', 'mysite.polls.views.index'),
+
+但是，千万这样做。太傻了。
+
+请注意，这些正则表达式不搜索 GET 或 POST 参数以及域名。例如，在请求
+``http://www.example.com/myapp/`` 时， URLconf 会查找 ``myapp/`` 。在请求
+``http://www.example.com/myapp/?page=3`` 时，URLconf还是查找 ``myapp/`` 。
+
+如果你需要使用正则表达式的帮助，请看看 `Wikipedia's entry`_ 和
+`Python documentation`_ 文档。当然，O’Reilly出版的图书“ Mastering Regular
+Expressions ”（ Jeffrey Friedl 著）也是非常不错的。
+
+最后，一个有关性能上的提示：这些正则表达式在第一次加载 URLconf 的时候就进行
+编译。它们的速度超快。
+
+.. _Wikipedia's entry: http://en.wikipedia.org/wiki/Regular_expression
+.. _Python documentation: http://docs.python.org/library/re.html
+
+编写你的第一个视图
+==================
+
+现在我们只是设置了URLconf而已，还没有创建视图。但是我们要先确认 Django 会遵循
+这些 URLconf 的设置。
+
+启动 Django 开发服务器：
+
+.. code-block:: bash
+
+    python manage.py runserver
+
+现在请在你的浏览器中访问 ``http://localhost:8000/polls/`` ，
+你应该会得到彩色的错误信息，内容如下::
+
+    ViewDoesNotExist at /polls/
+
+    Tried index in module mysite.polls.views. Error was: 'module'
+    object has no attribute 'index'
+
+产生这个错误的原因是因为你还没有在 ``mysite/polls/views.py`` 模型中编写
+``index()`` 函数。
+
+试试访问“ /polls/23/ ”、“ /polls/23/results/ ”和“ /polls/23/vote/ ”。
+错误信息会告诉你 Django 会调用哪些视图（因为你还没有编写任何视图,所以
+出现的都是调用失败的信息，）。
+
+现在开始编写第一个视图。打开 ``mysite/polls/views.py``
+加入下面的 Python 代码::
+
+    from django.http import HttpResponse
+
+    def index(request):
+        return HttpResponse("Hello, world. You're at the poll index.")
+
+这就是个最简单的视图了。现在在浏览器中查看“ /polls/ ”，
+就能看到输出的文字。
+
+现在加入下面的代码。它有点不一样，因为它带有一个参数
+（还记得吗？这个参数是根据 URLconf 中的正则表达式所捕获的内容）::
+
+    def detail(request, poll_id):
+        return HttpResponse("You're looking at poll %s." % poll_id)
+
+    def results(request, poll_id):
+        return HttpResponse("You're looking at the results of poll %s." % poll_id)
+
+    def vote(request, poll_id):
+        return HttpResponse("You're voting on poll %s." % poll_id)
+
+然后在浏览器中查看“ /polls/34/ ”，这将会运行 `detail()` 方法并且可以 URL 中看到
+你提供的 ID 值。同时试试“ /polls/34/results/” 和“ /polls/34/vote/ ”，这会显示
+投票结果和结果页面。
+
+让视图真正发挥作用
+======================================
+
+每个视图都只做以下两件事情中的一件：要么返回一个包含页面内容的
+:class:`~django.http.HttpResponse` 对象，要么抛出一个异常，比如
+:exc:`~django.http.Http404` 。至于其他的就看你的需要了。
+
+视图可以从数据库中读取或者不读取纪录。它可以使用模板系统，如 Django
+自带的模板系统或者第三方的模板系统，也可以不使用模板系统。它可以生成 PDF 文件、
+输出 XML ，实时生成 ZIP 文件等等。它可以使用任意 Python 库。
+你可以做任何你想做的事情。
+
+而 Django 想要的就是 :class:`~django.http.HttpResponse` ，或者一个异常。
+
+为了方便，让我们使用 Django 自己的数据库 API ，我们在
+:doc:`教程第一部分 </intro/tutorial01>` 曾讨论过。
+修改一下index()视图函数，让它显示最新的5个投票问题，
+每个问题之间用逗号问分割并按照发布时间降序排列::
+
+    from mysite.polls.models import Poll
+    from django.http import HttpResponse
+
+    def index(request):
+        latest_poll_list = Poll.objects.all().order_by('-pub_date')[:5]
+        output = ', '.join([p.question for p in latest_poll_list])
+        return HttpResponse(output)
+
+但是这有个问题，页面的设计是在代码中写死的。
+如果你想改变页面的外观，就必须修改这段 Python 代码。
+现在我们用 Django 模版系统将页面设计从 Python 代码中分离出来::
+
+    from django.template import Context, loader
+    from mysite.polls.models import Poll
+    from django.http import HttpResponse
+
+    def index(request):
+        latest_poll_list = Poll.objects.all().order_by('-pub_date')[:5]
+        t = loader.get_template('polls/index.html')
+        c = Context({
+            'latest_poll_list': latest_poll_list,
+        })
+        return HttpResponse(t.render(c))
+
+上面的代码会加载“ polls/index.html ”模板并传入一个 context 对象。
+这个 context 对象是一个映射模板变量和 Python 对象的字典。
+
+重新加载页面，你会看到一个错误信息::
+
+    TemplateDoesNotExist at /polls/
+    polls/index.html
+
+这是因为现在还没创建模板呢。首先，在你的系统中建立一个 Django 能够访问的文件夹。
+（ Django 可以使用任何用户运行）。但是别把模板放在文档根目录下面。
+为了安全，你不应把它们设置为公共权限。
+然后修改 ``settings.py`` 中的 :setting:`TEMPLATE_DIRS` ，加入刚才的创建的文件夹
+路径，让 Django 能够找到模板——就如同你在教程第二部分“定制管理页面外观”一节中所
+做的一样。
+
+然后，在模板目录下面创建 ``polls`` 文件夹，并在该目录下创建 ``index.html``
+文件。注意一下代码里的 ``loader.get_template('polls/index.html')`` 会加载
+“ [template_directory]/polls/index.html ”这个文件。
+
+在模板文件中加入下面代码：
+
+.. code-block:: html+django
+
+    {% if latest_poll_list %}
+        <ul>
+        {% for poll in latest_poll_list %}
+            <li><a href="/polls/{{ poll.id }}/">{{ poll.question }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No polls are available.</p>
+    {% endif %}
+
+在浏览器中打开页面，可以看到一个包含教程第一部分创建的 “What's up ”投票的投票
+列表。列表的链接指向投票的详细内容页面。
+
+快捷方法：render_to_response()
+--------------------------------
+
+通常的思路是：载入一个模板，填充一个 context 对象并返回一个
+:class:`~django.http.HttpResponse` 对象。 Django 提供了一个快捷方法。
+下面是重写过的 ``index()`` 方法::
+
+    from django.shortcuts import render_to_response
+    from mysite.polls.models import Poll
+
+    def index(request):
+        latest_poll_list = Poll.objects.all().order_by('-pub_date')[:5]
+        return render_to_response('polls/index.html', {'latest_poll_list': latest_poll_list})
+
+注意，一旦我们在所有视图中使用了这种方法，就没有必要再导入
+:mod:`~django.template.loader` 、 :class:`~django.template.Context` 和
+:class:`~django.http.HttpResponse` 了。
+
+:func:`~django.shortcuts.render_to_response` 函数第一个参数是模板名称，
+第二个参数是可选参数，是一个字典类型对象。函数会根据传入的字典进行渲染模板，
+并返回一个 :class:`~django.http.HttpResponse` 对象。
+
+抛出404异常
+===========
+
+现在我们来处理显示投票详细内容的视图。下面是全部代码::
+
+    from django.http import Http404
+    # ...
+    def detail(request, poll_id):
+        try:
+            p = Poll.objects.get(pk=poll_id)
+        except Poll.DoesNotExist:
+            raise Http404
+        return render_to_response('polls/detail.html', {'poll': p})
+
+这里有个新的概念：如果根据 ID 找不到对应的数据，视图就会抛出一个
+:exc:`~django.http.Http404` 异常。
+
+关于 ``polls/detail.html`` 模板中的内容，稍后我们再讨论。
+
+但是，如果想看看上面的代码的效果，你只要在模板中加入::
+
+{{ poll }}
+
+就可以了。
+
+快捷方法：get_object_or_404() 
+-------------------------------
+
+常见的思路是：当一个对象不存在时，使用 :meth:`~django.db.models.QuerySet.get`
+并抛出 :exc:`~django.http.Http404` 。 Django 提供了一个快捷方法。
+下面是重写过的 ``detail()`` 函数::
+
+    from django.shortcuts import render_to_response, get_object_or_404
+    # ...
+    def detail(request, poll_id):
+        p = get_object_or_404(Poll, pk=poll_id)
+        return render_to_response('polls/detail.html', {'poll': p})
+
+:func:`~django.shortcuts.get_object_or_404` 函数接收一个 Django 模型作为第一个
+参数，其他的关键字参数将传入到模型对象的 :meth:`~django.db.models.QuerySet.get`
+方法中。如果查询不到任何结果时，将抛出 :exc:`~django.http.Http404` 异常。
+
+.. admonition:: 哲学
+
+    为什么要用 :func:`~django.shortcuts.get_object_or_404` 而不在更高级别上自动
+    捕获 :exc:`~django.core.exceptions.ObjectDoesNotExist` 异常呢？或者为什么
+    使用模型 API 来抛出 :exc:`~django.http.Http404` 异常而不是抛出
+    :exc:`~django.core.exceptions.ObjectDoesNotExist` 异常呢？
+    
+    因为这样可以把模型层和视图层结合在一起。 Django 设计原则之一就是把松散的
+    东西结合在一起，以便于维护。
+
+还有一个与 :func:`~django.shortcuts.get_object_or_404` 方法差不多的
+:func:`~django.shortcuts.get_list_or_404` 方法。它们的区别只是对应的模型对象调用的是
+:meth:`~django.db.models.QuerySet.filter` 而不是
+:meth:`~django.db.models.QuerySet.get` 方法。
+如果返回列表为空的话就会抛出 :exc:`~django.http.Http404` 异常。
+
+编写 404 （找不到页面）视图
+=================================
+
+当视图里抛出一个 :exc:`~django.http.Http404` 异常时， Django 会加载一个专门处理
+404 异常的视图。Django会根据变量 handler404 来查找这个视图，这个变量也是个
+Python 包格式的字符串（和 URLconf 里面的回调函数的格式是一样的）。
+404 视图没有任何特别之处，它只是个普通的视图而已。
+
+你不用太关注于怎样编写 404 视图。一般，URLconf设置里有下面的机制::
+
+    from django.conf.urls.defaults import *
+
+这行代码将处理 ``handler404`` 。你可以在 ``django/conf/urls/defaults.py`` 中
+看到， ``handler404`` 缺省设置成了
+:func:`django.views.defaults.page_not_found` 。
+
+关于 404 视图还有几点要注意：
+
+    * 如果 :setting:`DEBUG` 的值为 ``True`` （在你的设置模型中），那么你的 404
+      视图（包括 ``404.html`` ）就没用了。因为调试模式下会返回专门的调试信息。
+
+    * 当 Django 在 URLconf 设置中无法找到能够匹配当前 URL 的正则表达式时，也会
+      调用 404 视图。
+
+    * 一般情况下建议使用缺省的 404 视图。如果你要定制 404 视图，可以在模板目录
+      下创建一个 ``404.html`` 文件。这样所有的 404 异常就会使用这个模板。
+
+    * 如果 :setting:`DEBUG` 设置为 ``False`` （在你的设置模型中），并且你没有
+      创建 ``404.html`` ，那么会抛出一个 ``Http500`` 异常。所以不要忘了创建
+      ``404.html`` 。
+
+编写 500 视图（服务器错误）
+===========================
+
+类似于 404 错误， URLconf 也可以定义一个 ``handler500`` 方法，在发生服务器错误
+时，这个方法会调用一个指定的视图。服务器错误是指在运行时视图代码时，代码本身
+产生了错误。
+
+使用模板系统
+============
+
+回来看看我们投票程序的 ``detail()``。在给定了 context 变量 ``poll`` 之后，
+现在的 ``polls/detail.html`` 模板看起来应该是这个样子：
+
+.. code-block:: html+django
+
+    <h1>{{ poll.question }}</h1>
+    <ul>
+    {% for choice in poll.choice_set.all %}
+        <li>{{ choice.choice }}</li>
+    {% endfor %}
+    </ul>
+
+模板系统使用“变量.属性”的方法来访问变量的属性值。针对上面例子中的
+``{{ poll.question}}`` ， Django 先对 ``poll`` 对象做字典查询。如果不成功，就对
+属性进行查询（在这个例子属性查询成功了）。如果属性查询也失败的话，会尝试调用
+``poll`` 对象的 ``question()`` 方法。
+
+在 ``{% for %}`` 循环中： ``poll.choice_set.all`` 会解释为 Python 代码
+``poll.choice_set.all()`` ，该方法会返回一组用于 ``{% for %}`` 标签的可迭代的
+Choice 对象。
+
+请参考 :doc:`模板指南 </topics/templates>` 来了解模板的更多内容。
+
+简化 URLconf
+============
+
+花点时间再复习复习视图和模板吧。刚才你编辑过 URLconf 设置了，也许下面的代码看
+上去有点冗余::
+
+    urlpatterns = patterns('',
+        (r'^polls/$', 'mysite.polls.views.index'),
+        (r'^polls/(?P<poll_id>\d+)/$', 'mysite.polls.views.detail'),
+        (r'^polls/(?P<poll_id>\d+)/results/$', 'mysite.polls.views.results'),
+        (r'^polls/(?P<poll_id>\d+)/vote/$', 'mysite.polls.views.vote'),
+    )
+
+``mysite.polls.views`` 在代码中多次重复出现。
+
+这种情况很常见，所以 URLconf 框架对这种相同前缀情况提供一个快捷方法。你可以把
+相同的前缀提取出来，将它作为 :func:`~django.conf.urls.defaults.patterns` 的第一
+个参数，就像下面这样::
+
+    urlpatterns = patterns('mysite.polls.views',
+        (r'^polls/$', 'index'),
+        (r'^polls/(?P<poll_id>\d+)/$', 'detail'),
+        (r'^polls/(?P<poll_id>\d+)/results/$', 'results'),
+        (r'^polls/(?P<poll_id>\d+)/vote/$', 'vote'),
+    )
+
+这里把相同的功能前置预定了，看起来要简洁一些。
+
+解耦 URLconf
+============
+
+现在应该把投票程序的 URL 从 Django 项目配置中解耦出来了。 Django 程序是插件式的
+即只要做很小的修改，它就可以转移到另外一个 Django 项目中。
+
+现在这个投票程序已经基本上解耦了，这是由于 ``python manage.py startapp`` 所创建
+的目录结构是遵循严格规范的，但是还是有一部分还是耦合在 Django 的 URLconf 设置
+中的。
+
+我们一直都是通过编辑 ``mysite/urls.py`` 来设置 URL 的，但是一个特定的 Django
+程序的 URL 是不应该放在整个项目的设置中的。所以让我们把 URL 设置转移到程序目录
+下面。
+
+复制 ``mysite/urls.py`` 到 ``mysite/polls/urls.py`` 。然后移除
+``mysite/urls.py`` 里和该程序有关的内容并插入一个
+:func:`~django.conf.urls.defaults.include`::
+
+    # ...
+    urlpatterns = patterns('',
+        (r'^polls/', include('mysite.polls.urls')),
+        # ...
+
+:func:`~django.conf.urls.defaults.include` 就仅仅是引用了另外一个 URLconf
+设置。注意，上面的正则表达式中结尾没有 ``$`` （匹配字符串结尾的符号），而只有
+一个斜杠结尾。当 Django 碰到 :func:`~django.conf.urls.defaults.include` 时，会
+将 URL 中匹配到部分移除，并将剩下的 URL 字符串传入到对应的 URLconf 设置中做进
+一步的处理。
+
+现在看看匹配URL“ /polls/34/ ”的情况：
+
+    * Django 会找到匹配 ``'^polls/'`` 的部分。
+
+    * 然后， Django 移除匹配  ``'^polls/'`` 的部分并将剩余的部分 ``"34/"`` 传给
+      ``mysite.polls.urls`` 的 URLconf 做进一步处理。
+
+现在我们开始解耦，把每一行前面的“ polls/ ”移除::
+
+    urlpatterns = patterns('mysite.polls.views',
+        (r'^$', 'index'),
+        (r'^(?P<poll_id>\d+)/$', 'detail'),
+        (r'^(?P<poll_id>\d+)/results/$', 'results'),
+        (r'^(?P<poll_id>\d+)/vote/$', 'vote'),
+    )
+
+使用 :func:`~django.conf.urls.defaults.include` 和 URLconf 配合进行解耦的目的是
+为了方便 URL 的即插即用。现在投票程序有自己独立的 URLconf 设置了，程序可以放在
+“ /polls/ ”下或者“ /fun_polls/ ”下甚至“ /content/polls/ ”下等等，程序都能正常
+运行。
+
+投票程序关注的只是相对链接，不是绝对链接。
+
+熟悉了视图之后，请阅读 :doc:`程序第四部分 </intro/tutorial04>` ，开始学习表单
+处理和通用视图。

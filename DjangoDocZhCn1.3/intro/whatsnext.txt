@@ -1,0 +1,187 @@
+.. _intro-whatsnext:
+
+============
+接下来读什么
+============
+
+你已经读完了所有 :doc:`介绍材料 </intro/index>` ，决定继续使用 Django 了？其实，
+介绍材料仅仅是一点毛皮而已（事实上，即使你是一字一句地读完了介绍材料也仅仅读了
+所有文档的不到 10% ）。
+
+那么接下来做什么？
+
+我们都热衷于边做边学，实践出真知。学到这里，你已经可以开始开发自己的项目了，到
+四处转转吧。当你想学点新的知识时，请回到这里来阅读文档。
+
+我们花了大量的努力来使 Django 的文档实用、易读和尽可能完备。下面的内容将讨论
+文档本身是如何组织的，以便你可以更好的利用文档。
+
+（是的，这是关于文档的文档。请放心，我们不打算写一篇关于如何阅读文档的文档。）
+
+查找文档
+========
+
+Django 有 *大量* 文档，约有 200,000 （英文）字。所以有时候要找点内容有些麻烦。
+所以你可以从 :ref:`search` 和 :ref:`genindex` 开始。
+
+或者你也可以随意翻翻！
+
+文档是如何组织的
+================
+
+Django 的主文档根据需要分成了不同的“块”：
+
+    * :doc:`介绍材料 </intro/index>` 是为 Django 新手或一般 Web 开发者准备的。
+      它没有深入地谈任何东西，只是给你一个概览，让你有一点如何用 Django 开发
+      的“感觉”。
+      
+    * :doc:`专题指导 </topics/index>` 则深入探讨了 Django 的各个部分，包括
+      :doc:`模型系统 </topics/db/index>` ，
+      :doc:`模板引擎 </topics/templates>` ，
+      :doc:`表单构架 </topics/forms/index>` 等等。
+      
+      这部分内容将占用你学习文档的大部分时间。如果你把这部分内容研究透彻了，
+      那么就通晓 Django 了。
+
+    * Web 开发经常涉及多方面的问题，所以我们写了一套 :doc:`how-to 指导
+      </howto/index>` 。这套指导专门回答“如何做某某事？”的问题，其中你可以学习
+      :doc:`如何用 Django 生成 PDF 文档 </howto/outputting-pdf>` 、
+      :doc:`如何自定义模板标记 </howto/custom-template-tags>` 等等。
+
+      最最常见的问题我们放在 :doc:`FAQ </faq/index>` 文档中。
+
+    * 专题指导和 how-to 没有详述 Django 中每一个类、函数和方法。因为如果这样，
+      会令人开始学习时无从下手，所以我们把每个类、函数和方法的详细说明都放在
+      :doc:`参考手册 </ref/index>` 中。在手册中你可以查到最详尽的细节。
+    
+    * 最后，还有一些多数开发者不常用到的“专用”文档。包括
+      :doc:`发布说明 </releases/index>` 、 :doc:`关于已过时功能的文档
+      </obsolete/index>` 、用于开发 Django 本身的 :doc:`内部文档
+      </internals/index>` 和 :doc:`一些只适于于特殊场合的东西 </misc/index>` 。
+      
+
+文档如何更新
+============
+
+就象 Django 代码基本上天天在开发和更新一样，我们的文档也在不断的更新。更新的
+原因如下：
+
+    * 改正语法或打字错误。
+
+    * 充实现在的内容或增加示例。
+
+    * Django 有的功能还没有文档，需要新增。（没有文档的功能虽然越来越少，但还是
+      存在。）
+
+    * Django 增加新的功能、 APIs 或行为发生变化时，需要新的文档。
+
+Django 文档与代码本身放在同一个版本控制系统中，就放在代码仓库的
+`django/trunk/docs`_ 目录下。在线文档的每一个页面就对应代码仓库中的一个文本
+文件。
+
+.. _django/trunk/docs: http://code.djangoproject.com/browser/django/trunk/docs
+
+哪里可以得到文档
+================
+
+以下是阅读文档的几种方式，按优先顺序排列：
+
+在线阅读
+----------
+
+最新版本的文档放在 http://docs.djangoproject.com/en/dev/ 。这些 HTML 页面是由
+版本控制系统中的文本文件自动生成的。这就意味着在线文档是“最新最好”的 Django
+文档。在线文档包括最新的勘误和新增的内容，包括 Django 开发版中最新增加的功能。
+（见下文中“版本之间的区别”一节。）
+
+我们鼓励你通过在 `小票系统`_ 中提交修改内容、更正内容或提供建议的方式帮助改善
+文档。 Django 的开发者们会关注小票系统并根据你的反馈不断改善文档。
+
+注意，小票系统中的小票必须与文档有明确关系，不应当问有关其他技术问题。如果你
+需要关于 Django 的帮助，你尝试 `django 用户邮件列表`_ 或 `#django IRC 频道`_ 。
+
+.. _小票系统: http://code.djangoproject.com/simpleticket?component=Documentation
+.. _django 用户邮件列表: http://groups.google.com/group/django-users
+.. _#django IRC 频道: irc://irc.freenode.net/django
+
+阅读纯文本文件
+--------------
+
+离线阅读的情况下，或只是为了方便，你可以阅读纯文本文件。
+
+如果你有 Django 的官方发行版，那你可以在压缩包的 ``docs/`` 目录下找到所有该
+发行版的所有文档。
+
+如果你使用的是开发版本的的 Django ，同样在该版本的 ``docs/`` 目录下可以找到
+所有文档。你可以用 ``svn update`` 命令，就象你 ``svn update`` Python 源代码
+一样更新到最新版本的文档。
+
+从版本仓库中更新文档的命令如下：
+
+.. code-block:: bash
+
+    $ svn co http://code.djangoproject.com/svn/django/trunk/docs/ django_docs
+
+一个使用底层技术来利用文本文档的方法是使用 Unix 中的 ``grep`` 工具来搜索文档
+中的某一个单词。例如以下例子会找出含有 "max_length" 单词的所有 Django 文档：
+
+.. code-block:: bash
+
+    $ grep -r max_length /path/to/django/docs/
+
+阅读本地 HTML 文件
+------------------
+
+按以下步骤你可以得到一份文档的本地 HTML 拷贝：
+
+    * Django 文档通过 Sphinx__ 系统把文本文件转换为 HTML 。你可以通过下载
+      源代码安装，也可用使用 Python 的 ``easy_install`` 命令来安装 Sphinx ：
+      
+      .. code-block:: bash
+   
+            $ easy_install Sphinx
+
+    * 然后，通过内置的 ``Makefile`` 来把文档转换成为 HTML：
+
+      .. code-block:: bash
+
+            $ cd path/to/django/docs
+            $ make html
+
+      使用以上命令必须先安装 `GNU Make`__ 。
+
+    * 生成的 HTML 文档会放在 ``docs/_build/html`` 目录下。
+
+.. note::
+
+    Sphinx 0.6 版或更高版本可以用于生成 Django 文档，但是我们推荐使用 Sphinx
+    1.0.2 版本或更高版本。
+    
+__ http://sphinx.pocoo.org/
+__ http://www.gnu.org/software/make/
+
+版本之间的区别
+==============
+
+就象文提到的，版本仓库中的文本文档包括“最新最好”的修改和新内容。这些修改的内容
+常常包括关于 Django 开发版的新功能的文档。因此，有必要谈谈我们针对不同版本
+Django 的文档的原则。
+
+我们遵循以下原则：
+
+    * 在 djangoproject.com 上的主文档是版本仓库中最新文档的 HTML 版本。这些文档
+      总是对应于最新的官方发行版，并且包括这个官方发行版发布“之后”新增和修改的
+      内容。
+
+    * 当我们为 Django 增加新功能后，总是尽力将更新的文档一并发布到版本仓库中。
+
+    * 为了标明新增或修改的内容，我们在下一个版本中使用“在版本 X.Y ”字样。
+
+    * 一旦某一个版本的 Django 正式发行后，针对这个版本文档就冻结了，并且会留下
+      这份文档的快照。这个原则有一个例外： Django 发生安全更新或类似安全更新的
+      的变动。在已冻结的文档开头我们会加上：“这是 XXX 版 Django 的已冻结文档”
+      和一个链结到当前文档的超链结。
+
+    * `主文档 Web 页面`_ 包含所有以前版本文档的链结。
+
+.. _主文档 Web 页面: http://docs.djangoproject.com/en/dev/
