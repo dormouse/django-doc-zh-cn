@@ -26,16 +26,21 @@ __ irc://irc.freenode.net/django
 创建一个项目
 ==================
 
-如果这是你第一次使用 Django ，那么必须进行一些初始设置。可以通过自动创建代码来
-建立一个项目（ :term:`project` ）。一个 Django 项目是一个 Django 实例的设置的
-集合，包括数据库配置， Django 的定义选项和程序定义的设置。
+如果你第一次使用 Django ，那么必须进行一些初始设置。可以通过自动创建代码来建立
+一个项目（ :term:`project` ）。一个 Django 项目是一个 Django 实例的设置的集合，
+包括数据库配置， Django 的定义选项和程序定义的设置。
 
 让我们通过命令行来进行。使用 ``cd`` 命令进入你要存放代码的目录，然后运行命令
 ``django-admin.py startproject mysite`` 。这样就会在当前目录中创建一个名为
 ``mysite`` 的目录。
 
-.. admonition:: Mac OS X 权限问题
+.. admonition:: 代码名称可能因发行包不同而不同
 
+   如果你是通过 Linux 包管理器（例如 apt-get 或 yum ）来安装 Django 的，那么
+   ``django-admin.py`` 可以会改名为 ``django-admin`` 。在这种情况下本教程中的
+   每个命令都要略去 ``.py`` 。
+
+.. admonition:: Mac OS X 权限问题
 
     如果你使用的是 Mac OS X 操作系统，当你运行 ``django-admin.py startproject``
     命令时你可能会看到“无权运行”字样。这是因为象 OS X 这样以 Unix 为基础的系统
@@ -181,6 +186,12 @@ __ irc://irc.freenode.net/django
     * :mod:`django.contrib.sites` -- 使用一个Django项目来管理多个站点的框架
       作为常用程序，它们都默认包含在配置文件中。
 
+    * :mod:`django.contrib.messages` -- 消息框架
+
+    * :mod:`django.contrib.staticfiles` -- 管理静态文件的框架
+
+为方便起见，一般情况下一个项目都包含以上程序。
+
 因为以上每个程序都至少用到了一个数据表，所以在使用这些程序之前我们要在数据库中
 创建对应的数据表。执行下面的命令：
 
@@ -211,7 +222,7 @@ __ irc://irc.freenode.net/django
 
 现在你的环境 -- 一个“项目” -- 就建立好了，可以开始正式的工作了。
 
-每个用 Django 写成的程序都是由 Python 包组成的，这些包位于 `Python Path`_ 中
+每个用 Django 写成的程序都是由 Python 包组成的，这些包位于 `Python path`_ 中
 并遵循一定的命名规范。 Django 有个工具能够自动生成程序的基本目录结构，所以你可以
 专注于写代码而不是去创建目录。
 
@@ -222,9 +233,8 @@ __ irc://irc.freenode.net/django
     特定 Web 网站的配置和应用程序的集合。一个项目可以包含多个程序，而一个程序
     可以在多个项目中使用。
 
-在这个教程中，为了简便，我们会在 :file:`mysite` 目录下创建投票程序。这样，这个
-程序就会耦合到这个项目中。也就是说，投票程序内的所有 Python 代码可以通过
-``mysite.polls`` 来进行引用。在后面的部分中，我们会讨论怎样在部署的时解耦程序。
+你的程序可以放在 `Python path`_ 中的任何地方。在这个教程中，为了简便，我们会在
+ :file:`mysite` 目录下创建我们的投票程序。
 
 要创建程序，请确定现在位于 :file:`mysite` 目录下并输入以下命令：
 
@@ -310,7 +320,7 @@ __ irc://irc.freenode.net/django
     打包分发，因为这些程序并不是被绑定到一个特定 Django 的安装环境中的。
 
 再次编辑 :file:`settings.py` 文件，在 :setting:`INSTALLED_APPS` 中加入
-``'mysite.polls'`` 。就像下面所显示的一样::
+``'polls'`` 。就像下面所显示的一样::
 
 
     INSTALLED_APPS = (
@@ -318,11 +328,10 @@ __ irc://irc.freenode.net/django
         'django.contrib.contenttypes',
         'django.contrib.sessions',
         'django.contrib.sites',
-        'mysite.polls'
+        'polls'
     )
 
-这样 Django 就知道 ``mysite`` 项目中包含了 ``polls`` 程序了。让我们执行另一条
-命令：
+这样 Django 就知道项目中包含了 ``polls`` 程序了。让我们执行另一条命令：
 
 .. code-block:: bash
 
@@ -419,9 +428,9 @@ __ irc://irc.freenode.net/django
 环境。“配置环境”包括以下两点：
 
 
-    * 在 ``sys.path`` 中加入 ``mysite`` 。便捷起见，项目中所引用的模块都是以
-      Python 的“点路径”的方式来表示（比如 ``'mysite.polls.models'`` ）。
-      为了这个目的， ``mysite`` 包就必须在包含在 ``sys.path`` 内。
+    * 在 ``sys.path`` 中加入 ``polls`` 。便捷起见，项目中所引用的模块都是以
+      Python 的“点路径”的方式来表示（比如 ``'polls.models'`` ）。
+      为了这个目的， ``polls`` 包就必须在包含在 ``sys.path`` 内。
 
       我们已经看到了一个例子： :setting:`INSTALLED_APPS` 就是一组用“点路径”方式
       表示的包的集合。
@@ -431,16 +440,17 @@ __ irc://irc.freenode.net/django
 
 .. admonition:: 忽略 manage.py
 
-    如果你不想用 ``manage.py`` ，没问题。只要确定 ``mysite`` 在 Python 根级别
-    路径下并且在 ``mysite.settings`` 中设置 ``DJANGO_SETTINGS_MODULE`` 环境
-    变量就行了。
+    如果你不想用 ``manage.py`` ，没问题。只要确定 ``mysite`` 和 ``polls`` 在
+    Python 根级别路径下（例如 ``import mysite`` 和 ``import polls`` 都可以正常
+    运行）并且在 ``mysite.settings`` 中设置 ``DJANGO_SETTINGS_MODULE`` 环境变量
+    就行了。
     
     要了解更多的内容，请参考
     :doc:`django-admin.py documentation </ref/django-admin>`
 
 在命令行状态下，我们来使用 :doc:`数据库 API </topics/db/queries>`::
 
-    >>> from mysite.polls.models import Poll, Choice # 导入我们刚才写的两个模型类。
+    >>> from polls.models import Poll, Choice # 导入我们刚才写的两个模型类。
 
     # 系统中还没有投票。
     >>> Poll.objects.all()
@@ -487,19 +497,6 @@ __ irc://irc.freenode.net/django
         def __unicode__(self):
             return self.choice
 
-.. admonition:: 如果 :meth:`~django.db.models.Model.__unicode__` 看起来好像没用
-
-    如果在模型中加入了 :meth:`~django.db.models.Model.__unicode__` 方法，但是在
-    命令行里对象的表现方式又没有任何改变，那你可能就是在用旧版本的Django。（这
-    个教程是针对最新的开发版本 Django 所写的）。如果使用 Subversion 工具获得
-    Django 开发版本（安装方法详见 :doc:`安装文档 </topics/install>` ），就不会出
-    现这个问题。
-    
-    如果你坚持使用旧版本的 Django ，那么应当学习 `Django 0.96 教程`__ ，因为这个
-    教程会用到一些开发版本中才有的功能。
-
-__ http://www.djangoproject.com/documentation/0.96/tutorial01/
-
 给模型加上 :meth:`~django.db.models.Model.__unicode__` 方法是很重要的，不仅是为
 了在命令行里保持思路清晰，而且会用于 Django 自动生成的管理界面里的内容
 
@@ -535,7 +532,7 @@ __ http://www.djangoproject.com/documentation/0.96/tutorial01/
 
 保存改变的文件，回到命令下重新运行 ``python manage.py shell`` 命令::
 
-    >>> from mysite.polls.models import Poll, Choice
+    >>> from polls.models import Poll, Choice
 
     # 验证我们的 __unicode__() 正常使用。
     >>> Poll.objects.all()
@@ -603,8 +600,11 @@ __ http://www.djangoproject.com/documentation/0.96/tutorial01/
     >>> c = p.choice_set.filter(choice__startswith='Just hacking')
     >>> c.delete()
 
-更多关于关系模型的信息参见 :doc:`操作关系对象 </ref/models/relations>` 。要了解
-所有数据库 API 细节，请查阅 :doc:`数据库 API 参考 </topics/db/queries>` 。
+更多关于关系模型的信息参见 :doc:`操作关系对象 </ref/models/relations>` 。更多
+关于如何使用双下划线来执行字段查询的信息参见 `Field lookups`__ 。要了解所有
+数据库 API 细节，请查阅 :doc:`数据库 API 参考 </topics/db/queries>` 。
+
+__ http://docs.djangoproject.com/en/1.2/topics/db/queries/#field-lookups
 
 当你可以熟练使用 API 后，请阅读 :doc:`教程第二部分 </intro/tutorial02>` ，学习
 自动创建 Django 管理程序。

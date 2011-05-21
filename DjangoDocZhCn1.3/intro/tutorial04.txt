@@ -64,13 +64,13 @@
     (r'^(?P<poll_id>\d+)/vote/$', 'vote'),
 
 我们还创建了一个假的 ``vote()`` 函数。现在让我们来创建一个真的，把以下内容添加
-到 ``mysite/polls/views.py`` 中::
+到 ``polls/views.py`` 中::
 
     from django.shortcuts import get_object_or_404, render_to_response
     from django.http import HttpResponseRedirect, HttpResponse
     from django.core.urlresolvers import reverse
     from django.template import RequestContext
-    from mysite.polls.models import Choice, Poll
+    from polls.models import Choice, Poll
     # ...
     def vote(request, poll_id):
         p = get_object_or_404(Poll, pk=poll_id)
@@ -88,7 +88,7 @@
             # Always return an HttpResponseRedirect after successfully dealing
             # with POST data. This prevents data from being posted twice if a
             # user hits the Back button.
-            return HttpResponseRedirect(reverse('mysite.polls.views.results', args=(p.id,)))
+            return HttpResponseRedirect(reverse('polls.views.results', args=(p.id,)))
 
 这段代码有些内容我们目前还没有提及到：
 
@@ -175,11 +175,9 @@
 
     1. 转换 URLconf 。
 
-    2. 重命名一些模板。
+    2. 删除一些旧的，不再需要的视图。
 
-    3. 删除一些旧的，不再需要的视图。
-
-    4. 根据新的视图调整 URL。
+    3. 根据新的视图调整 URL 。
 
 详情下面分解。
 
@@ -195,7 +193,7 @@
 
     from django.conf.urls.defaults import *
 
-    urlpatterns = patterns('mysite.polls.views',
+    urlpatterns = patterns('polls.views',
         (r'^$', 'index'),
         (r'^(?P<poll_id>\d+)/$', 'detail'),
         (r'^(?P<poll_id>\d+)/results/$', 'results'),
@@ -205,84 +203,67 @@
 将代码改成下面的样子::
 
     from django.conf.urls.defaults import *
-    from mysite.polls.models import Poll
-
-    info_dict = {
-        'queryset': Poll.objects.all(),
-    }
+    from django.views.generic import DetailView, ListView
+    from polls.models import Poll
 
     urlpatterns = patterns('',
-        (r'^$', 'django.views.generic.list_detail.object_list', info_dict),
-        (r'^(?P<object_id>\d+)/$',
-            'django.views.generic.list_detail.object_detail',
-            info_dict),
-        url(r'^(?P<object_id>\d+)/results/$',
-            'django.views.generic.list_detail.object_detail',
-            dict(info_dict, template_name='polls/results.html'),
-            'poll_results'),
-        (r'^(?P<poll_id>\d+)/vote/$', 'mysite.polls.views.vote'),
+        (r'^$',
+            ListView.as_view(
+                queryset=Poll.objects.order_by('-pub_date')[:5],
+                context_object_name='latest_poll_list',
+                template_name='polls/index.html')),
+        (r'^(?P<pk>\d+)/$',
+            DetailView.as_view(
+                model=Poll,
+                template_name='polls/detail.html')),
+        url(r'^(?P<pk>\d+)/results/$',
+            DetailView.as_view(
+                model=Poll,
+                template_name='polls/results.html'),
+            name='poll_results'),
+        (r'^(?P<poll_id>\d+)/vote/$', 'polls.views.vote'),
     )
 
-我们这里用了两个通用视图：
-:func:`~django.views.generic.list_detail.object_list` 和
-:func:`~django.views.generic.list_detail.object_detail` 。这两个视图分别用于
-显示对象列表和特定对象的内容。
+我们这里用了两个通用视图： :class:`~django.views.generic.list.ListView` 和
+:class:`~django.views.generic.detail.DetailView` 。这两个视图分别用于显示对象
+列表和特定对象的内容。
 
-    * 每个通用视图都需要知道处理哪些数据。这些数据通过一个字典类型对象提供。
-      上例中的 ``queryset`` 指向的的数据就是通用视图要处理的对象。
+    * ``model`` 参数用来告知通用视图都需要处理哪个模型。
 
-    * :func:`~django.views.generic.list_detail.object_detail` 通用视图需要一个
-      从 URL 中捕获的 ID 值，名称限定为 ``"object_id"`` 。所以我们把
-      ``poll_id`` 改成了 ``object_id`` 。
+    * :class:`~django.views.generic.list.DetailView` 通用视图需要从 URL 中捕获
+      一个名为 ``"pk"`` 的主键，所以我们把 ``poll_id`` 改成了 ``pk`` 。
 
     * 在 results 视图里我们加上了一个 ``poll_results`` 参数，这样就能在以后引用
       它的 URL 了（参见 :ref:`命名 URL 样式 <naming-url-patterns>` 文档）。我们
       还使用了 :mod:`django.conf.urls.defaults` 中的
-      :func:`~django.conf.urls.default.url` 。当我们以这种方式提供 URL 样式时，
-      使用 :func:`~django.conf.urls.default.url` 是一个好习惯。
+      :func:`~django.conf.urls.defaults.url` 。当我们以这种方式提供 URL 样式时，
+      使用 :func:`~django.conf.urls.defaults.url` 是一个好习惯。
 
-缺省情况下， :func:`~django.views.generic.list_detail.object_detail` 视图使用
-名为 ``<app name>/<model name>_detail.html`` 的模板。因此，在我们的例子中就应当
-使用的是名为 ``polls/poll_detail.html`` 的模板。所以，把 ``polls/detail.html``
-更名为 ``polls/poll_detail.html`` ，然后在 ``vote()`` 中修改
-:func:`~django.shortcuts.render_to_response` 这一行。
+缺省情况下， :class:`~django.views.generic.list.DetailView` 视图使用名为
+``<app name>/<model name>_detail.html`` 的模板。因此，在我们的例子中就应当
+使用的是名为 ``polls/poll_detail.html`` 的模板。 ``template_name`` 参数用于告诉
+Django 使用一个指定的模板名称来代替自动生成的模板名称。本例中，我们就为
+``results`` 列表视图指定了 ``template_name`` ，这样就可以使投票结果视图和投票
+细节视图的外观不同。其实这两个视图背后都使用
+:class:`~django.views.generic.list.DetailView` 。
 
-同理， :func:`~django.views.generic.list_detail.object_list` 通用视图使用名为
-``<app name>/<model name>_list.html`` 的模板。所以，把 ``polls/index.html``更名
-为 ``polls/poll_list.html`` 。
+同理， :class:`~django.views.generic.list.ListView` 通用视图使用名为
+``<app name>/<model name>_list.html`` 的模板。所以，我们使用 ``template_name``
+来告诉 :class:`~django.views.generic.list.ListView` 使用已存在的
+``"polls/index.html"`` 模板。
 
-由于在这个投票程序中的 URLconf 设置里，有多个纪录都用到了
-:func:`~django.views.generic.list_detail.object_detail` 视图，所以我们要手工给
-results 视图指定名为 ``template_name='polls/results.html'`` 的模板。否则，这些
-这些通用视图就会使用同一个模板。注意这里我们用 ``dict()`` 来返回一个新的字典。
-
-.. note:: :meth:`django.db.models.QuerySet.all` 是惰性的。
-
-    在 detail 视图中只需要使用一条 ``Poll`` 对象，而在这里使用
-    ``Poll.objects.all()`` 方法可能让人觉得有点恐怖。但是，不用担心，
-    ``Poll.objects.all()`` 实际上是一个特殊的
-    :class:`~django.db.models.QuerySet` 对象，这个对象是惰性的，只有在真正必要
-    的时候才会去访问数据库。在查询数据库时，
-    :func:`~django.views.generic.list_detail.object_detail` 视图会将范围缩小到
-    单个纪录，所以最终数据库中的查询只会返回一条纪录。
-    
-    如果你想知道这其中到底是怎么工作的，Django 数据库 API 文档会告诉你
-    :ref:`QuerySet对象的懒惰特性 <querysets-are-lazy>` 。
-
-在教程前面部分中，模板内都传入了一个包含 ``poll`` 和 ``latest_poll_list`` 
-的 context 对象。但是通用视图提供 ``object`` 和 ``object_list`` 作为context
-对象。所以，需要修改模板文件来适应新的 context 变量。在你的模板中，将所有
-``latest_poll_list`` 替换为 ``object_list`` ，所有 ``poll`` 替换为
-``object`` 。
+在前面的教程中，模板内都传入了一个包含 ``poll`` 和 ``latest_poll_list`` 环境
+变量的环境对象。对于 DetailView 视图 ``poll`` 变量被自动提供了。因为我们使用了
+一个 Django 模型（ ``Poll`` ）， Django 会自动选择一个合适的环境变量名称。但是，
+对于 ListView ，自动生成的变更名称为 ``poll_list`` 。为了重载这个行为，我们动用
+了 ``context_object_name`` 选项，重命名为 ``latest_poll_list`` 。当然，你也可以
+改变你的模板名称来适应新的缺省的环境变量名称，但是我们认为还是指定你想要的名称
+要方便许多。
 
 你现在可以从 ``polls/views.py`` 中删除 ``index()`` 、 ``detail()`` 和
 ``result()`` 视图了。我们不再需要这些代码了，它们已经被通用视图代替了。
 
-``vote()`` 视图还是需要的，但是要修改变量名。在
-:func:`~django.shortcuts.render_to_response` 中，将 ``poll`` 重命名为
-``object`` 。
-
-最后一件要做的事就是根据通用视图调整 URL 的处理。在vote视图中，我们使用了
+最后一件要做的事就是根据通用视图调整 URL 的处理。在 vote 视图中，我们使用了
 :func:`~django.core.urlresolvers.reverse` 函数来解决硬编码 URL 的问题。现在我们
 使用了通用视图，需要修改 :func:`~django.core.urlresolvers.reverse` 重新指向通用
 视图。我们不能简单地再直接用视图的名称了，因为通用视图是可以而且应当多次使用的，
@@ -292,8 +273,8 @@ results 视图指定名为 ``template_name='polls/results.html'`` 的模板。�
 
 重新启动测试服务器，看看这个使用了通用视图的全新程序。
 
-要全面了解通用视图的详细内容，请参考 :ref:`通用视图文档
-</topics/http-generic-views>` 。
+要全面了解通用视图的详细内容，请参考 :doc:`通用视图文档
+</topics/http/generic-views>` 。
 
 敬请期待
 ========

@@ -25,7 +25,7 @@
 
 在我们的投票程序中，我们有下列四个视图：
 
-    * 投票归档页面——显示最新的一些投票。
+    * 投票索引页面——显示最新的一些投票。
 
     * 投票详细页面——显示一个投票的问题，可以进行投票但是不显示投票结果。
 
@@ -57,8 +57,8 @@ Django从第一个正则表达式开始进行迭代，将用户请求的 URL 与
 传入。
 
 要了解更多关于 :class:`~django.http.HttpRequest` 的内容，参见
-:ref:`ref/request-response` 。关于 URLconfs ，详见
-:ref:`topics/http/urls` 。
+:doc:`/ref/request-response` 。关于 URLconf ，详见
+:doc:`/topics/http/urls` 。
 
 在第一部分开头，当你运行 ``python django-admin.py startproject mysite``时，就
 已经在 ``mysite/urls.py`` 中创建了一个默认的 URLconf 。它会自动将
@@ -74,10 +74,10 @@ Django从第一个正则表达式开始进行迭代，将用户请求的 URL 与
     admin.autodiscover()
 
     urlpatterns = patterns('',
-        (r'^polls/$', 'mysite.polls.views.index'),
-        (r'^polls/(?P<poll_id>\d+)/$', 'mysite.polls.views.detail'),
-        (r'^polls/(?P<poll_id>\d+)/results/$', 'mysite.polls.views.results'),
-        (r'^polls/(?P<poll_id>\d+)/vote/$', 'mysite.polls.views.vote'),
+        (r'^polls/$', 'polls.views.index'),
+        (r'^polls/(?P<poll_id>\d+)/$', 'polls.views.detail'),
+        (r'^polls/(?P<poll_id>\d+)/results/$', 'polls.views.results'),
+        (r'^polls/(?P<poll_id>\d+)/vote/$', 'polls.views.vote'),
         (r'^admin/', include(admin.site.urls)),
     )
 
@@ -85,8 +85,8 @@ Django从第一个正则表达式开始进行迭代，将用户请求的 URL 与
 会根据  :setting:`ROOT_URLCONF` 加载上面的模块。然后，在这个模块中查找
 ``urlpatterns`` 变量并按顺序遍历其中的正则表达式。当它找到一个匹配 URL 的
 正则表达式 ``r'^polls/(?P<poll_id>\d+)/$'`` 时，就会加载
-``mysite/polls/views.py`` 中的 ``detail()`` 函数。最终，会像下面这样调用
-``detail()`` 函数::
+``polls/views.py`` 中的 ``detail()`` 函数。最终，会像下面这样调用``detail()``
+函数::
 
     detail(request=<HttpRequest object>, poll_id='23')
 
@@ -99,7 +99,7 @@ The ``poll_id='23'`` 这个部分来自 ``(?P<poll_id>\d+)`` 。用括号包围�
 必要加上多余的 URL 部分，比如 ``.php`` 这样的扩展名。除非你有病态的幽默感，你
 可以像下面这样做::
 
-    (r'^polls/latest\.php$', 'mysite.polls.views.index'),
+    (r'^polls/latest\.php$', 'polls.views.index'),
 
 但是，千万这样做。太傻了。
 
@@ -134,17 +134,17 @@ Expressions ”（ Jeffrey Friedl 著）也是非常不错的。
 
     ViewDoesNotExist at /polls/
 
-    Tried index in module mysite.polls.views. Error was: 'module'
+    Tried index in module polls.views. Error was: 'module'
     object has no attribute 'index'
 
-产生这个错误的原因是因为你还没有在 ``mysite/polls/views.py`` 模型中编写
+产生这个错误的原因是因为你还没有在 ``polls/views.py`` 模型中编写
 ``index()`` 函数。
 
 试试访问“ /polls/23/ ”、“ /polls/23/results/ ”和“ /polls/23/vote/ ”。
 错误信息会告诉你 Django 会调用哪些视图（因为你还没有编写任何视图,所以
 出现的都是调用失败的信息，）。
 
-现在开始编写第一个视图。打开 ``mysite/polls/views.py``
+现在开始编写第一个视图。打开 ``polls/views.py``
 加入下面的 Python 代码::
 
     from django.http import HttpResponse
@@ -190,7 +190,7 @@ Expressions ”（ Jeffrey Friedl 著）也是非常不错的。
 修改一下index()视图函数，让它显示最新的5个投票问题，
 每个问题之间用逗号问分割并按照发布时间降序排列::
 
-    from mysite.polls.models import Poll
+    from polls.models import Poll
     from django.http import HttpResponse
 
     def index(request):
@@ -203,7 +203,7 @@ Expressions ”（ Jeffrey Friedl 著）也是非常不错的。
 现在我们用 Django 模版系统将页面设计从 Python 代码中分离出来::
 
     from django.template import Context, loader
-    from mysite.polls.models import Poll
+    from polls.models import Poll
     from django.http import HttpResponse
 
     def index(request):
@@ -258,7 +258,7 @@ Expressions ”（ Jeffrey Friedl 著）也是非常不错的。
 下面是重写过的 ``index()`` 方法::
 
     from django.shortcuts import render_to_response
-    from mysite.polls.models import Poll
+    from polls.models import Poll
 
     def index(request):
         latest_poll_list = Poll.objects.all().order_by('-pub_date')[:5]
@@ -384,9 +384,9 @@ Python 包格式的字符串（和 URLconf 里面的回调函数的格式是一�
     </ul>
 
 模板系统使用“变量.属性”的方法来访问变量的属性值。针对上面例子中的
-``{{ poll.question}}`` ， Django 先对 ``poll`` 对象做字典查询。如果不成功，就对
-属性进行查询（在这个例子属性查询成功了）。如果属性查询也失败的话，会尝试调用
-``poll`` 对象的 ``question()`` 方法。
+``{{ poll.question}}`` ， Django 先对 ``poll`` 对象做字典查询。如果不成功，就会
+尝试一个属性查询（在这个例子属性查询成功了）。如果属性查询也失败的话，列表索引
+查询。
 
 在 ``{% for %}`` 循环中： ``poll.choice_set.all`` 会解释为 Python 代码
 ``poll.choice_set.all()`` ，该方法会返回一组用于 ``{% for %}`` 标签的可迭代的
@@ -401,19 +401,19 @@ Choice 对象。
 上去有点冗余::
 
     urlpatterns = patterns('',
-        (r'^polls/$', 'mysite.polls.views.index'),
-        (r'^polls/(?P<poll_id>\d+)/$', 'mysite.polls.views.detail'),
-        (r'^polls/(?P<poll_id>\d+)/results/$', 'mysite.polls.views.results'),
-        (r'^polls/(?P<poll_id>\d+)/vote/$', 'mysite.polls.views.vote'),
+        (r'^polls/$', 'polls.views.index'),
+        (r'^polls/(?P<poll_id>\d+)/$', 'polls.views.detail'),
+        (r'^polls/(?P<poll_id>\d+)/results/$', 'polls.views.results'),
+        (r'^polls/(?P<poll_id>\d+)/vote/$', 'polls.views.vote'),
     )
 
-``mysite.polls.views`` 在代码中多次重复出现。
+``polls.views`` 在代码中多次重复出现。
 
 这种情况很常见，所以 URLconf 框架对这种相同前缀情况提供一个快捷方法。你可以把
 相同的前缀提取出来，将它作为 :func:`~django.conf.urls.defaults.patterns` 的第一
 个参数，就像下面这样::
 
-    urlpatterns = patterns('mysite.polls.views',
+    urlpatterns = patterns('polls.views',
         (r'^polls/$', 'index'),
         (r'^polls/(?P<poll_id>\d+)/$', 'detail'),
         (r'^polls/(?P<poll_id>\d+)/results/$', 'results'),
@@ -421,6 +421,26 @@ Choice 对象。
     )
 
 这里把相同的功能前置预定了，看起来要简洁一些。
+
+既然通常不需要在 URLconf 中为每个回调函数设置前辍，那么你可以串连多个
+:func:`~django.conf.urls.defaults.patterns` 。完整的 ``mysite/urls.py`` 应当
+如下::
+
+    from django.conf.urls.defaults import *
+
+    from django.contrib import admin
+    admin.autodiscover()
+    
+    urlpatterns = patterns('polls.views',
+        (r'^polls/$', 'index'),
+        (r'^polls/(?P<poll_id>\d+)/$', 'detail'),
+        (r'^polls/(?P<poll_id>\d+)/results/$', 'results'),
+        (r'^polls/(?P<poll_id>\d+)/vote/$', 'vote'),
+    )
+    
+    urlpatterns += patterns('',
+        (r'^admin/', include(admin.site.urls)),
+    )
 
 解耦 URLconf
 ============
@@ -436,14 +456,20 @@ Choice 对象。
 程序的 URL 是不应该放在整个项目的设置中的。所以让我们把 URL 设置转移到程序目录
 下面。
 
-复制 ``mysite/urls.py`` 到 ``mysite/polls/urls.py`` 。然后移除
-``mysite/urls.py`` 里和该程序有关的内容并插入一个
+复制 ``mysite/urls.py`` 为 ``polls/urls.py`` 。然后移除
+``mysite/urls.py`` 里和投票程序有关的 URLs 内容并插入一个
 :func:`~django.conf.urls.defaults.include`::
 
-    # ...
+    # This also imports the include function
+    from django.conf.urls.defaults import *
+    
+    from django.contrib import admin
+    admin.autodiscover()
+    
     urlpatterns = patterns('',
-        (r'^polls/', include('mysite.polls.urls')),
-        # ...
+        (r'^polls/', include('polls.urls')),
+        (r'^admin/', include(admin.site.urls)),
+    )
 
 :func:`~django.conf.urls.defaults.include` 就仅仅是引用了另外一个 URLconf
 设置。注意，上面的正则表达式中结尾没有 ``$`` （匹配字符串结尾的符号），而只有
@@ -455,12 +481,15 @@ Choice 对象。
 
     * Django 会找到匹配 ``'^polls/'`` 的部分。
 
-    * 然后， Django 移除匹配  ``'^polls/'`` 的部分并将剩余的部分 ``"34/"`` 传给
-      ``mysite.polls.urls`` 的 URLconf 做进一步处理。
+    * 然后， Django 移除匹配  ``"polls/"`` 的部分并将剩余的部分 ``"34/"`` 传给
+      ``polls.urls`` 的 URLconf 做进一步处理。
 
-现在我们开始解耦，把每一行前面的“ polls/ ”移除::
+现在我们开始解耦，我们需要通过移除每一行前面的“ polls/ ”来解耦
+``polls.urls`` ，同时移除注册管理站点的行。你的 ``polls.urls`` 文件应当如下::
 
-    urlpatterns = patterns('mysite.polls.views',
+    from django.conf.urls.defaults import *
+
+    urlpatterns = patterns('polls.views',
         (r'^$', 'index'),
         (r'^(?P<poll_id>\d+)/$', 'detail'),
         (r'^(?P<poll_id>\d+)/results/$', 'results'),
@@ -469,10 +498,10 @@ Choice 对象。
 
 使用 :func:`~django.conf.urls.defaults.include` 和 URLconf 配合进行解耦的目的是
 为了方便 URL 的即插即用。现在投票程序有自己独立的 URLconf 设置了，程序可以放在
-“ /polls/ ”下或者“ /fun_polls/ ”下甚至“ /content/polls/ ”下等等，程序都能正常
-运行。
+“ /polls/ ”下、“ /fun_polls/ ”下、“ /content/polls/ ”下或者其它任何根路径
+下，程序应当都能正常运行。
 
-投票程序关注的只是相对链接，不是绝对链接。
+所有投票程序关注的只是相对链接，而不是绝对链接。
 
 熟悉了视图之后，请阅读 :doc:`程序第四部分 </intro/tutorial04>` ，开始学习表单
 处理和通用视图。
