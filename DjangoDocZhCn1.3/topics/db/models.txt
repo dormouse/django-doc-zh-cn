@@ -21,7 +21,7 @@
     本文档有一篇名为 `模型例子的官方文档`_ 姐妹文档。（在 Django 的源代码中，
     这些例子在 ``tests/modeltests`` 目录下。）
 
-    .. _`模型例子的官方文档`: http://www.djangoproject.com/documentation/models/
+    .. _`模型例子的官方文档`: http://code.djangoproject.com/browser/django/trunk/tests/modeltests
 
 快速例子
 ========
@@ -57,7 +57,7 @@
       :ref:`automatic-primary-key-fields` 。
 
     * 上例中的 ``CREATE TABLE`` SQL 使用的是 PostgreSQL 语法，但值得指出的是
-      Django 会根据你的 :ref:`设置文件 </topics/settings>` 中设置的数据库类型在
+      Django 会根据你的 :doc:`设置文件 </topics/settings>` 中设置的数据库类型在
       后台生成相应的 SQL 语句。
 
 使用模型
@@ -106,8 +106,8 @@ Django 使用字段类来决定以下事项：
 
     * 数据库中的列的类型（如 ``INTEGER`` 、 ``VARCHAR`` ）。
 
-    * 在 Django 管理站点中使用的控件（如 ``<input type="text">`` 、
-      ``<select>`` ）。
+    * 在 Django 管理站点中使用的 :doc:`控件 </ref/forms/widgets>`
+      （如 ``<input type="text">`` 、 ``<select>`` ）。
 
     * 在 Django 管理站点和自动创建的表单中使用的数据验证方式。
 
@@ -255,7 +255,7 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 多对一关系
 ~~~~~~~~~~
 
-要定义多对一关系，请使用 :class:`~django.db.models.ForeignKey` 。使用方法与其他
+要定义多对一关系，请使用 :class:`django.db.models.ForeignKey` 。使用方法与其他
 :class:`~django.db.models.Field` 类型相同：把它作为你的模型的一个类属性。
 
 :class:`~django.db.models.ForeignKey` 需要一个位置参数：相关联的类。
@@ -284,12 +284,16 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 
 .. seealso::
 
-    更多例子参见 `多对一关系模型举例`_ 。
+    :class:`~django.db.models.ForeignKey` 也可以接受许多额外的参数，详见
+    :ref:`模型字段参考 <foreign-key-arguments>` 。这些参数定义了关系如何工作，
+    且都是可选参数。
 
-.. _多对一关系模型举例: http://www.djangoproject.com/documentation/models/many_to_one/
+    回溯关系对象参见 `根据关系回溯举例`_.
 
-:class:`~django.db.models.ForeignKey` 也可以接受许多额外的参数，详见 :ref:`模型
-字段参考 <foreign-key-arguments>` 。这些参数定义了关系如何工作，且都是可选参数。
+    更多例子参见 `多对一关系模型测试`_ 。
+
+    .. _根据关系回溯举例: http://docs.djangoproject.com/en/dev/topics/db/queries/#backwards-related-objects
+    .. _多对一关系模型测试: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/many_to_one
 
 多对多关系
 ~~~~~~~~~~
@@ -333,17 +337,16 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 
     更多例子参见 `多对多关系模型举例`_ 。
 
-.. _多对多关系模型举例: http://www.djangoproject.com/documentation/models/many_to_many/
+.. _多对多关系模型举例: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/many_to_many/models.py
 
-:class:`~django.db.models.ManyToManyField` 也可以接受许多额外的参数，详见 :ref:`模型
-字段参考 <manytomany-arguments>` 。这些参数定义了关系如何工作，且都是可选参数。
+:class:`~django.db.models.ManyToManyField` 也可以接受许多额外的参数，详见
+:ref:`模型字段参考 <manytomany-arguments>` 。这些参数定义了关系如何工作，且都是
+可选参数。
 
 .. _intermediary-manytomany:
 
 多对多关系上的扩展字段
 ~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 1.0
 
 当你处理如上例中的比萨饼和调料这种简单的多对多关系时，标准的
 :class:`~django.db.models.ManyToManyField` 就够用了。然而，有时你需要处理两个
@@ -432,8 +435,9 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 无法做到这点。所以使用中介模型不能这样创建关系，只能通过创建中介模型的实例来
 创建关系。
 
-同理， ``remove`` 方法也不可以。然而 ``clear()`` 方法可以用于移除一个实例的所有
-多对多关系::
+同理， :meth:`~django.db.models.fields.related.RelatedManager.remove` 方法也不
+可以。然而 :meth:`~django.db.models.fields.related.RelatedManager.clear` 方法
+可以用于移除一个实例的所有多对多关系::
 
     # Beatles 中所有关系都被清除
     >>> beatles.members.clear()
@@ -481,7 +485,7 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 
     更多例子参见 `一对一关系模型举例`_ 。
 
-.. _一对一关系模型举例: http://www.djangoproject.com/documentation/models/one_to_one/
+.. _一对一关系模型举例: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/one_to_one/models.py
 
 .. versionadded:: 1.0
 
@@ -498,7 +502,7 @@ Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考
 关联不同应用之中模型是非常方便的。只要在模型的开头导入要关联的模型，就可以引用
 在本模型中引用了。例如::
 
-    from mysite.geography.models import ZipCode
+    from geography.models import ZipCode
 
     class Restaurant(models.Model):
         # ...
@@ -529,8 +533,6 @@ SQL 语句针对特定的数据库使用引号语法。
 
 自定义字段类型
 ------------------
-
-.. versionadded:: 1.0
 
 如果现有的模型字段类型无法满足你的需要，或者你想要使用冷门的数据库列类型，那么
 你可以创建你自己的字段类。详见 :doc:`/howto/custom-model-fields` 。
@@ -662,6 +664,14 @@ SQL 语句针对特定的数据库使用引号语法。
 新的参数，所以我们在方法定义中使用 ``*args, **kwargs`` 作为参数，这样就可以保证
 当参数增加时我们的方法可以自动适应。
 
+.. admonition:: 重载删除
+
+    注意一个对象的 :meth:`~Model.delete()` 方法在
+    :ref:`使用一个查询集成批删除对象<topics-db-queries-delete>` 时是不调用的。
+    为保证自定义的删除方法被执行，可以使用
+    :data:`~django.db.models.signals.pre_delete` 和/或 
+    :data:`~django.db.models.signals.post_delete` 信号。
+
 执行自定义 SQL
 --------------
 
@@ -672,8 +682,6 @@ SQL 的内容参见 :doc:`使用原始 SQL</topics/db/sql>` 。
 
 模型继承
 =================
-
-.. versionadded:: 1.0
 
 Djaongo 中的模型继承的工作方式与 Python 中一般的类继承方式是基本一样的。你唯一
 要决定的是你想要父模型只有自身的权利（有自己的数据库表）还是只管理只能通过子
@@ -811,7 +819,7 @@ Django 中可能出现的继承有以下三种：
 多表继承是 Django 支持的第二种模型继承类型，这种继承类型中的模型是相对独立的。
 即每个模型都有自己对应的可以查询和分别创建的数据库表。这种继承会引进子模型与每
 一个父模型之间的链接（通过一个自动创建的
-:class:`~django.db.models.fields.OneToOneField` ）。例如::
+:class:`~django.db.models.OneToOneField` ）。例如::
 
     class Place(models.Model):
         name = models.CharField(max_length=50)
@@ -846,8 +854,8 @@ Restaurant.DoesNotExist 例外。
 只会导致矛盾行为。这与抽象基类是不同的，因为抽象基类没有自己的数据库表。
 
 所以子模型不能引用其父模型的 :ref:`元数据 <meta-options>` 类。然而，也有一些
-例外：如果子类没有定义一个 :attr:`django.db.models.Options.ordering` 属性或一个
-:attr:`django.db.models.Options.get_latest_by` 属性，那么子类会从父类继承这些
+例外：如果子类没有定义一个 :attr:`~django.db.models.Options.ordering` 属性或一个
+~:attr:`django.db.models.Options.get_latest_by` 属性，那么子类会从父类继承这些
 属性。
 
 如果父类有一个排序属性，而子类要取消这个属性，可以如下显式定义::
@@ -861,17 +869,17 @@ Restaurant.DoesNotExist 例外。
 继承和回溯关系
 ~~~~~~~~~~~~~~
 
-因为多表继承使用一个隐藏的 :class:`~django.db.models.fields.OneToOneField` 来
-关联父类和子类，所以可以由父类移动到子类，就像上例中一样。然而，这样使用的是
-:class:`django.db.models.fields.ForeignKey` 和
-:class:`django.db.models.fields.ManyToManyField` 关系的缺省的
+因为多表继承使用一个隐藏的 :class:`~django.db.models.OneToOneField` 来关联父类
+和子类，所以可以由父类移动到子类，就像上例中一样。然而，这样使用的是
+:class:`django.db.models..ForeignKey` 和
+:class:`django.db.models.ManyToManyField` 关系的缺省的
 :attr:`~django.db.models.ForeignKey.related_name` 的值。如果你要把这些类型的
 关系放在一个其他模型的子类上，你 **必须** 在每一个字段上定义
 :attr:`~django.db.models.ForeignKey.related_name` 属性。否则，当你运行
 :djadmin:`validate` or :djadmin:`syncdb` 时会产生一个错误。
 
 例如，还是使用上面的 ``Place`` 类，让我们用
-:class:`~django.db.models.fields.ManyToManyField` 创建另一个子类::
+:class:`~django.db.models.ManyToManyField` 创建另一个子类::
 
     class Supplier(Place):
         # Must specify related_name on all relations.
@@ -882,18 +890,16 @@ Restaurant.DoesNotExist 例外。
 ~~~~~~~~~~~~~~
 
 前文提到 Django 会自动创建一个
-:class:`~django.db.models.fields.OneToOneField` 来链接你的子类和非抽象父类。
+:class:`~django.db.models.OneToOneField` 来链接你的子类和非抽象父类。
 如果你要控制这个链接类的名字，那么你可以创建你自己的
-:class:`~django.db.models.fields.OneToOneField` 同时设置
-:attr:`parent_link=True <django.db.models.fields.OneToOneField.parent_link>`
+:class:`~django.db.models.OneToOneField` 同时设置
+:attr:`parent_link=True <django.db.models.OneToOneField.parent_link>`
 以回联到父类。
 
 .. _proxy-models:
 
 代理模型
 --------
-
-.. versionadded:: 1.1
 
 当使用 :ref:`多表继承 <multi-table-inheritance>` 时，会为每一个模型的子类创建
 一个新的数据库表。通常这种方式是我们期望得到的，因为子类需要存储基类所没有的
@@ -909,8 +915,8 @@ Restaurant.DoesNotExist 例外。
 :attr:`~django.db.models.Options.proxy` 属性设置为 ``True`` 就代表这个模型是一
 个代理模型。
 
-例如，假设你想要给标准的 ``User`` 模型添加一个方法，以便于以后用于你自己的模板
-中，你可以用下面的代码::
+例如，假设你想要给标准的 :class:`~django.contrib.auth.models.User` 模型添加一个
+方法，以便于以后用于你自己的模板中，你可以用下面的代码::
 
     from django.contrib.auth.models import User
 
@@ -921,32 +927,32 @@ Restaurant.DoesNotExist 例外。
         def do_something(self):
             ...
 
-``MyUser`` 类与 ``User`` 类操作的是同一个数据库。特别的是两个类都可以操作对方的
-实例::
+``MyUser`` 类与 :class:`~django.contrib.auth.models.User` 类操作的是同一个
+数据库。特别的是两个类都可以操作对方的实例::
 
     >>> u = User.objects.create(username="foobar")
     >>> MyUser.objects.get(username="foobar")
     <MyUser: foobar>
 
-你还可以使用代理模型来定义与源模型不同缺省排序方式。标准的 ``User`` 模型没有
-定义排序方式（这是有意为之的，因为排序是要耗费资源的，我们不希望每次读取用户
-信息时都进行排序）。当你使用代理模型时，你可能想要根据 ``username`` 来排序。
-通过以下代码可以轻易实现::
+你还可以使用代理模型来定义与源模型不同缺省排序方式。标准的
+:class:`~django.contrib.auth.models.User` 模型没有定义排序方式（这是有意为之
+的，因为排序是要耗费资源的，我们不希望每次读取用户信息时都进行排序）。当你使用
+代理模型时，你可能想要根据 ``username`` 来排序。通过以下代码可以轻易实现::
 
     class OrderedUser(User):
         class Meta:
             ordering = ["username"]
             proxy = True
 
-现在，一般 ``User`` 查询是无序的，而 ``OrderedUser`` 查询是按 ``username`` 排序
-的。
+现在，一般 :class:`~django.contrib.auth.models.User` 查询是无序的，而
+``OrderedUser`` 查询是按 ``username`` 排序的。
 
 查询集只会返回被请求的模型
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-当你针对 ``User`` 对象查询时，不会返回一个 ``MyUser`` 对象。一个针对 ``User``
-对象的查询集只会返回 ``User`` 对象。代理对象的要点是各个对象只会使用自己的代码
-而不会使用他方的代码。代理不是代替。
+当你针对 :class:`~django.contrib.auth.models.User` 对象查询时，不会返回一个
+``MyUser`` 对象。一个针对 ``User`` 对象的查询集只会返回 ``User`` 对象。代理对象
+的要点是各个对象只会使用自己的代码而不会使用他方的代码。代理不是代替。
 
 基类限制
 ~~~~~~~~
@@ -1040,17 +1046,18 @@ Restaurant.DoesNotExist 例外。
 ----------------------
 
 在一般的 Python 类继承中，子类可以重载父类的任何属性。但在 Django 中，不允许
-重载（起码现在不行） :class:`~django.db.models.fields.Field` 实例属性。假设一个
+重载（起码现在不行） :class:`~django.db.models.Field` 实例属性。假设一个
 基类有一个 ``author`` 字段，你就不能在其任何子类中创建名为 ``author`` 的字段。
 
 重载字段会导致初始化新实例（如在 ``Model.__init__`` 中指定哪个字段被初始化）和
-连续化方面的问题。这些功能在 Python 中处理的方法是不同的，因此 Django 模型继承
-和 Python 类继承之间的差异也不是随意产生的。
+连续化方面的问题。这些功能在 Python 中处理的方法是不同的。 Django 模型继承
+和 Python 类继承之间的差异不是随意产生的。
 
 这个限制只用于 :class:`~django.db.models.fields.Field` 实例属性上。一般的
 Python 属性是可以重载的。这个限制也只用于被 Python 所见的属性名称。例如如果你
 手工定义数据库列名称，那么在多表继承中你就可以在子模型和祖先模型中使用相同的
 列名（因为列不在同一个数据库表中）。
 
-如果你重载任何祖先类的字段，那么 Django 会抛出一个 ``FieldError`` 异常。
+如果你重载任何祖先类的字段，那么 Django 会抛出一个
+:exc:`~django.core.exceptions.FieldError` 异常。
 
