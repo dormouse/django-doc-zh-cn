@@ -1,34 +1,25 @@
 ==================
-Multiple databases
+使用多个数据库
 ==================
 
 .. versionadded:: 1.2
 
-This topic guide describes Django's support for interacting with
-multiple databases. Most of the rest of Django's documentation assumes
-you are interacting with a single database. If you want to interact
-with multiple databases, you'll need to take some additional steps.
+大多数其他文档都假设使用单一数据库，本文主要讨论如何在 Django 中使用多个数据库。
+使用多个数据库，要增加一些步骤。
 
-Defining your databases
+定义你的数据库
 =======================
 
-The first step to using more than one database with Django is to tell
-Django about the database servers you'll be using. This is done using
-the :setting:`DATABASES` setting. This setting maps database aliases,
-which are a way to refer to a specific database throughout Django, to
-a dictionary of settings for that specific connection. The settings in
-the inner dictionaries are described fully in the :setting:`DATABASES`
-documentation.
+使用多数据库的第一步是通过 :setting:`DATABASES` 设置要使用的数据库服务。这个
+设置用于映射数据库别名和特定的联结设置字典，这是 Django 定义数据库一贯的手法。
+字典内部的设置参见 :setting:`DATABASES` 文档。
 
-Databases can have any alias you choose. However, the alias
-``default`` has special significance. Django uses the database with
-the alias of ``default`` when no other database has been selected. If
-you don't have a ``default`` database, you need to be careful to
-always specify the database that you want to use.
+数据库可以使用任何别名，但是 ``default`` 有特殊意义。当没有选择其他数据库时，
+Django 总是使用别名为 ``default`` 的数据库。因此，如果你没有定义一个名为
+``default`` 的数据库时，你应当小心了，在使用数据库前要指定你想用的数据库。
 
-The following is an example ``settings.py`` snippet defining two
-databases -- a default PostgreSQL database and a MySQL database called
-``users``:
+以下是一个定义两个数据库的 ``settings.py`` 代码片断。定义了一个缺省的
+PostgreSQL 数据库和一个名为 ``users`` 的 MySQL 数据库：
 
 .. code-block:: python
 
@@ -47,40 +38,33 @@ databases -- a default PostgreSQL database and a MySQL database called
         }
     }
 
-If you attempt to access a database that you haven't defined in your
-:setting:`DATABASES` setting, Django will raise a
-``django.db.utils.ConnectionDoesNotExist`` exception.
+如果你尝试访问 :setting:`DATABASES` 设置中没有定义的数据库， Django 会抛出一个
+``django.db.utils.ConnectionDoesNotExist`` 异常。
 
-Synchronizing your databases
+同步你的数据库
 ============================
 
-The :djadmin:`syncdb` management command operates on one database at a
-time. By default, it operates on the ``default`` database, but by
-providing a :djadminopt:`--database` argument, you can tell syncdb to
-synchronize a different database. So, to synchronize all models onto
-all databases in our example, you would need to call::
+:djadmin:`syncdb` 管理命令一次只操作一个数据库。缺省情况下，它操作 ``default``
+数据库。但是加上 :djadminopt:`--database` 参数，你可以让 syncdb 同步不同的
+数据库。所以要同步我们例子中的所有数据库的所有模型可以使用如下命令::
 
     $ ./manage.py syncdb
     $ ./manage.py syncdb --database=users
 
-If you don't want every application to be synchronized onto a
-particular database, you can define a :ref:`database
-router<topics-db-multi-db-routing>` that implements a policy
-constraining the availability of particular models.
+如果你不是同步所有的程序到同一个数据库中，你可定义一个
+:ref:`数据库路由<topics-db-multi-db-routing>` 来为指定的模型实施特定的控制
+策略。
 
-Alternatively, if you want fine-grained control of synchronization,
-you can pipe all or part of the output of :djadmin:`sqlall` for a
-particular application directly into your database prompt, like this::
+如果你要精细地控制同步，那么还有一种方式是修改 :djadmin:`sqlall` 的输出，手工在
+数据库中执行命令，命令如下::
 
     $ ./manage.py sqlall sales | ./manage.py dbshell
 
-Using other management commands
+使用其他管理命令
 -------------------------------
 
-The other ``django-admin.py`` commands that interact with the database
-operate in the same way as :djadmin:`syncdb` -- they only ever operate
-on one database at a time, using :djadminopt:`--database` to control
-the database used.
+其他操作数据库的 ``django-admin.py`` 命令与 :djadmin:`syncdb` 类似，他们一次只
+操作一个数据库，使用 :djadminopt:`--database` 来控制使用哪个数据库。
 
 .. _topics-db-multi-db-routing:
 
@@ -458,7 +442,7 @@ database other than that that specified by your router chain, you'll
 need to write custom :class:`~django.contrib.admin.ModelAdmin` classes
 that will direct the admin to use a specific database for content.
 
-``ModelAdmin`` objects have four methods that require customization for
+``ModelAdmin`` objects have five methods that require customization for
 multiple-database support::
 
     class MultiDBModelAdmin(admin.ModelAdmin):
@@ -468,6 +452,10 @@ multiple-database support::
         def save_model(self, request, obj, form, change):
             # Tell Django to save objects to the 'other' database.
             obj.save(using=self.using)
+
+        def delete_model(self, request, obj):
+            # Tell Django to delete objects from the 'other' database
+            obj.delete(using=self.using)
 
         def queryset(self, request):
             # Tell Django to look for objects on the 'other' database.
@@ -538,7 +526,7 @@ Using raw cursors with multiple databases
 If you are using more than one database you can use
 ``django.db.connections`` to obtain the connection (and cursor) for a
 specific database. ``django.db.connections`` is a dictionary-like
-object that allows you to retrieve a specific connection using it's
+object that allows you to retrieve a specific connection using its
 alias::
 
     from django.db import connections
