@@ -1,36 +1,33 @@
 ======
-Models
+模型
 ======
 
 .. module:: django.db.models
 
-A model is the single, definitive source of data about your data. It contains
-the essential fields and behaviors of the data you're storing. Generally, each
-model maps to a single database table.
+一个模型是你的数据的唯一的，精确的数据来源。它包含你所储存的数据的字段的本质和
+行为。通常每个模型对应一个数据库中的表。
 
-The basics:
+基本上：
 
-    * Each model is a Python class that subclasses
-      :class:`django.db.models.Model`.
+    * 每一个模型是一个由 :class:`django.db.models.Model` 继承而来的子类。
 
-    * Each attribute of the model represents a database field.
+    * 模型的每一个属性对应一个数据库中的字段。
 
-    * With all of this, Django gives you an automatically-generated
-      database-access API; see :doc:`/topics/db/queries`.
+    * Django 会为你的模型自动生成数据库操作的 API ；详见
+      :doc:`/topics/db/queries` 。
 
 .. seealso::
 
-    A companion to this document is the `official repository of model
-    examples`_. (In the Django source distribution, these examples are in the
-    ``tests/modeltests`` directory.)
+    本文档有一篇名为 `模型例子的官方文档`_ 姐妹文档。（在 Django 的源代码中，
+    这些例子在 ``tests/modeltests`` 目录下。）
 
-    .. _official repository of model examples: http://code.djangoproject.com/browser/django/trunk/tests/modeltests
+    .. _`模型例子的官方文档`: http://www.djangoproject.com/documentation/models/
 
-Quick example
-=============
+快速例子
+========
 
-This example model defines a ``Person``, which has a ``first_name`` and
-``last_name``::
+以下例子定义了一个关于人（ ``Person`` ）的模型，包含姓（ ``first_name`` ）和名
+（ ``last_name`` ）两个字段::
 
     from django.db import models
 
@@ -38,10 +35,10 @@ This example model defines a ``Person``, which has a ``first_name`` and
         first_name = models.CharField(max_length=30)
         last_name = models.CharField(max_length=30)
 
-``first_name`` and ``last_name`` are fields_ of the model. Each field is
-specified as a class attribute, and each attribute maps to a database column.
+``first_name`` 和 ``last_name`` 是模型的两个 字段_ ，每个字段定义为类的属性，
+每个属性映射到一个数据库的列。
 
-The above ``Person`` model would create a database table like this:
+上例中的 ``Person`` 模型将会创建如下的数据库表：
 
 .. code-block:: sql
 
@@ -51,31 +48,27 @@ The above ``Person`` model would create a database table like this:
         "last_name" varchar(30) NOT NULL
     );
 
-Some technical notes:
+一些技术说明：
 
-    * The name of the table, ``myapp_person``, is automatically derived from
-      some model metadata but can be overridden. See :ref:`table-names` for more
-      details..
+    * 数据库表的名称 ``myapp_person`` 是自动根据模型的元数据创建的，创建的方法
+      可以重载。详见 :ref:`table-names` 。
 
-    * An ``id`` field is added automatically, but this behavior can be
-      overridden. See :ref:`automatic-primary-key-fields`.
+    * 自动添加了一个 ``id`` 字段，这种行为也是可以重载的。参见
+      :ref:`automatic-primary-key-fields` 。
 
-    * The ``CREATE TABLE`` SQL in this example is formatted using PostgreSQL
-      syntax, but it's worth noting Django uses SQL tailored to the database
-      backend specified in your :doc:`settings file </topics/settings>`.
+    * 上例中的 ``CREATE TABLE`` SQL 使用的是 PostgreSQL 语法，但值得指出的是
+      Django 会根据你的 :ref:`设置文件 </topics/settings>` 中设置的数据库类型在
+      后台生成相应的 SQL 语句。
 
-Using models
-============
+使用模型
+========
 
-Once you have defined your models, you need to tell Django you're going to *use*
-those models. Do this by editing your settings file and changing the
-:setting:`INSTALLED_APPS` setting to add the name of the module that contains
-your ``models.py``.
+一旦定义好了你的模型，就得告诉 Django 你要 *使用* 这些模型。操作方法是编辑你的
+设置文件，在 :setting:`INSTALLED_APPS` 设置中增加你的 ``models.py`` 。
 
-For example, if the models for your application live in the module
-``mysite.myapp.models`` (the package structure that is created for an
-application by the :djadmin:`manage.py startapp <startapp>` script),
-:setting:`INSTALLED_APPS` should read, in part::
+例如，如果你的应用中模型放在 ``mysite.myapp.models`` 模块（由
+:djadmin:`manage.py startapp <startapp>` 语句创建的包结构）中，那么
+:setting:`INSTALLED_APPS` 应当包含如下内容::
 
     INSTALLED_APPS = (
         #...
@@ -83,17 +76,16 @@ application by the :djadmin:`manage.py startapp <startapp>` script),
         #...
     )
 
-When you add new apps to :setting:`INSTALLED_APPS`, be sure to run
-:djadmin:`manage.py syncdb <syncdb>`.
+每次向 :setting:`INSTALLED_APPS` 增加新的应用后，必须执行
+:djadmin:`manage.py syncdb <syncdb>` 。
 
-Fields
-======
+字段
+====
 
-The most important part of a model -- and the only required part of a model --
-is the list of database fields it defines. Fields are specified by class
-attributes.
+一个模型最重要且不可或缺的部分就是数据库中定义的字段的列表。字段以类的属性的
+方式定义。
 
-Example::
+例如::
 
     class Musician(models.Model):
         first_name = models.CharField(max_length=50)
@@ -106,61 +98,52 @@ Example::
         release_date = models.DateField()
         num_stars = models.IntegerField()
 
-Field types
+字段类型
 -----------
 
-Each field in your model should be an instance of the appropriate
-:class:`~django.db.models.Field` class. Django uses the field class types to
-determine a few things:
+你的模型中的每一个字段都应当是相应的 :class:`~django.db.models.Field` 类的实例。
+Django 使用字段类来决定以下事项：
 
-    * The database column type (e.g. ``INTEGER``, ``VARCHAR``).
+    * 数据库中的列的类型（如 ``INTEGER`` 、 ``VARCHAR`` ）。
 
-    * The :doc:`widget </ref/forms/widgets>` to use in Django's admin interface,
-      if you care to use it (e.g. ``<input type="text">``, ``<select>``).
+    * 在 Django 管理站点中使用的控件（如 ``<input type="text">`` 、
+      ``<select>`` ）。
 
-    * The minimal validation requirements, used in Django's admin and in
-      automatically-generated forms.
+    * 在 Django 管理站点和自动创建的表单中使用的数据验证方式。
 
-Django ships with dozens of built-in field types; you can find the complete list
-in the :ref:`model field reference <model-field-types>`. You can easily write
-your own fields if Django's built-in ones don't do the trick; see
-:doc:`/howto/custom-model-fields`.
+Django 带有许多内置的字段类型，你可以在 :ref:`模型字段参考 <model-field-types>`
+中找到完整的清单。如果内置的字段类型不够用，你可以方便地创建自定义的字段类型，
+参见 :doc:`/howto/custom-model-fields` 。
 
-Field options
--------------
+字段参数
+--------
 
-Each field takes a certain set of field-specific arguments (documented in the
-:ref:`model field reference <model-field-types>`). For example,
-:class:`~django.db.models.CharField` (and its subclasses) require a
-:attr:`~django.db.models.CharField.max_length` argument which specifies the size
-of the ``VARCHAR`` database field used to store the data.
+每种字段都有一些特定的参数，参见 :ref:`模型字段参考 <model-field-types>` 。例如
+:class:`~django.db.models.CharField` （包括其子类）用于数据中的 ``VARCHAR``
+字段，这个类需要一个定义长度的 :attr:`~django.db.models.CharField.max_length`
+参数。
 
-There's also a set of common arguments available to all field types. All are
-optional. They're fully explained in the :ref:`reference
-<common-model-field-options>`, but here's a quick summary of the most often-used
-ones:
+还有一些通用于各种字段的参数，这些参数都是可选参数。详见 :ref:`参考
+<common-model-field-options>` ，以下是这些参数中最常用参数的概述：
 
     :attr:`~Field.null`
-        If ``True``, Django will store empty values as ``NULL`` in the database.
-        Default is ``False``.
+        如果值为 ``True`` ，那么 Django 在数据库中储存空值，即 ``NULL`` 。
+        缺省值为 ``False`` 。
 
     :attr:`~Field.blank`
-        If ``True``, the field is allowed to be blank. Default is ``False``.
+        如果值为 ``True`` ，那么 field 允许为空。缺省值为 ``False`` 。
 
-        Note that this is different than :attr:`~Field.null`.
-        :attr:`~Field.null` is purely database-related, whereas
-        :attr:`~Field.blank` is validation-related. If a field has
-        :attr:`blank=True <Field.blank>`, validation on Django's admin site will
-        allow entry of an empty value. If a field has :attr:`blank=False
-        <Field.blank>`, the field will be required.
+        注意这个参数与 :attr:`~Field.null` 是不同的。 :attr:`~Field.null`
+        是与数据库相关的，而 :attr:`~Field.blank` 是与验证相关的。如果一个
+        字段设置为 ``blank=True`` ，那么在 Django 的管理站点中允许输入项为空；
+        如果设置为 ``blank=False`` ，那么这个字段为必填项。
 
     :attr:`~Field.choices`
-        An iterable (e.g., a list or tuple) of 2-tuples to use as choices for
-        this field. If this is given, Django's admin will use a select box
-        instead of the standard text field and will limit choices to the choices
-        given.
+        一个用于该字段的选择项的可迭代对象（例如 list 或 tuple ），由二元 tuple
+        组成。如果有这个参数，那么 Django 管理站点中这个字段的输入会用一个选择
+        框来代替文本框。
 
-        A choices list looks like this::
+        一个 choices 列表例子如下::
 
             YEAR_IN_SCHOOL_CHOICES = (
                 (u'FR', u'Freshman'),
@@ -170,11 +153,9 @@ ones:
                 (u'GR', u'Graduate'),
             )
 
-        The first element in each tuple is the value that will be stored in the
-        database, the second element will be displayed by the admin interface,
-        or in a ModelChoiceField. Given an instance of a model object, the
-        display value for a choices field can be accessed using the
-        ``get_FOO_display`` method. For example::
+        每个 tuple 第一个元素该选项是要储存的实际值，第二个元素管理站点或
+        ModelChoiceField 中要显示的内容。通过使用 ``get_FOO_display`` 可以得到
+        一个模型对象要显示的值。例如::
 
             from django.db import models
 
@@ -196,104 +177,91 @@ ones:
             u'Male'
 
     :attr:`~Field.default`
-        The default value for the field. This can be a value or a callable
-        object. If callable it will be called every time a new object is
-        created.
+        字段的缺省值。可以是一个值或一个可调用的对象。如果是一个可调用的对象，
+        那么每次创建一个新对象时都会调用这个对象一次。
 
     :attr:`~Field.help_text`
-        Extra "help" text to be displayed under the field on the object's admin
-        form. It's useful for documentation even if your object doesn't have an
-        admin form.
+        显示在对象的 admin 表单中的 field 下的额外的“帮助”文本。即使你不使用
+        admin 表单，这个对于程序说明也有很大帮助。
 
     :attr:`~Field.primary_key`
-        If ``True``, this field is the primary key for the model.
+        如果值为 ``True`` ，那么这个字段就是模型的主键。
 
-        If you don't specify :attr:`primary_key=True <Field.primary_key>` for
-        any fields in your model, Django will automatically add an
-        :class:`IntegerField` to hold the primary key, so you don't need to set
-        :attr:`primary_key=True <Field.primary_key>` on any of your fields
-        unless you want to override the default primary-key behavior. For more,
-        see :ref:`automatic-primary-key-fields`.
+        如果你不在任何一个字段定义 ``primary_key=True`` ，那么 Django 自动添加
+        一个 :class:`IntegerField` 作为 primary key 。所以除非你想重载缺省的
+        primary-key ，你不必在任何一个 field 设置 ``primary_key=True`` 。更多
+        内容参见 :ref:`automatic-primary-key-fields` 。
 
     :attr:`~Field.unique`
-        If ``True``, this field must be unique throughout the table.
+        如果值为 ``True`` ，那么这个 field 在表中只能有唯一值。
 
-Again, these are just short descriptions of the most common field options. Full
-details can be found in the :ref:`common model field option reference
-<common-model-field-options>`.
+重复一下，以上只是最常用的字段参数的简要说明。完整的细节参见 :ref:`常用模型字段
+参数参考 <common-model-field-options>` 。
 
 .. _automatic-primary-key-fields:
 
-Automatic primary key fields
-----------------------------
+自动主键字段
+------------
 
-By default, Django gives each model the following field::
+缺省情况下， Django 给每一个模型添加下面的字段::
 
     id = models.AutoField(primary_key=True)
 
-This is an auto-incrementing primary key.
+这是一个自增主键。
 
-If you'd like to specify a custom primary key, just specify
-:attr:`primary_key=True <Field.primary_key>` on one of your fields. If Django
-sees you've explicitly set :attr:`Field.primary_key`, it won't add the automatic
-``id`` column.
+如果你想要自定义主键，那么只要在你想要的字段上定义
+:attr:`primary_key=True <Field.primary_key>` 就可以了。即如果 Django 发现你显式
+的设置了 :attr:`Field.primary_key` ，那么就不会自动增加 ``id`` 列了。
 
-Each model requires exactly one field to have :attr:`primary_key=True
-<Field.primary_key>`.
+每个模型都需要一个有 :attr:`primary_key=True <Field.primary_key>` 属性的字段。
 
 .. _verbose-field-names:
 
-Verbose field names
--------------------
+详细字段名称
+------------
 
-Each field type, except for :class:`~django.db.models.ForeignKey`,
-:class:`~django.db.models.ManyToManyField` and
-:class:`~django.db.models.OneToOneField`, takes an optional first positional
-argument -- a verbose name. If the verbose name isn't given, Django will
-automatically create it using the field's attribute name, converting underscores
-to spaces.
+除了 :class:`~django.db.models.ForeignKey` 、
+:class:`~django.db.models.ManyToManyField` 和
+:class:`~django.db.models.OneToOneField` 之外的第一个字段，第一个可选参数都是
+详细名称。如果这个详细名称参数没有定义，那么 Django 会把通过把字段名称的下划线
+转换为空格的方式自动创建字段的详细名称。
 
-In this example, the verbose name is ``"person's first name"``::
+在下例中，详细名称为 ``"Person's first name"``::
 
-    first_name = models.CharField("person's first name", max_length=30)
+    first_name = models.CharField("Person's first name", max_length=30)
 
-In this example, the verbose name is ``"first name"``::
+在下例中，详细名称为 ``"first name"``::
 
     first_name = models.CharField(max_length=30)
 
-:class:`~django.db.models.ForeignKey`,
-:class:`~django.db.models.ManyToManyField` and
-:class:`~django.db.models.OneToOneField` require the first argument to be a
-model class, so use the :attr:`~Field.verbose_name` keyword argument::
+:class:`~django.db.models.ForeignKey` 、
+:class:`~django.db.models.ManyToManyField` 和
+:class:`~django.db.models.OneToOneField` 的第一个参数是一个模型类，因此使用
+:attr:`~Field.verbose_name` 关键字来定义详细名称::
 
     poll = models.ForeignKey(Poll, verbose_name="the related poll")
     sites = models.ManyToManyField(Site, verbose_name="list of sites")
     place = models.OneToOneField(Place, verbose_name="related place")
 
-The convention is not to capitalize the first letter of the
-:attr:`~Field.verbose_name`. Django will automatically capitalize the first
-letter where it needs to.
+按照惯例， :attr:`~Field.verbose_name` 开头第一个字母是不大写的。 Django 会在
+恰当的时候自动处理开头字母大写。
 
-Relationships
--------------
+关系
+----
 
-Clearly, the power of relational databases lies in relating tables to each
-other. Django offers ways to define the three most common types of database
-relationships: many-to-one, many-to-many and one-to-one.
+显然，关系型数据库的关键是表与表之间的关系。 Django 提供了三种常用的的关系：
+多对一、多对多、一对一。
 
-Many-to-one relationships
-~~~~~~~~~~~~~~~~~~~~~~~~~
+多对一关系
+~~~~~~~~~~
 
-To define a many-to-one relationship, use :class:`django.db.models.ForeignKey`.
-You use it just like any other :class:`~django.db.models.Field` type: by
-including it as a class attribute of your model.
+要定义多对一关系，请使用 :class:`~django.db.models.ForeignKey` 。使用方法与其他
+:class:`~django.db.models.Field` 类型相同：把它作为你的模型的一个类属性。
 
-:class:`~django.db.models.ForeignKey` requires a positional argument: the class
-to which the model is related.
+:class:`~django.db.models.ForeignKey` 需要一个位置参数：相关联的类。
 
-For example, if a ``Car`` model has a ``Manufacturer`` -- that is, a
-``Manufacturer`` makes multiple cars but each ``Car`` only has one
-``Manufacturer`` -- use the following definitions::
+例如，一个 ``汽车（ Car ）`` 模型有一个 ``厂商（Manufacturer ）`` 字段。一个
+``厂商`` 可以对应多个汽车，但一个 ``汽车`` 只有一个 ``厂商`` 。定义如下::
 
     class Manufacturer(models.Model):
         # ...
@@ -302,15 +270,13 @@ For example, if a ``Car`` model has a ``Manufacturer`` -- that is, a
         manufacturer = models.ForeignKey(Manufacturer)
         # ...
 
-You can also create :ref:`recursive relationships <recursive-relationships>` (an
-object with a many-to-one relationship to itself) and :ref:`relationships to
-models not yet defined <lazy-relationships>`; see :ref:`the model field
-reference <ref-foreignkey>` for details.
+你也可以创建一个 :ref:`递归关系 <recursive-relationships>` （一个对象对于其本身
+有多对一关系）和 :ref:`对应于未创建模型的关系 <lazy-relationships>` ，详见
+:ref:`模型字段关系参考 <ref-foreignkey>` 。
 
-It's suggested, but not required, that the name of a
-:class:`~django.db.models.ForeignKey` field (``manufacturer`` in the example
-above) be the name of the model, lowercase. You can, of course, call the field
-whatever you want. For example::
+只是作为一个建议，但不是规定，一个 :class:`~django.db.models.ForeignKey` 字段（
+如上例中的 ``厂商`` ）的名称应当与相应模型的名称相同，并且小写。当然，
+你也可以定义为任何名称，例如::
 
     class Car(models.Model):
         company_that_makes_it = models.ForeignKey(Manufacturer)
@@ -318,33 +284,24 @@ whatever you want. For example::
 
 .. seealso::
 
-    :class:`~django.db.models.ForeignKey` fields accept a number of extra
-    arguments which are explained in :ref:`the model field reference
-    <foreign-key-arguments>`. These options help define how the relationship
-    should work; all are optional.
+    更多例子参见 `多对一关系模型举例`_ 。
 
-    For details on accessing backwards-related objects, see the
-    `Following relationships backward example`_.
-    
-    For sample code, see the `Many-to-one relationship model tests`_.
+.. _多对一关系模型举例: http://www.djangoproject.com/documentation/models/many_to_one/
 
-    .. _Following relationships backward example: http://docs.djangoproject.com/en/dev/topics/db/queries/#backwards-related-objects
-    .. _Many-to-one relationship model tests: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/many_to_one
+:class:`~django.db.models.ForeignKey` 也可以接受许多额外的参数，详见 :ref:`模型
+字段参考 <foreign-key-arguments>` 。这些参数定义了关系如何工作，且都是可选参数。
 
-Many-to-many relationships
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+多对多关系
+~~~~~~~~~~
 
-To define a many-to-many relationship, use
-:class:`~django.db.models.ManyToManyField`. You use it just like any other
-:class:`~django.db.models.Field` type: by including it as a class attribute of
-your model.
+要定义多对多关系，请使用 :class:`~django.db.models.ManyToManyField` 。使用
+方法与其他 :class:`~django.db.models.Field` 类型相同：把它作为你的模型的一个
+类属性。
 
-:class:`~django.db.models.ManyToManyField` requires a positional argument: the
-class to which the model is related.
+:class:`~django.db.models.ManyToManyField` 需要一个位置参数：相关联的类。
 
-For example, if a ``Pizza`` has multiple ``Topping`` objects -- that is, a
-``Topping`` can be on multiple pizzas and each ``Pizza`` has multiple toppings
--- here's how you'd represent that::
+例如，假设一个 ``比萨饼（ Pizza ）`` 有多个 ``调料（ Topping ）`` 对象，一个
+``调料`` 对应多个比萨饼并且每个 ``比萨饼`` 有多个调料。定义如下::
 
     class Topping(models.Model):
         # ...
@@ -353,62 +310,54 @@ For example, if a ``Pizza`` has multiple ``Topping`` objects -- that is, a
         # ...
         toppings = models.ManyToManyField(Topping)
 
-As with :class:`~django.db.models.ForeignKey`, you can also create
-:ref:`recursive relationships <recursive-relationships>` (an object with a
-many-to-many relationship to itself) and :ref:`relationships to models not yet
-defined <lazy-relationships>`; see :ref:`the model field reference
-<ref-manytomany>` for details.
+就象 :class:`~django.db.models.ForeignKey` 一样，你也可以创建
+:ref:`递归关系 <recursive-relationships>` （一个对象对于其本身
+有多对多关系）和 :ref:`对应于未创建模型的关系 <lazy-relationships>` ，详见
+:ref:`模型字段关系参考 <ref-manytomany>` 。
 
-It's suggested, but not required, that the name of a
-:class:`~django.db.models.ManyToManyField` (``toppings`` in the example above)
-be a plural describing the set of related model objects.
+只是作为一个建议，但不是规定，一个
+:class:`~django.db.models.ManyToManyField` （如上例中的 ``调料`` ）的名称应当是
+相关模型对象的复数。
 
-It doesn't matter which model gets the
-:class:`~django.db.models.ManyToManyField`, but you only need it in one of the
-models -- not in both.
+不管在哪个模型中使用 :class:`~django.db.models.ManyToManyField` ，但是你只需要
+在一个模型中使用，不需要两个模型中都使用。
 
-Generally, :class:`~django.db.models.ManyToManyField` instances should go in the
-object that's going to be edited in the admin interface, if you're using
-Django's admin. In the above example, ``toppings`` is in ``Pizza`` (rather than
-``Topping`` having a ``pizzas`` :class:`~django.db.models.ManyToManyField` )
-because it's more natural to think about a pizza having toppings than a
-topping being on multiple pizzas. The way it's set up above, the ``Pizza`` admin
-form would let users select the toppings.
+通常，如果你想使用管理站点，那么 :class:`~django.db.models.ManyToManyField`
+实例应当在准备中管理站点中编辑的对象中使用。在上例中， ``调料`` 在
+``比萨饼`` 中定义（比 ``调料`` 有一个关于 ``比萨饼`` 的
+:class:`~django.db.models.ManyToManyField` 好）。因为一个比萨饼有多种调料比一个
+调料有多个比萨饼要自然一点。根据上例中的定义，在 ``比萨饼`` 管理表单中
+用户可以选择不同的调料。
 
 .. seealso::
 
-    See the `Many-to-many relationship model example`_ for a full example.
+    更多例子参见 `多对多关系模型举例`_ 。
 
-.. _Many-to-many relationship model example: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/many_to_many/models.py
+.. _多对多关系模型举例: http://www.djangoproject.com/documentation/models/many_to_many/
 
-:class:`~django.db.models.ManyToManyField` fields also accept a number of extra
-arguments which are explained in :ref:`the model field reference
-<manytomany-arguments>`. These options help define how the relationship should
-work; all are optional.
+:class:`~django.db.models.ManyToManyField` 也可以接受许多额外的参数，详见 :ref:`模型
+字段参考 <manytomany-arguments>` 。这些参数定义了关系如何工作，且都是可选参数。
 
 .. _intermediary-manytomany:
 
-Extra fields on many-to-many relationships
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+多对多关系上的扩展字段
+~~~~~~~~~~~~~~~~~~~~~~
 
-When you're only dealing with simple many-to-many relationships such as
-mixing and matching pizzas and toppings, a standard :class:`~django.db.models.ManyToManyField` is all you need. However, sometimes
-you may need to associate data with the relationship between two models.
+.. versionadded:: 1.0
 
-For example, consider the case of an application tracking the musical groups
-which musicians belong to. There is a many-to-many relationship between a person
-and the groups of which they are a member, so you could use a
-:class:`~django.db.models.ManyToManyField` to represent this relationship.
-However, there is a lot of detail about the membership that you might want to
-collect, such as the date at which the person joined the group.
+当你处理如上例中的比萨饼和调料这种简单的多对多关系时，标准的
+:class:`~django.db.models.ManyToManyField` 就够用了。然而，有时你需要处理两个
+模型之间的相关联的数据，标准的类就不够用了。
 
-For these situations, Django allows you to specify the model that will be used
-to govern the many-to-many relationship. You can then put extra fields on the
-intermediate model. The intermediate model is associated with the
-:class:`~django.db.models.ManyToManyField` using the
-:attr:`through <ManyToManyField.through>` argument to point to the model
-that will act as an intermediary. For our musician example, the code would look
-something like this::
+例如，假设有一个管理音乐团体和音乐家的应用程序。这个程序中有一个人与其所属团体
+之间的关系，所以你可以使用一个 :class:`~django.db.models.ManyToManyField` 来
+表现这种关系。然而，你可能要搜集一个成员的许多信息，如成员加入团体的时间。
+
+对于这种情况，在 Django 中你可以定义中介模型专门用于处理关系的模型。你可以把
+扩展的字段放在中介模型中。中介模型是通过使用
+:class:`~django.db.models.ManyToManyField` 的
+:attr:`through <ManyToManyField.through>` 属性来定义的。对于上述的音乐家的例子，
+代码如下::
 
     class Person(models.Model):
         name = models.CharField(max_length=128)
@@ -429,35 +378,27 @@ something like this::
         date_joined = models.DateField()
         invite_reason = models.CharField(max_length=64)
 
-When you set up the intermediary model, you explicitly specify foreign
-keys to the models that are involved in the ManyToMany relation. This
-explicit declaration defines how the two models are related.
+在你的中介模型中，你必须把多对多关系中的两个模型显式定义为外键，以明确相关模型
+是如何关联的。
 
-There are a few restrictions on the intermediate model:
+中介模型有一些规定：
 
-    * Your intermediate model must contain one - and *only* one - foreign key
-      to the target model (this would be ``Person`` in our example). If you
-      have more than one foreign key, a validation error will be raised.
+    * 你的中模型中必须有且仅有一个目标模型外键（如上例中的 ``Person`` ）。如果
+      定义了多个，会产生验证错误。
 
-    * Your intermediate model must contain one - and *only* one - foreign key
-      to the source model (this would be ``Group`` in our example). If you
-      have more than one foreign key, a validation error will be raised.
+    * 你的中模型中必须有且仅有一个来源模型外键（如上例中的 ``Group`` ）。如果
+      定义了多个，会产生验证错误。
 
-    * The only exception to this is a model which has a many-to-many
-      relationship to itself, through an intermediary model. In this
-      case, two foreign keys to the same model are permitted, but they
-      will be treated as the two (different) sides of the many-to-many
-      relation.
+    * 唯一的例外是，当一个模型通过中介模型来表现相对于自身的多对多关系时，两个
+      外键可以指向同一个模型，但是这两个外键会被当作多对多关系的两面来对待。
 
-    * When defining a many-to-many relationship from a model to
-      itself, using an intermediary model, you *must* use
-      :attr:`symmetrical=False <ManyToManyField.symmetrical>` (see
-      :ref:`the model field reference <manytomany-arguments>`).
+    * 当使用中介模型来表现相对于自身的多对多关系时，你 *必须* 使用
+      :attr:`symmetrical=False <ManyToManyField.symmetrical>` （参见
+      :ref:`模型字段参考 <manytomany-arguments>` ）。
 
-Now that you have set up your :class:`~django.db.models.ManyToManyField` to use
-your intermediary model (``Membership``, in this case), you're ready to start
-creating some many-to-many relationships. You do this by creating instances of
-the intermediate model::
+现在你已经通过使用中介模型（本例中的 ``Membership`` ）来表现
+:class:`~django.db.models.ManyToManyField` ，下面通过创建中介模型的实例来创建
+一些多对多关系::
 
     >>> ringo = Person.objects.create(name="Ringo Starr")
     >>> paul = Person.objects.create(name="Paul McCartney")
@@ -476,147 +417,130 @@ the intermediate model::
     >>> beatles.members.all()
     [<Person: Ringo Starr>, <Person: Paul McCartney>]
 
-Unlike normal many-to-many fields, you *can't* use ``add``, ``create``,
-or assignment (i.e., ``beatles.members = [...]``) to create relationships::
+和一般多对多关系字段不同，你 *不能* 使用 ``add`` 、 ``create`` 或赋值（例如：
+``beatles.members = [...]`` ）来创建关系::
 
-    # THIS WILL NOT WORK
+    # 这样是不对的
     >>> beatles.members.add(john)
-    # NEITHER WILL THIS
+    # 这样也不对
     >>> beatles.members.create(name="George Harrison")
-    # AND NEITHER WILL THIS
+    # 这样还是不对
     >>> beatles.members = [john, paul, ringo, george]
 
-Why? You can't just create a relationship between a ``Person`` and a ``Group``
-- you need to specify all the detail for the relationship required by the
-``Membership`` model. The simple ``add``, ``create`` and assignment calls
-don't provide a way to specify this extra detail. As a result, they are
-disabled for many-to-many relationships that use an intermediate model.
-The only way to create this type of relationship is to create instances of the
-intermediate model.
+为什么？因为你不能只创建 ``Person`` 和 ``Group`` 之间的关系，你还必须去定义
+``Membership`` 模型所需要的全部细节内容。而简单的 ``add`` 、 ``create`` 和赋值
+无法做到这点。所以使用中介模型不能这样创建关系，只能通过创建中介模型的实例来
+创建关系。
 
-The :meth:`~django.db.models.fields.related.RelatedManager.remove` method is
-disabled for similar reasons. However, the
-:meth:`~django.db.models.fields.related.RelatedManager.clear` method can be
-used to remove all many-to-many relationships for an instance::
+同理， ``remove`` 方法也不可以。然而 ``clear()`` 方法可以用于移除一个实例的所有
+多对多关系::
 
-    # Beatles have broken up
+    # Beatles 中所有关系都被清除
     >>> beatles.members.clear()
 
-Once you have established the many-to-many relationships by creating instances
-of your intermediate model, you can issue queries. Just as with normal
-many-to-many relationships, you can query using the attributes of the
-many-to-many-related model::
+一旦你通过创建中介模型实例的方式创建了关系，就可以进行查询了。和一般多对多关系
+一样，你可以使用多对多关系模型的属性来查询::
 
-    # Find all the groups with a member whose name starts with 'Paul'
+    # 查找所有包含名字以 'Paul' 开头的组员的组
     >>> Group.objects.filter(members__name__startswith='Paul')
     [<Group: The Beatles>]
 
-As you are using an intermediate model, you can also query on its attributes::
+当你使用中介模型时，你还可以通过相关模型的属性来查询::
 
-    # Find all the members of the Beatles that joined after 1 Jan 1961
+    # 查找所有 Beatles 的 1961 年 1 月 1 日以后加入的成员
     >>> Person.objects.filter(
     ...     group__name='The Beatles',
     ...     membership__date_joined__gt=date(1961,1,1))
     [<Person: Ringo Starr]
 
 
-One-to-one relationships
-~~~~~~~~~~~~~~~~~~~~~~~~
+一对一关系
+~~~~~~~~~~
 
-To define a one-to-one relationship, use
-:class:`~django.db.models.OneToOneField`. You use it just like any other
-``Field`` type: by including it as a class attribute of your model.
+要定义一对一关系，请使用 :class:`~django.db.models.OneToOneField` 。使用
+方法与其他 :class:`~django.db.models.Field` 类型相同：把它作为你的模型的一个
+类属性。
 
-This is most useful on the primary key of an object when that object "extends"
-another object in some way.
+这种关系常用于通过主键来扩展相关的对象。
 
-:class:`~django.db.models.OneToOneField` requires a positional argument: the
-class to which the model is related.
+:class:`~django.db.models.OneToOneField` 需要一个位置参数：相关联的类。
 
-For example, if you were building a database of "places", you would
-build pretty standard stuff such as address, phone number, etc. in the
-database. Then, if you wanted to build a database of restaurants on
-top of the places, instead of repeating yourself and replicating those
-fields in the ``Restaurant`` model, you could make ``Restaurant`` have
-a :class:`~django.db.models.OneToOneField` to ``Place`` (because a
-restaurant "is a" place; in fact, to handle this you'd typically use
-:ref:`inheritance <model-inheritance>`, which involves an implicit
-one-to-one relation).
+例如，假设你要建立一个“场所”数据库，你会在数据库中创建一些常用的内容，如地址、
+电话号码等等。接着，假设你要创建一个基于场所的餐厅数据库，那么你就不必重复创建
+场所数据库中已有的内容，而只要在 ``Restaurant`` 模型中建立一个与 ``Place`` 关联
+的 :class:`~django.db.models.OneToOneField` 就可以了。因为餐厅是场所的一种。
+实际上，要处理这种情况，最好使用 :ref:`继承 <model-inheritance>` 。继承暗含了一
+对一关系。
 
-As with :class:`~django.db.models.ForeignKey`, a
-:ref:`recursive relationship <recursive-relationships>`
-can be defined and
-:ref:`references to as-yet undefined models <lazy-relationships>`
-can be made; see :ref:`the model field reference <ref-onetoone>` for details.
+就象 :class:`~django.db.models.ForeignKey` 一样，你也可以创建
+:ref:`递归关系 <recursive-relationships>` （一个对象对于其本身有多对一关系）和
+:ref:`对应于未创建模型的关系 <lazy-relationships>` ，详见
+:ref:`模型字段关系参考 <ref-onetoone>` 。
 
 .. seealso::
 
-    See the `One-to-one relationship model example`_ for a full example.
+    更多例子参见 `一对一关系模型举例`_ 。
 
-.. _One-to-one relationship model example: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/one_to_one/models.py
+.. _一对一关系模型举例: http://www.djangoproject.com/documentation/models/one_to_one/
 
-:class:`~django.db.models.OneToOneField` fields also accept one optional argument
-described in the :ref:`model field reference <ref-onetoone>`.
+.. versionadded:: 1.0
 
-:class:`~django.db.models.OneToOneField` classes used to automatically become
-the primary key on a model. This is no longer true (although you can manually
-pass in the :attr:`~django.db.models.Field.primary_key` argument if you like).
-Thus, it's now possible to have multiple fields of type
-:class:`~django.db.models.OneToOneField` on a single model.
+:class:`~django.db.models.OneToOneField` 字段还可以接受一个 :ref:`模型字段参考
+<ref-onetoone>` 中说明的可选参数。
 
-Models across files
--------------------
+:class:`~django.db.models.OneToOneField` 类通常自动成为一个模型的主键。但是你也
+可以通过 :attr:`~django.db.models.Field.primary_key` 参数来手动设置。现在也可以
+在一个模型中使用多个 :class:`~django.db.models.OneToOneField` 。
 
-It's perfectly OK to relate a model to one from another app. To do this,
-import the related model at the top of the model that holds your model. Then,
-just refer to the other model class wherever needed. For example::
+使用不同文件中的模型
+--------------------
 
-    from geography.models import ZipCode
+关联不同应用之中模型是非常方便的。只要在模型的开头导入要关联的模型，就可以引用
+在本模型中引用了。例如::
+
+    from mysite.geography.models import ZipCode
 
     class Restaurant(models.Model):
         # ...
         zip_code = models.ForeignKey(ZipCode)
 
-Field name restrictions
------------------------
+字段名限制
+----------
 
-Django places only two restrictions on model field names:
+Django 中字段名只有两个限制：
 
-    1. A field name cannot be a Python reserved word, because that would result
-       in a Python syntax error. For example::
-
-           class Example(models.Model):
-               pass = models.IntegerField() # 'pass' is a reserved word!
-
-    2. A field name cannot contain more than one underscore in a row, due to
-       the way Django's query lookup syntax works. For example::
+    1. 字段名不能是 Python 保留字，否则会引发 Python 语法错误。例如::
 
            class Example(models.Model):
-               foo__bar = models.IntegerField() # 'foo__bar' has two underscores!
+               pass = models.IntegerField() # 'pass' 是一个保留字！
 
-These limitations can be worked around, though, because your field name doesn't
-necessarily have to match your database column name. See the
-:attr:`~Field.db_column` option.
+    2. 字段名不能包含一个以上的下划线，这是 Django 的查询搜索语法所决定的。
+       例如::
 
-SQL reserved words, such as ``join``, ``where`` or ``select``, *are* allowed as
-model field names, because Django escapes all database table names and column
-names in every underlying SQL query. It uses the quoting syntax of your
-particular database engine.
+           class Example(models.Model):
+               foo__bar = models.IntegerField() # 'foo__bar' 有两个下划线！
 
-Custom field types
+以上限制是可以绕过的，因为字段名称与数据库中的列名称不必相同。参见
+:attr:`~Field.db_column` 选项。
+
+SQL 保留字，如 ``join`` 、 ``where`` 或 ``select`` ， *允许* 作为模型字段的名称。
+因为 Django 在背后生成的 SQL 查询语句中对所有数据库表名和列名都进行了转义，这些
+SQL 语句针对特定的数据库使用引号语法。
+
+自定义字段类型
 ------------------
 
-If one of the existing model fields cannot be used to fit your purposes, or if
-you wish to take advantage of some less common database column types, you can
-create your own field class. Full coverage of creating your own fields is
-provided in :doc:`/howto/custom-model-fields`.
+.. versionadded:: 1.0
+
+如果现有的模型字段类型无法满足你的需要，或者你想要使用冷门的数据库列类型，那么
+你可以创建你自己的字段类。详见 :doc:`/howto/custom-model-fields` 。
 
 .. _meta-options:
 
-Meta options
+元数据选项
 ============
 
-Give your model metadata by using an inner ``class Meta``, like so::
+通过内置的 ``class Meta`` 可以为你的模型加入元数据，就象下面的例子::
 
     class Ox(models.Model):
         horn_length = models.IntegerField()
@@ -625,28 +549,26 @@ Give your model metadata by using an inner ``class Meta``, like so::
             ordering = ["horn_length"]
             verbose_name_plural = "oxen"
 
-Model metadata is "anything that's not a field", such as ordering options
-(:attr:`~Options.ordering`), database table name (:attr:`~Options.db_table`), or
-human-readable singular and plural names (:attr:`~Options.verbose_name` and
-:attr:`~Options.verbose_name_plural`). None are required, and adding ``class
-Meta`` to a model is completely optional.
+模型元数据是“除了字段外的所有东西”，如排序参数（ :attr:`~Options.ordering` ）、
+数据库表名（ :attr:`~Options.db_table` ）或人机界面中的单数和复数（
+:attr:`~Options.verbose_name` 和 :attr:`~Options.verbose_name_plural` ）。
+这些参数都是可选的，包括向模型中添加 ``class Meta`` 也是可选的。
 
-A complete list of all possible ``Meta`` options can be found in the :doc:`model
-option reference </ref/models/options>`.
+所有可用的 ``Meta`` 选项列表可以在 :doc:`模型选项参考 </ref/models/options>` 中
+找到。
 
 .. _model-methods:
 
-Model methods
+模型方法
 =============
 
-Define custom methods on a model to add custom "row-level" functionality to your
-objects. Whereas :class:`~django.db.models.Manager` methods are intended to do
-"table-wide" things, model methods should act on a particular model instance.
+在模型中添加自定义方法可以为对象增加自定义的“行级别”的功能。鉴于
+:class:`~django.db.models.Manager` 方法尝试做“表级别”的工作，模型中的方法应当
+只能作用于特定的模型实例。
 
-This is a valuable technique for keeping business logic in one place -- the
-model.
+把事务逻辑集中在一个地方（模型）中是一个有用的技术。
 
-For example, this model has a few custom methods::
+例如以下模型包含一些自定义方法::
 
     from django.contrib.localflavor.us.models import USStateField
 
@@ -676,50 +598,40 @@ For example, this model has a few custom methods::
             return '%s %s' % (self.first_name, self.last_name)
         full_name = property(_get_full_name)
 
-The last method in this example is a :term:`property`. `Read more about
-properties`_.
+上例中最后一个方法是一个 :term:`property` 。 `阅读更多关于属性的内容`_ 。
 
-.. _Read more about properties: http://www.python.org/download/releases/2.2/descrintro/#property
+.. _阅读更多关于属性的内容: http://www.python.org/download/releases/2.2/descrintro/#property
 
-The :doc:`model instance reference </ref/models/instances>` has a complete list
-of :ref:`methods automatically given to each model <model-instance-methods>`.
-You can override most of these -- see `overriding predefined model methods`_,
-below -- but there are a couple that you'll almost always want to define:
+:doc:`模型实例参考 </ref/models/instances>` 中有
+:ref:`每个模型内置的方法 <model-instance-methods>` 的完整列表。你可以重载其中的
+大部分（参见 `重载预定义的模型方法`_ ），以下方法是几乎总是要定义的：
 
     :meth:`~Model.__unicode__`
-        A Python "magic method" that returns a unicode "representation" of any
-        object. This is what Python and Django will use whenever a model
-        instance needs to be coerced and displayed as a plain string. Most
-        notably, this happens when you display an object in an interactive
-        console or in the admin.
+        一个 Python 的“魔力方法”，返回一个对象的 unicode 格式的“描述”。当一个
+        模型实例需要表达或显示为纯字符串时， Python 和 Django 就会调用这个方法。
+        即当你要在终端或管理站点中显示一个对象时就会用到这个方法。
 
-        You'll always want to define this method; the default isn't very helpful
-        at all.
+        你将总是要定义这个方法，缺省的不怎么有用。
 
     :meth:`~Model.get_absolute_url`
-        This tells Django how to calculate the URL for an object. Django uses
-        this in its admin interface, and any time it needs to figure out a URL
-        for an object.
+        这个方法告诉 Django 如何给出一个对象的 URL 。 Django 在管理站点中和任何
+        需要给出一个对象的 URL 时会使用这个方法。
 
-        Any object that has a URL that uniquely identifies it should define this
-        method.
+        任何有 URL 的对象应当在这个方法中定义唯一标识。
 
 .. _overriding-model-methods:
 
-Overriding predefined model methods
+重载预定义的模型方法
 -----------------------------------
 
-There's another set of :ref:`model methods <model-instance-methods>` that
-encapsulate a bunch of database behavior that you'll want to customize. In
-particular you'll often want to change the way :meth:`~Model.save` and
-:meth:`~Model.delete` work.
+还有一组定义数据库行为的 :ref:`模型的方法 <model-instance-methods>` 你会想要自
+定义。通常你会想要改变保存（ :meth:`~Model.save` ）和删除（
+:meth:`~Model.delete` ）的工作方式。
 
-You're free to override these methods (and any other model method) to alter
-behavior.
+你可以随心所欲地重载这些方法（包括其他模型方法）以改变数据库的行为。
 
-A classic use-case for overriding the built-in methods is if you want something
-to happen whenever you save an object. For example (see
-:meth:`~Model.save` for documentation of the parameters it accepts)::
+一种典型的情况是当你在保存对象时你想做一些其他工作，这时就需要重载方法。例如（
+相关参数参见 :meth:`~Model.save` ）::
 
     class Blog(models.Model):
         name = models.CharField(max_length=100)
@@ -727,10 +639,10 @@ to happen whenever you save an object. For example (see
 
         def save(self, *args, **kwargs):
             do_something()
-            super(Blog, self).save(*args, **kwargs) # Call the "real" save() method.
+            super(Blog, self).save(*args, **kwargs) # 调用“真正”的 save() 方法。
             do_something_else()
 
-You can also prevent saving::
+你也可以通过重载来阻止保存::
 
     class Blog(models.Model):
         name = models.CharField(max_length=100)
@@ -738,78 +650,55 @@ You can also prevent saving::
 
         def save(self, *args, **kwargs):
             if self.name == "Yoko Ono's blog":
-                return # Yoko shall never have her own blog!
+                return # Yoko 不能有自己的博客！
             else:
-                super(Blog, self).save(*args, **kwargs) # Call the "real" save() method.
+                super(Blog, self).save(*args, **kwargs) # 调用“真正”的 save() 方法。
 
-It's important to remember to call the superclass method -- that's
-that ``super(Blog, self).save(*args, **kwargs)`` business -- to ensure
-that the object still gets saved into the database. If you forget to
-call the superclass method, the default behavior won't happen and the
-database won't get touched.
+有一点非常重要：调用超类方法（即 ``super(Blog, self).save(*args, **kwargs)``
+）来保证对象被存入数据库。如果你忘了调用超类方法，缺省的行为不会发生且数据库也
+不会变化。
 
-It's also important that you pass through the arguments that can be
-passed to the model method -- that's what the ``*args, **kwargs`` bit
-does. Django will, from time to time, extend the capabilities of
-built-in model methods, adding new arguments. If you use ``*args,
-**kwargs`` in your method definitions, you are guaranteed that your
-code will automatically support those arguments when they are added.
+同样重要的是传递 ``*args, **kwargs`` 参数。 Djaong 经常会扩展内建模型方法，增加
+新的参数，所以我们在方法定义中使用 ``*args, **kwargs`` 作为参数，这样就可以保证
+当参数增加时我们的方法可以自动适应。
 
-.. admonition:: Overriding Delete
+执行自定义 SQL
+--------------
 
-    Note that the :meth:`~Model.delete()` method for an object is not
-    necessarily called when :ref:`deleting objects in bulk using a
-    QuerySet<topics-db-queries-delete>`. To ensure customized delete logic
-    gets executed, you can use :data:`~django.db.models.signals.pre_delete`
-    and/or :data:`~django.db.models.signals.post_delete` signals.
-
-Executing custom SQL
---------------------
-
-Another common pattern is writing custom SQL statements in model methods and
-module-level methods. For more details on using raw SQL, see the documentation
-on :doc:`using raw SQL</topics/db/sql>`.
+另一个常见的需求是要在模型方法和模块级别方法中使用自定义的 SQL 。更多使用原始
+SQL 的内容参见 :doc:`使用原始 SQL</topics/db/sql>` 。
 
 .. _model-inheritance:
 
-Model inheritance
+模型继承
 =================
 
-Model inheritance in Django works almost identically to the way normal
-class inheritance works in Python. The only decision you have to make
-is whether you want the parent models to be models in their own right
-(with their own database tables), or if the parents are just holders
-of common information that will only be visible through the child
-models.
+.. versionadded:: 1.0
 
-There are three styles of inheritance that are possible in Django.
+Djaongo 中的模型继承的工作方式与 Python 中一般的类继承方式是基本一样的。你唯一
+要决定的是你想要父模型只有自身的权利（有自己的数据库表）还是只管理只能通过子
+模型可见的一般信息。
 
- 1. Often, you will just want to use the parent class to hold information that
-    you don't want to have to type out for each child model. This class isn't
-    going to ever be used in isolation, so :ref:`abstract-base-classes` are
-    what you're after.
- 2. If you're subclassing an existing model (perhaps something from another
-    application entirely) and want each model to have its own database table,
-    :ref:`multi-table-inheritance` is the way to go.
- 3. Finally, if you only want to modify the Python-level behaviour of a model,
-    without changing the models fields in any way, you can use
-    :ref:`proxy-models`.
+Django 中可能出现的继承有以下三种：
+
+ 1. 通常，你想到父模型管理不同子模型共有的相同信息。这种父模型不会单独使用。这
+    情况你需要要 :ref:`abstract-base-classes` 。
+ 2. 如果你要继承一个已有的模型（也许是另一个应用的模型），且每个模型都有自己的
+    数据库表，那么你需要 :ref:`multi-table-inheritance` 。
+ 3. 最后，如果你只要修改模型的 Python 级别的行为，而不要改变模型的字段，你可以
+    使用 :ref:`proxy-models` 。
 
 .. _abstract-base-classes:
 
-Abstract base classes
----------------------
+抽象基类
+--------
 
-Abstract base classes are useful when you want to put some common
-information into a number of other models. You write your base class
-and put ``abstract=True`` in the :ref:`Meta <meta-options>`
-class. This model will then not be used to create any database
-table. Instead, when it is used as a base class for other models, its
-fields will be added to those of the child class. It is an error to
-have fields in the abstract base class with the same name as those in
-the child (and Django will raise an exception).
+当许多不同模型要使用相同的信息进，抽象基类非常有用。抽象基类的写法是在
+:ref:`元数据 <meta-options>` 中放入 ``abstract=True`` ，这样这个模型就不会用于
+创建数据库表了，取而代之的是当这个模型被用作其他模型的基类时，其字段会被添加到
+其子类之中。基类和子类的类名称不能相同，否则 Django 会报错（抛出例外）。
 
-An example::
+一个例子::
 
     class CommonInfo(models.Model):
         name = models.CharField(max_length=100)
@@ -821,23 +710,22 @@ An example::
     class Student(CommonInfo):
         home_group = models.CharField(max_length=5)
 
-The ``Student`` model will have three fields: ``name``, ``age`` and
-``home_group``. The ``CommonInfo`` model cannot be used as a normal Django
-model, since it is an abstract base class. It does not generate a database
-table or have a manager, and cannot be instantiated or saved directly.
+``学生（ Student ）`` 模型将会有三个字段： ``name`` 、 ``age`` 和
+``home_group`` 。``一般信息（ CommonInfo ）`` 不能作为一个一般 Django 模型
+使用，因为这是一个抽象基类。抽象基类不会生成数据库表，没有管理器，不能实例化，
+也不能直接存储。
 
-For many uses, this type of model inheritance will be exactly what you want.
-It provides a way to factor out common information at the Python level, whilst
-still only creating one database table per child model at the database level.
+在多数情况下，这种类型的继承就是最适用的。这种继承提供一种在 Python 级别提取
+相同信息，同时在数据库级别每个子模型只创建一个数据库表的方法。
 
-``Meta`` inheritance
-~~~~~~~~~~~~~~~~~~~~
+``Meta`` 继承
+~~~~~~~~~~~~~
 
-When an abstract base class is created, Django makes any :ref:`Meta <meta-options>`
-inner class you declared in the base class available as an
-attribute. If a child class does not declare its own :ref:`Meta <meta-options>`
-class, it will inherit the parent's :ref:`Meta <meta-options>`. If the child wants to
-extend the parent's :ref:`Meta <meta-options>` class, it can subclass it. For example::
+当一个抽象基类被创建后， Django 把任何该类中内置的 :ref:`元数据
+<meta-options>` 都作为一个属性。如果该类的子类没有声明其自己的 :ref:`元数据
+<meta-options>` ，那么子类将会继承父类的 :ref:`元数据 <meta-options>` 。如果
+子类希望扩展父类的 :ref:`元数据 <meta-options>` ，可以继承父类的元数据类，然后
+扩展。例如::
 
     class CommonInfo(models.Model):
         ...
@@ -850,43 +738,37 @@ extend the parent's :ref:`Meta <meta-options>` class, it can subclass it. For ex
         class Meta(CommonInfo.Meta):
             db_table = 'student_info'
 
-Django does make one adjustment to the :ref:`Meta <meta-options>` class of an abstract base
-class: before installing the :ref:`Meta <meta-options>` attribute, it sets ``abstract=False``.
-This means that children of abstract base classes don't automatically become
-abstract classes themselves. Of course, you can make an abstract base class
-that inherits from another abstract base class. You just need to remember to
-explicitly set ``abstract=True`` each time.
+在 Django 中，对于抽象基类的 :ref:`元数据 <meta-options>` 有一个调整：在安装
+:ref:`元数据 <meta-options>` 属性前，设置 ``abstract=False`` 。这就意味着抽象
+基类的子类不会自动成为抽象基类。当然，你可以把抽象基类的子类也变成抽象基类，
+只要显式地声明 ``abstract=True`` 就行了。
 
-Some attributes won't make sense to include in the :ref:`Meta <meta-options>` class of an
-abstract base class. For example, including ``db_table`` would mean that all
-the child classes (the ones that don't specify their own :ref:`Meta <meta-options>`) would use
-the same database table, which is almost certainly not what you want.
+一些属性不应当在抽象基类的 :ref:`元数据 <meta-options>` 中使用。例如，如果使用
+``db_table`` ，那么其所有子类（没有在 :ref:`元数据 <meta-options>` 中定义自己的
+数据库表的）都会使用同一个数据库表，多数情况下这不会是你要的结果。
 
 .. _abstract-related-name:
 
-Be careful with ``related_name``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+小心 ``related_name``
+~~~~~~~~~~~~~~~~~~~~~
 
-If you are using the :attr:`~django.db.models.ForeignKey.related_name` attribute on a ``ForeignKey`` or
-``ManyToManyField``, you must always specify a *unique* reverse name for the
-field. This would normally cause a problem in abstract base classes, since the
-fields on this class are included into each of the child classes, with exactly
-the same values for the attributes (including :attr:`~django.db.models.ForeignKey.related_name`) each time.
+如果在一个 ``ForeignKey`` 或 ``ManyToManyField`` 上使用
+:attr:`~django.db.models.ForeignKey.related_name` 属性，那么你一定要给字段定义
+一个 *唯一* 的反向名称。否则，在抽象基类中常常会出问题，因为抽象基类中的字段会
+包含到其子类中，造成重名。
 
 .. versionchanged:: 1.2
 
-To work around this problem, when you are using :attr:`~django.db.models.ForeignKey.related_name` in an
-abstract base class (only), part of the name should contain
-``'%(app_label)s'`` and ``'%(class)s'``.
+如果要解决这个问题，那么当你在（仅在）抽象基类中使用
+:attr:`~django.db.models.ForeignKey.related_name` 时，名称应当包含
+``'%(app_label)s'`` 和 ``'%(class)s'`` 。
 
-- ``'%(class)s'`` is replaced by the lower-cased name of the child class
-  that the field is used in.
-- ``'%(app_label)s'`` is replaced by the lower-cased name of the app the child
-  class is contained within. Each installed application name must be unique
-  and the model class names within each app must also be unique, therefore the
-  resulting name will end up being different.
+- ``'%(class)s'`` 会被所用字段的子类的小写名称所替换。
+- ``'%(app_label)s'`` 会被包含子类的应用的小写名称所替换。每个已安装的应用名称
+  应当是唯一的，并且每个应用中的模型类名称也应当是唯一的，因此最后形成的名称也
+  应当是唯一的。
 
-For example, given an app ``common/models.py``::
+例如，有一个应用 ``common/models.py``::
 
     class Base(models.Model):
         m2m = models.ManyToManyField(OtherModel, related_name="%(app_label)s_%(class)s_related")
@@ -900,41 +782,36 @@ For example, given an app ``common/models.py``::
     class ChildB(Base):
         pass
 
-Along with another app ``rare/models.py``::
+与另一个应用 ``rare/models.py``::
 
     from common.models import Base
 
     class ChildB(Base):
         pass
 
-The reverse name of the ``commmon.ChildA.m2m`` field will be
-``common_childa_related``, whilst the reverse name of the
-``common.ChildB.m2m`` field will be ``common_childb_related``, and finally the
-reverse name of the ``rare.ChildB.m2m`` field will be ``rare_childb_related``.
-It is up to you how you use the ``'%(class)s'`` and ``'%(app_label)s`` portion
-to construct your related name, but if you forget to use it, Django will raise
-errors when you validate your models (or run :djadmin:`syncdb`).
+``common.ChildA.m2m`` 字段的反向名为 ``childa_related`` ，而 ``ChildB.m2m``
+字段的反向名为 ``common.childb_related`` 。最后， ``rare.ChildB.m2m`` 的反向名
+为 ``rare_childb_related`` 。是否使用 ``'%(class)s'`` 和 ``'%(app_label)s`` 来
+构建关联名称由你决定，但是如果不使用，那么当你验证你的模型（或运行
+:djadmin:`syncd` 时）会产生错误。
 
-If you don't specify a :attr:`~django.db.models.ForeignKey.related_name`
-attribute for a field in an abstract base class, the default reverse name will
-be the name of the child class followed by ``'_set'``, just as it normally
-would be if you'd declared the field directly on the child class. For example,
-in the above code, if the :attr:`~django.db.models.ForeignKey.related_name`
-attribute was omitted, the reverse name for the ``m2m`` field would be
-``childa_set`` in the ``ChildA`` case and ``childb_set`` for the ``ChildB``
-field.
+如果你没有定义抽象基类中的字段的
+:attr:`~django.db.models.ForeignKey.related_name` 属性，并且如果你没有在子类中
+直接声明反向名称，那么缺省的反向名称将会是子类名加上 ``'_set'`` ，就像你直接在
+子类中直接声明字段一样。例如在上面的代码中，如果
+:attr:`~django.db.models.ForeignKey.related_name` 属性被省略了，那么 ``ChildA``
+的 ``m2m`` 字段的反向名称将会是 ``childa_set`` ，而  ``ChildB`` 的是
+``childb_set`` 。
 
 .. _multi-table-inheritance:
 
-Multi-table inheritance
------------------------
+多表继承
+--------
 
-The second type of model inheritance supported by Django is when each model in
-the hierarchy is a model all by itself. Each model corresponds to its own
-database table and can be queried and created individually. The inheritance
-relationship introduces links between the child model and each of its parents
-(via an automatically-created :class:`~django.db.models.OneToOneField`).
-For example::
+多表继承是 Django 支持的第二种模型继承类型，这种继承类型中的模型是相对独立的。
+即每个模型都有自己对应的可以查询和分别创建的数据库表。这种继承会引进子模型与每
+一个父模型之间的链接（通过一个自动创建的
+:class:`~django.db.models.fields.OneToOneField` ）。例如::
 
     class Place(models.Model):
         name = models.CharField(max_length=50)
@@ -944,45 +821,36 @@ For example::
         serves_hot_dogs = models.BooleanField()
         serves_pizza = models.BooleanField()
 
-All of the fields of ``Place`` will also be available in ``Restaurant``,
-although the data will reside in a different database table. So these are both
-possible::
+所有 ``地点（ Place ）`` 中的字段在 ``餐厅（ Restaurant ）`` 都能使用，但是两者
+的数据会储存在不同的数据库表中。因此以下代码都是可用的::
 
     >>> Place.objects.filter(name="Bob's Cafe")
     >>> Restaurant.objects.filter(name="Bob's Cafe")
 
-If you have a ``Place`` that is also a ``Restaurant``, you can get from the
-``Place`` object to the ``Restaurant`` object by using the lower-case version
-of the model name::
+如果你有一个 ``地点`` 同时也是一个 ``餐厅`` ，你可以通过小写的模型名称用
+``地点`` 对象引用 ``餐厅`` 对象::
 
     >>> p = Place.objects.get(id=12)
-    # If p is a Restaurant object, this will give the child class:
+    # 如果 p 是一个餐厅对象，以下代码将会给出子类：
     >>> p.restaurant
     <Restaurant: ...>
 
-However, if ``p`` in the above example was *not* a ``Restaurant`` (it had been
-created directly as a ``Place`` object or was the parent of some other class),
-referring to ``p.restaurant`` would raise a Restaurant.DoesNotExist exception.
+然而，如果上例中的 ``p`` *不是* 一个 ``餐厅`` （直接作为一个 ``地点`` 对象创建
+或是其他类的父类），那么引用 ``p.restaurant`` 将会抛出一个
+Restaurant.DoesNotExist 例外。
 
-``Meta`` and multi-table inheritance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``Meta`` 和多表继承
+~~~~~~~~~~~~~~~~~~~
 
-In the multi-table inheritance situation, it doesn't make sense for a child
-class to inherit from its parent's :ref:`Meta <meta-options>` class. All the :ref:`Meta <meta-options>` options
-have already been applied to the parent class and applying them again would
-normally only lead to contradictory behavior (this is in contrast with the
-abstract base class case, where the base class doesn't exist in its own
-right).
+在多表继承的情况下，子类继承父类的 :ref:`元数据 <meta-options>` 是没有意义的，
+只会导致矛盾行为。这与抽象基类是不同的，因为抽象基类没有自己的数据库表。
 
-So a child model does not have access to its parent's :ref:`Meta
-<meta-options>` class. However, there are a few limited cases where the child
-inherits behavior from the parent: if the child does not specify an
-:attr:`~django.db.models.Options.ordering` attribute or a
-:attr:`~django.db.models.Options.get_latest_by` attribute, it will inherit
-these from its parent.
+所以子模型不能引用其父模型的 :ref:`元数据 <meta-options>` 类。然而，也有一些
+例外：如果子类没有定义一个 :attr:`django.db.models.Options.ordering` 属性或一个
+:attr:`django.db.models.Options.get_latest_by` 属性，那么子类会从父类继承这些
+属性。
 
-If the parent has an ordering and you don't want the child to have any natural
-ordering, you can explicitly disable it::
+如果父类有一个排序属性，而子类要取消这个属性，可以如下显式定义::
 
     class ChildModel(ParentModel):
         ...
@@ -990,67 +858,59 @@ ordering, you can explicitly disable it::
             # Remove parent's ordering effect
             ordering = []
 
-Inheritance and reverse relations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+继承和回溯关系
+~~~~~~~~~~~~~~
 
-Because multi-table inheritance uses an implicit
-:class:`~django.db.models.OneToOneField` to link the child and
-the parent, it's possible to move from the parent down to the child,
-as in the above example. However, this uses up the name that is the
-default :attr:`~django.db.models.ForeignKey.related_name` value for
-:class:`~django.db.models.ForeignKey` and
-:class:`~django.db.models.ManyToManyField` relations.  If you
-are putting those types of relations on a subclass of another model,
-you **must** specify the
-:attr:`~django.db.models.ForeignKey.related_name` attribute on each
-such field. If you forget, Django will raise an error when you run
-:djadmin:`validate` or :djadmin:`syncdb`.
+因为多表继承使用一个隐藏的 :class:`~django.db.models.fields.OneToOneField` 来
+关联父类和子类，所以可以由父类移动到子类，就像上例中一样。然而，这样使用的是
+:class:`django.db.models.fields.ForeignKey` 和
+:class:`django.db.models.fields.ManyToManyField` 关系的缺省的
+:attr:`~django.db.models.ForeignKey.related_name` 的值。如果你要把这些类型的
+关系放在一个其他模型的子类上，你 **必须** 在每一个字段上定义
+:attr:`~django.db.models.ForeignKey.related_name` 属性。否则，当你运行
+:djadmin:`validate` or :djadmin:`syncdb` 时会产生一个错误。
 
-For example, using the above ``Place`` class again, let's create another
-subclass with a :class:`~django.db.models.ManyToManyField`::
+例如，还是使用上面的 ``Place`` 类，让我们用
+:class:`~django.db.models.fields.ManyToManyField` 创建另一个子类::
 
     class Supplier(Place):
         # Must specify related_name on all relations.
         customers = models.ManyToManyField(Restaurant, related_name='provider')
 
 
-Specifying the parent link field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+定义父链接字段
+~~~~~~~~~~~~~~
 
-As mentioned, Django will automatically create a
-:class:`~django.db.models.OneToOneField` linking your child
-class back any non-abstract parent models. If you want to control the
-name of the attribute linking back to the parent, you can create your
-own :class:`~django.db.models.OneToOneField` and set
-:attr:`parent_link=True <django.db.models.OneToOneField.parent_link>`
-to indicate that your field is the link back to the parent class.
+前文提到 Django 会自动创建一个
+:class:`~django.db.models.fields.OneToOneField` 来链接你的子类和非抽象父类。
+如果你要控制这个链接类的名字，那么你可以创建你自己的
+:class:`~django.db.models.fields.OneToOneField` 同时设置
+:attr:`parent_link=True <django.db.models.fields.OneToOneField.parent_link>`
+以回联到父类。
 
 .. _proxy-models:
 
-Proxy models
-------------
+代理模型
+--------
 
-When using :ref:`multi-table inheritance <multi-table-inheritance>`, a new
-database table is created for each subclass of a model. This is usually the
-desired behavior, since the subclass needs a place to store any additional
-data fields that are not present on the base class. Sometimes, however, you
-only want to change the Python behavior of a model -- perhaps to change the
-default manager, or add a new method.
+.. versionadded:: 1.1
 
-This is what proxy model inheritance is for: creating a *proxy* for the
-original model. You can create, delete and update instances of the proxy model
-and all the data will be saved as if you were using the original (non-proxied)
-model. The difference is that you can change things like the default model
-ordering or the default manager in the proxy, without having to alter the
-original.
+当使用 :ref:`多表继承 <multi-table-inheritance>` 时，会为每一个模型的子类创建
+一个新的数据库表。通常这种方式是我们期望得到的，因为子类需要存储基类所没有的
+另加的数据字段。但是，有时，你只是想要改变一个模型的 Python 行为，比如改变缺省
+的管理器或增加一个新的方法。
 
-Proxy models are declared like normal models. You tell Django that it's a
-proxy model by setting the :attr:`~django.db.models.Options.proxy` attribute of
-the ``Meta`` class to ``True``.
+这时我们就需要使用代理模型继承方法来为源模型创建一个 *代理* 。你可以创建、删除
+和更新代理模型的实例并且所有的数据都会被保存，就象没有使用代理一样。所不同的是
+你可以在代理模型中改变一些东西，如源模型的排序方式或缺省的管理器等等，而源模型
+则不会发生变化。
 
-For example, suppose you want to add a method to the standard
-:class:`~django.contrib.auth.models.User` model that will be used in your
-templates. You can do it like this::
+代理模型的声明方式与一般模型一样。把 ``元数据`` 的
+:attr:`~django.db.models.Options.proxy` 属性设置为 ``True`` 就代表这个模型是一
+个代理模型。
+
+例如，假设你想要给标准的 ``User`` 模型添加一个方法，以便于以后用于你自己的模板
+中，你可以用下面的代码::
 
     from django.contrib.auth.models import User
 
@@ -1061,62 +921,51 @@ templates. You can do it like this::
         def do_something(self):
             ...
 
-The ``MyUser`` class operates on the same database table as its parent
-:class:`~django.contrib.auth.models.User` class. In particular, any new
-instances of :class:`~django.contrib.auth.models.User` will also be accessible
-through ``MyUser``, and vice-versa::
+``MyUser`` 类与 ``User`` 类操作的是同一个数据库。特别的是两个类都可以操作对方的
+实例::
 
     >>> u = User.objects.create(username="foobar")
     >>> MyUser.objects.get(username="foobar")
     <MyUser: foobar>
 
-You could also use a proxy model to define a different default ordering on a
-model. The standard :class:`~django.contrib.auth.models.User` model has no
-ordering defined on it (intentionally; sorting is expensive and we don't want
-to do it all the time when we fetch users). You might want to regularly order
-by the ``username`` attribute when you use the proxy. This is easy::
+你还可以使用代理模型来定义与源模型不同缺省排序方式。标准的 ``User`` 模型没有
+定义排序方式（这是有意为之的，因为排序是要耗费资源的，我们不希望每次读取用户
+信息时都进行排序）。当你使用代理模型时，你可能想要根据 ``username`` 来排序。
+通过以下代码可以轻易实现::
 
     class OrderedUser(User):
         class Meta:
             ordering = ["username"]
             proxy = True
 
-Now normal :class:`~django.contrib.auth.models.User` queries will be unordered
-and ``OrderedUser`` queries will be ordered by ``username``.
+现在，一般 ``User`` 查询是无序的，而 ``OrderedUser`` 查询是按 ``username`` 排序
+的。
 
-QuerySets still return the model that was requested
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+查询集只会返回被请求的模型
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There is no way to have Django return, say, a ``MyUser`` object whenever you
-query for :class:`~django.contrib.auth.models.User` objects. A queryset for
-``User`` objects will return those types of objects. The whole point of proxy
-objects is that code relying on the original ``User`` will use those and your
-own code can use the extensions you included (that no other code is relying on
-anyway). It is not a way to replace the ``User`` (or any other) model
-everywhere with something of your own creation.
+当你针对 ``User`` 对象查询时，不会返回一个 ``MyUser`` 对象。一个针对 ``User``
+对象的查询集只会返回 ``User`` 对象。代理对象的要点是各个对象只会使用自己的代码
+而不会使用他方的代码。代理不是代替。
 
-Base class restrictions
-~~~~~~~~~~~~~~~~~~~~~~~
+基类限制
+~~~~~~~~
 
-A proxy model must inherit from exactly one non-abstract model class. You
-can't inherit from multiple non-abstract models as the proxy model doesn't
-provide any connection between the rows in the different database tables. A
-proxy model can inherit from any number of abstract model classes, providing
-they do *not* define any model fields.
+一个代理模型应当继承自一个非抽象基类。而且不能继承自多个非抽象基类，因为代理
+模型不包含不同数据库表中的行之间的关联。只有当一个代理模型 *不定义* 任何字段
+时，才可以继承自一个或多个抽象基类。
 
-Proxy models inherit any ``Meta`` options that they don't define from their
-non-abstract model parent (the model they are proxying for).
+代理模型会从父类继承任何 ``元数据`` ，只要这个元数据在代理模型中没有定义。
 
-Proxy model managers
-~~~~~~~~~~~~~~~~~~~~
+代理模型管理器
+~~~~~~~~~~~~~~
 
-If you don't specify any model managers on a proxy model, it inherits the
-managers from its model parents. If you define a manager on the proxy model,
-it will become the default, although any managers defined on the parent
-classes will still be available.
+如果你没有为代理模型定义任何管理器，那么代理模型会从其父模型继承管理器。如果为
+代理模型定义了管理器，那么定义的管理器会成为缺省的管理器，但是父模型的管理器仍
+是可用的。
 
-Continuing our example from above, you could change the default manager used
-when you query the ``User`` model like this::
+还是使用上面的例子，当你查询 ``User`` 模型时你可以像如下代码一样改变缺省的管理
+器::
 
     class NewManager(models.Manager):
         ...
@@ -1127,12 +976,11 @@ when you query the ``User`` model like this::
         class Meta:
             proxy = True
 
-If you wanted to add a new manager to the Proxy, without replacing the
-existing default, you can use the techniques described in the :ref:`custom
-manager <custom-managers-and-inheritance>` documentation: create a base class
-containing the new managers and inherit that after the primary base class::
+如果你要为代理模型新增一个管理器，而不取代缺省的管理器，你可以使用
+:ref:`自定义管理器 <custom-managers-and-inheritance>` 文档中描述的方法：
+创建一个包含新管理器基类并且在继承主基类后继承它::
 
-    # Create an abstract class for the new manager.
+    # 为新管理器创建一个绝对基类。
     class ExtraManagers(models.Model):
         secondary = NewManager()
 
@@ -1143,94 +991,66 @@ containing the new managers and inherit that after the primary base class::
         class Meta:
             proxy = True
 
-You probably won't need to do this very often, but, when you do, it's
-possible.
+你可能不是经常要这样做，可是这种方法是可行的。
 
 .. _proxy-vs-unmanaged-models:
 
-Differences between proxy inheritance and  unmanaged models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+代理继承和无管理器模型的区别
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Proxy model inheritance might look fairly similar to creating an unmanaged
-model, using the :attr:`~django.db.models.Options.managed` attribute on a
-model's ``Meta`` class. The two alternatives are not quite the same and it's
-worth considering which one you should use.
+代理模型继承看上去和创建一个无管理器的模型，并在该模型的 ``Meta`` 类中使用
+:attr:`~django.db.models.Options.managed` 属性差不多。但是两种方式并不完全
+一样，选择哪一种方式是值得我们考虑的。
 
-One difference is that you can (and, in fact, must unless you want an empty
-model) specify model fields on models with ``Meta.managed=False``. You could,
-with careful setting of :attr:`Meta.db_table
-<django.db.models.Options.db_table>` create an unmanaged model that shadowed
-an existing model and add Python methods to it. However, that would be very
-repetitive and fragile as you need to keep both copies synchronized if you
-make any changes.
+一个区别是你可以（除了你要一个空模型外实际上是必须的）使用
+``Meta.managed=False`` 在模型中定义字段。你可以小心的设置
+:attr:`Meta.db_table <django.db.models.Options.db_table>` 属性来镜像一个已存在
+的模型，并且在模型中添加 Python 方法。但是如果你要作一些改动，那么你必须十分
+小心地同步两个模型。
 
-The other difference that is more important for proxy models, is how model
-managers are handled. Proxy models are intended to behave exactly like the
-model they are proxying for. So they inherit the parent model's managers,
-including the default manager. In the normal multi-table model inheritance
-case, children do not inherit managers from their parents as the custom
-managers aren't always appropriate when extra fields are involved. The
-:ref:`manager documentation <custom-managers-and-inheritance>` has more
-details about this latter case.
+对于代理模型另一个更重要的区别是模型管理器是如何运作的。代理模型被设计用于像被
+代理对象一样精确地运作，因此它们会继承父模型的管理器，包括缺省管理器。在一般的
+多表继承情况下，子模型不继承父模型的管理器，因为子模型添加了额外的字段，而父
+模型的管理器通常是不适用于子模型的。更多细节详见
+:ref:`管理器文档 <custom-managers-and-inheritance>` 。 
 
-When these two features were implemented, attempts were made to squash them
-into a single option. It turned out that interactions with inheritance, in
-general, and managers, in particular, made the API very complicated and
-potentially difficult to understand and use. It turned out that two options
-were needed in any case, so the current separation arose.
+当两个功能都要执行时，我们应当尝试把它们压缩为单一选项。否则情况就复杂了，也
+比较难以理解。
 
-So, the general rules are:
+所以，通常的规则是：
 
-    1. If you are mirroring an existing model or database table and don't want
-       all the original database table columns, use ``Meta.managed=False``.
-       That option is normally useful for modeling database views and tables
-       not under the control of Django.
-    2. If you are wanting to change the Python-only behavior of a model, but
-       keep all the same fields as in the original, use ``Meta.proxy=True``.
-       This sets things up so that the proxy model is an exact copy of the
-       storage structure of the original model when data is saved.
+    1. 如果你要镜像一个已存在的模型或数据库表，并且不需要所有的原数据库中的列，
+       那么就使用 ``Meta.managed=False`` 。这个选择通常适用于数据库表视图和不在
+       Django 管控下的数据库表。
+    2. 如果你要改变模型的 Python 行为，但又要保持所有的原字段不变，那么就使用
+       ``Meta.proxy=True`` 。这个选择适用于代理模型的字段结构与父模型完全一致的
+       情况。
 
-Multiple inheritance
---------------------
+多重继承
+--------
 
-Just as with Python's subclassing, it's possible for a Django model to inherit
-from multiple parent models. Keep in mind that normal Python name resolution
-rules apply. The first base class that a particular name (e.g. :ref:`Meta
-<meta-options>`) appears in will be the one that is used; for example, this
-means that if multiple parents contain a :ref:`Meta <meta-options>` class,
-only the first one is going to be used, and all others will be ignored.
+就像 Python 的继承一样， Django 模型也可以继承自多个父模型。要记住的是名称确定
+规则使用的是一般 Python 名称确定规则，子类使用第一个基类的特定名称（如 :ref:`元数据 <meta-options>` ）。例如，如果多个父模型包含一个 :ref:`元数据 <meta-options>` 类，那么仅第一个父模型的才会被使用，其他则被忽略。
 
-Generally, you won't need to inherit from multiple parents. The main use-case
-where this is useful is for "mix-in" classes: adding a particular extra
-field or method to every class that inherits the mix-in. Try to keep your
-inheritance hierarchies as simple and straightforward as possible so that you
-won't have to struggle to work out where a particular piece of information is
-coming from.
+通常，不需要使用多重继承。多重继承一般适用于 "mix-in" 类，即为每一个 mix-in 的
+子类增加一个指定的额外的字段或方法。让我们尽量简化继承，以免以后难以分清数据的
+来源。
 
-Field name "hiding" is not permitted
--------------------------------------
+字段名“隐藏”是不允许的
+----------------------
 
-In normal Python class inheritance, it is permissible for a child class to
-override any attribute from the parent class. In Django, this is not permitted
-for attributes that are :class:`~django.db.models.Field` instances (at
-least, not at the moment). If a base class has a field called ``author``, you
-cannot create another model field called ``author`` in any class that inherits
-from that base class.
+在一般的 Python 类继承中，子类可以重载父类的任何属性。但在 Django 中，不允许
+重载（起码现在不行） :class:`~django.db.models.fields.Field` 实例属性。假设一个
+基类有一个 ``author`` 字段，你就不能在其任何子类中创建名为 ``author`` 的字段。
 
-Overriding fields in a parent model leads to difficulties in areas such as
-initialising new instances (specifying which field is being initialized in
-``Model.__init__``) and serialization. These are features which normal Python
-class inheritance doesn't have to deal with in quite the same way, so the
-difference between Django model inheritance and Python class inheritance isn't
-arbitrary.
+重载字段会导致初始化新实例（如在 ``Model.__init__`` 中指定哪个字段被初始化）和
+连续化方面的问题。这些功能在 Python 中处理的方法是不同的，因此 Django 模型继承
+和 Python 类继承之间的差异也不是随意产生的。
 
-This restriction only applies to attributes which are
-:class:`~django.db.models.Field` instances. Normal Python attributes
-can be overridden if you wish. It also only applies to the name of the
-attribute as Python sees it: if you are manually specifying the database
-column name, you can have the same column name appearing in both a child and
-an ancestor model for multi-table inheritance (they are columns in two
-different database tables).
+这个限制只用于 :class:`~django.db.models.fields.Field` 实例属性上。一般的
+Python 属性是可以重载的。这个限制也只用于被 Python 所见的属性名称。例如如果你
+手工定义数据库列名称，那么在多表继承中你就可以在子模型和祖先模型中使用相同的
+列名（因为列不在同一个数据库表中）。
 
-Django will raise a :exc:`~django.core.exceptions.FieldError` if you override
-any model field in any ancestor model.
+如果你重载任何祖先类的字段，那么 Django 会抛出一个 ``FieldError`` 异常。
+
