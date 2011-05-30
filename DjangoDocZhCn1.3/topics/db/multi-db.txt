@@ -68,118 +68,90 @@ PostgreSQL 数据库和一个名为 ``users`` 的 MySQL 数据库：
 
 .. _topics-db-multi-db-routing:
 
-Automatic database routing
+自动数据库路由
 ==========================
 
-The easiest way to use multiple databases is to set up a database
-routing scheme. The default routing scheme ensures that objects remain
-'sticky' to their original database (i.e., an object retrieved from
-the ``foo`` database will be saved on the same database). The default
-routing scheme ensures that if a database isn't specified, all queries
-fall back to the ``default`` database.
+使用多数据库最简单的方法是设置一个数据库路由方案。缺省的路由方案确保对象
+“紧贴”其原本的数据库（例如：一个对象从哪个数据库取得，就保存回哪个数据库）。
+缺省的路由方案还确保如果一个数据库没有指定，所有的查询都会作用于 ``缺省`` 数据
+库。
 
-You don't have to do anything to activate the default routing scheme
--- it is provided 'out of the box' on every Django project. However,
-if you want to implement more interesting database allocation
-behaviors, you can define and install your own database routers.
+你不必为启动缺省路由方案作任何事，因为它是“开箱即用”的。但是，如果你要执行
+一些更有趣的数据库分配行为的话，你可以定义并安装你自己的数据库路由。
 
-Database routers
+数据库路由
 ----------------
 
-A database Router is a class that provides up to four methods:
+一个数据库路由是一个类，这个类最多有四个方法：
 
 .. method:: db_for_read(model, **hints)
 
-    Suggest the database that should be used for read operations for
-    objects of type ``model``.
+    建议 ``model`` 对象写操作时使用的数据库。
 
-    If a database operation is able to provide any additional
-    information that might assist in selecting a database, it will be
-    provided in the ``hints`` dictionary. Details on valid hints are
-    provided :ref:`below <topics-db-multi-db-hints>`.
+    如果一个数据库操作可以提供对选择数据库有用的附加信息，那么可以通过
+    ``hints`` 字典提供。详见 :ref:`下文 <topics-db-multi-db-hints>` 。
 
-    Returns None if there is no suggestion.
+    如果没有建议则返回 None 。
 
 .. method:: db_for_write(model, **hints)
 
-    Suggest the database that should be used for writes of objects of
-    type Model.
+    建议 ``model`` 对象读操作时使用的数据库。
 
-    If a database operation is able to provide any additional
-    information that might assist in selecting a database, it will be
-    provided in the ``hints`` dictionary. Details on valid hints are
-    provided :ref:`below <topics-db-multi-db-hints>`.
+    如果一个数据库操作可以提供对选择数据库有用的附加信息，那么可以通过
+    ``hints`` 字典提供。详见 :ref:`下文 <topics-db-multi-db-hints>` 。
 
-    Returns None if there is no suggestion.
+    如果没有建议则返回 None 。
 
 .. method:: allow_relation(obj1, obj2, **hints)
 
-    Return True if a relation between obj1 and obj2 should be
-    allowed, False if the relation should be prevented, or None if
-    the router has no opinion. This is purely a validation operation,
-    used by foreign key and many to many operations to determine if a
-    relation should be allowed between two objects.
+    当 obj1 和 obj2 之间允许有关系时返回 True ，不允许时返回 False ，或者没有
+    意见时返回 None 。这是一个纯粹的验证操作，用于外键和多对多操作中，两个对象
+    的关系是否被允许。
 
 .. method:: allow_syncdb(db, model)
 
-    Determine if the ``model`` should be synchronized onto the
-    database with alias ``db``. Return True if the model should be
-    synchronized, False if it should not be synchronized, or None if
-    the router has no opinion. This method can be used to determine
-    the availability of a model on a given database.
+    决定 ``model`` 是否可以和 ``db`` 为别名的数据库同步。如果可以返回 True ，
+    如果不可以返回 False ，或者没有意见时返回 None 。这个方法用于决定一个给定
+    数据库的模型是否可用。
 
-A router doesn't have to provide *all* these methods - it omit one or
-more of them. If one of the methods is omitted, Django will skip that
-router when performing the relevant check.
+一个路由不必提供 *所有* 这些方法，可以省略其中一个或多个。如果其中一个方法被
+省略了，那么 Django 会在执行相关检查时跳过相应路由。
 
 .. _topics-db-multi-db-hints:
 
-Hints
-~~~~~
+提示参数
+~~~~~~~~
 
-The hints received by the database router can be used to decide which
-database should receive a given request.
+数据库路由接收的“提示”参数可用于决定哪个数据库应当接收一个给定的请求。
 
-At present, the only hint that will be provided is ``instance``, an
-object instance that is related to the read or write operation that is
-underway. This might be the instance that is being saved, or it might
-be an instance that is being added in a many-to-many relation. In some
-cases, no instance hint will be provided at all. The router checks for
-the existence of an instance hint, and determine if that hint should be
-used to alter routing behavior.
+目前，唯一可以提供的提示参数是 ``实例`` ，即一个与读写操作相关的对象的实例。
+可以是一个已保存的对象的实例，也可以是一个多对多关系中添加的实例。在某些情况下，
+也可能没有对象的实例可以提供。路由会检查提示实例是否存在，并相应地决定是否改变
+路由行为。
 
-Using routers
--------------
+使用路由
+--------
 
-Database routers are installed using the :setting:`DATABASE_ROUTERS`
-setting. This setting defines a list of class names, each specifying a
-router that should be used by the master router
-(``django.db.router``).
+数据库路由使用 :setting:`DATABASE_ROUTERS` 设置来安装。这个设置定义一个类名称
+列表，每个类定义一个用于主路由 (``django.db.router``) 的路由。
 
-The master router is used by Django's database operations to allocate
-database usage. Whenever a query needs to know which database to use,
-it calls the master router, providing a model and a hint (if
-available). Django then tries each router in turn until a database
-suggestion can be found. If no suggestion can be found, it tries the
-current ``_state.db`` of the hint instance. If a hint instance wasn't
-provided, or the instance doesn't currently have database state, the
-master router will allocate the ``default`` database.
+主路由用于 Django 分配数据库操作。当一个查询想要知道使用哪个数据库时，会提供
+一个模型和一个提示（如果有的话），并调用主路由。 Django 就会按次序尝试每个路由，
+直到找到合适的路由建议。如果找不到路由建议就会尝试实例提示的当前的
+``_state.db`` 。如果没有提供路由提示，或者实例没有当前数据库状态，那么主路由会
+分配 ``缺省`` 数据库。
 
-An example
-----------
+一个例子
+--------
 
-.. admonition:: Example purposes only!
+.. admonition:: 仅用于示例目的！
 
-    This example is intended as a demonstration of how the router
-    infrastructure can be used to alter database usage. It
-    intentionally ignores some complex issues in order to
-    demonstrate how routers are used.
+    这个例子仅用于展示路由如何改变数据库的使用。本例有意忽略了一些复杂的东西以
+    便于更好的展示路由是如何工作的。
 
-    This example won't work if any of the models in ``myapp`` contain
-    relationships to models outside of the ``other`` database.
-    :ref:`Cross-database relationships <no_cross_database_relations>`
-    introduce referential integrity problems that Django can't
-    currently handle.
+    如果任何一个 ``myapp`` 中的模型包含与 ``另一个`` 数据库中模型的关系时，本例
+    是无效的。 :ref:`跨数据库关系 <no_cross_database_relations>` 一节中介绍了
+    Django 引用完整性问题。
 
     The master/slave configuration described is also flawed -- it
     doesn't provide any solution for handling replication lag (i.e.,
