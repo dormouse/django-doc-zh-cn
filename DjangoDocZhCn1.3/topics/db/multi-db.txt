@@ -150,44 +150,40 @@ PostgreSQL 数据库和一个名为 ``users`` 的 MySQL 数据库：
     便于更好的展示路由是如何工作的。
 
     如果任何一个 ``myapp`` 中的模型包含与 ``另一个`` 数据库中模型的关系时，本例
-    是无效的。 :ref:`跨数据库关系 <no_cross_database_relations>` 一节中介绍了
-    Django 引用完整性问题。
+    是无效的。参见 :ref:`跨数据库关系 <no_cross_database_relations>` 一节中介绍
+    的 Django 引用完整性问题。
 
-    The master/slave configuration described is also flawed -- it
-    doesn't provide any solution for handling replication lag (i.e.,
-    query inconsistencies introduced because of the time taken for a
-    write to propagate to the slaves). It also doesn't consider the
-    interaction of transactions with the database utilization strategy.
+    本例的主/从配置也是有缺陷的：它没有处理复制延时（比如因为把写操作传递给从
+    数据库耗费时间而产生的查询不一致），也没有考虑与数据库使用策略的交互作用。
 
-So - what does this mean in practice? Say you want ``myapp`` to
-exist on the ``other`` database, and you want all other models in a
-master/slave relationship between the databases ``master``, ``slave1`` and
-``slave2``. To implement this, you would need 2 routers::
+那么，这个例子有什么用呢？本例仅用于演示一个 ``myapp`` 存在于 ``other`` 数据库，
+所有其他模型之间是主/从关系，且存在于 ``master`` 、 ``slave1`` 和 ``slave2``
+数据库。本例使用了两个路由::
 
     class MyAppRouter(object):
-        """A router to control all database operations on models in
-        the myapp application"""
+        """ 一个控制 myapp 应用中模型的
+        所有数据库操作的路由 """
 
         def db_for_read(self, model, **hints):
-            "Point all operations on myapp models to 'other'"
+            "myapp 应用中模型的操作指向 'other'"
             if model._meta.app_label == 'myapp':
                 return 'other'
             return None
 
         def db_for_write(self, model, **hints):
-            "Point all operations on myapp models to 'other'"
+            "myapp 应用中模型的操作指向 'other'"
             if model._meta.app_label == 'myapp':
                 return 'other'
             return None
 
         def allow_relation(self, obj1, obj2, **hints):
-            "Allow any relation if a model in myapp is involved"
+            " 如果包含 myapp 应用中的模型则允许所有关系 "
             if obj1._meta.app_label == 'myapp' or obj2._meta.app_label == 'myapp':
                 return True
             return None
 
         def allow_syncdb(self, db, model):
-            "Make sure the myapp app only appears on the 'other' db"
+            " 确保 myapp 应用只存在于 'other' 数据库 "
             if db == 'other':
                 return model._meta.app_label == 'myapp'
             elif model._meta.app_label == 'myapp':
@@ -195,169 +191,150 @@ master/slave relationship between the databases ``master``, ``slave1`` and
             return None
 
     class MasterSlaveRouter(object):
-        """A router that sets up a simple master/slave configuration"""
+        """ 一个设置简单主/从定义
+        的路由 """
 
         def db_for_read(self, model, **hints):
-            "Point all read operations to a random slave"
+            " 所有读操作指向一个随机的从数据库 "
             return random.choice(['slave1','slave2'])
 
         def db_for_write(self, model, **hints):
-            "Point all write operations to the master"
+            " 所有写操作指向主数据库 "
             return 'master'
 
         def allow_relation(self, obj1, obj2, **hints):
-            "Allow any relation between two objects in the db pool"
+            " 允许数据库池中的两个对象间的任何关系 "
             db_list = ('master','slave1','slave2')
             if obj1._state.db in db_list and obj2._state.db in db_list:
                 return True
             return None
 
         def allow_syncdb(self, db, model):
-            "Explicitly put all models on all databases."
+            " 显示地放置所有数据库中的模型 "
             return True
 
-Then, in your settings file, add the following (substituting ``path.to.`` with
-the actual python path to the module where you define the routers)::
+然后在你的设置文件增加如下内容（把 ``path.to.`` 替换为你定义路由的模型的路径
+）::
 
     DATABASE_ROUTERS = ['path.to.MyAppRouter', 'path.to.MasterSlaveRouter']
 
-The order in which routers are processed is significant. Routers will
-be queried in the order the are listed in the
-:setting:`DATABASE_ROUTERS` setting . In this example, the
-``MyAppRouter`` is processed before the ``MasterSlaveRouter``, and as a
-result, decisions concerning the models in ``myapp`` are processed
-before any other decision is made. If the :setting:`DATABASE_ROUTERS`
-setting listed the two routers in the other order,
-``MasterSlaveRouter.allow_syncdb()`` would be processed first. The
-catch-all nature of the MasterSlaveRouter implementation would mean
-that all models would be available on all databases.
+这个设置中，路由的顺序是很重要的，因为查询时是按这个设置中的顺序依次查询的。上
+例中， ``MyAppRouter`` 先于 ``MasterSlaveRouter`` ，因此， ``myapp`` 中的模型就
+优先于其他模型。如果 :setting:`DATABASE_ROUTERS` 设置中两个路由的顺序变换了，
+那么 ``MasterSlaveRouter.allow_syncdb()`` 会优先执行。因为 MasterSlaveRouter 是
+包罗万象的，这样就会导致所有模型可以使用所有数据库。
 
-With this setup installed, lets run some Django code::
+设置好之后让我们来运行一些代码::
 
-    >>> # This retrieval will be performed on the 'credentials' database
+    >>> # 从 'credentials' 数据库获得数据
     >>> fred = User.objects.get(username='fred')
     >>> fred.first_name = 'Frederick'
 
-    >>> # This save will also be directed to 'credentials'
+    >>> # 保存到 'credentials' 数据库
     >>> fred.save()
 
-    >>> # These retrieval will be randomly allocated to a slave database
+    >>> # 随机从从数据库获得数据
     >>> dna = Person.objects.get(name='Douglas Adams')
 
-    >>> # A new object has no database allocation when created
+    >>> # 新对象创建时还没有分配数据库
     >>> mh = Book(title='Mostly Harmless')
 
-    >>> # This assignment will consult the router, and set mh onto
-    >>> # the same database as the author object
+    >>> # 这个赋值会向路由发出请求，并把 mh 的数据库设置为与 author 对象同样的
+    >>> # 数据库
     >>> mh.author = dna
 
-    >>> # This save will force the 'mh' instance onto the master database...
+    >>> # 这会强制 'mh' 实例使用主数据库...
     >>> mh.save()
 
-    >>> # ... but if we re-retrieve the object, it will come back on a slave
+    >>> # ... 但如果我们重新获取对象，就会从从数据库中获取
     >>> mh = Book.objects.get(title='Mostly Harmless')
 
 
-Manually selecting a database
-=============================
+手动选择数据库
+==============
 
-Django also provides an API that allows you to maintain complete control
-over database usage in your code. A manually specified database allocation
-will take priority over a database allocated by a router.
+Django 也提供一个可以让你通过代码完全控制数据库使用的 API 。手动定义数据库分配
+优先于路由。
 
-Manually selecting a database for a ``QuerySet``
-------------------------------------------------
+为一个 ``查询集`` 手动选择一个数据库
+------------------------------------
 
-You can select the database for a ``QuerySet`` at any point in the
-``QuerySet`` "chain." Just call ``using()`` on the ``QuerySet`` to get
-another ``QuerySet`` that uses the specified database.
+你可以在 ``查询集`` “链”中的任何点为 ``查询集`` 选择数据库。我们通过在
+``查询集`` 上调用 ``using()`` 来得到使用指定数据库的另一个 ``查询集`` 。
 
-``using()`` takes a single argument: the alias of the database on
-which you want to run the query. For example::
+``using()`` 使用一个参数：你想要运行查询的数据库的别名。例如::
 
-    >>> # This will run on the 'default' database.
+    >>> # 这会运行在“缺省”数据库上。
     >>> Author.objects.all()
 
-    >>> # So will this.
+    >>> # 这同样会运行在“缺省”数据库上。
     >>> Author.objects.using('default').all()
 
-    >>> # This will run on the 'other' database.
+    >>> # 这会运行在“ other ”数据库上。
     >>> Author.objects.using('other').all()
 
-Selecting a database for ``save()``
------------------------------------
+为 ``save()`` 选择一个数据库
+----------------------------
 
-Use the ``using`` keyword to ``Model.save()`` to specify to which
-database the data should be saved.
+在使用 ``Model.save()`` 时加上 ``using`` 关键字可以指定保存到哪个数据库。
 
-For example, to save an object to the ``legacy_users`` database, you'd
-use this::
+例如，要把一个对象保存到 ``legacy_users`` 数据库应该这样做::
 
     >>> my_object.save(using='legacy_users')
 
-If you don't specify ``using``, the ``save()`` method will save into
-the default database allocated by the routers.
+如果你不定义 ``using`` ，那么 ``save()`` 方法会根据路由分配把数据保存到缺省
+数据库中。
 
-Moving an object from one database to another
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+把一个对象从一个数据库移动到另一个数据库
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you've saved an instance to one database, it might be tempting to
-use ``save(using=...)`` as a way to migrate the instance to a new
-database. However, if you don't take appropriate steps, this could
-have some unexpected consequences.
+当你已经在一个数据库中保存了一个对象后，你可能会使用 ``save(using=...)`` 把这个
+对象移动到另一个数据库中。但是，如果你没有使用恰当的方法，那么可能会出现意想不
+到的后果。
 
-Consider the following example::
+假设有如下的例子::
 
     >>> p = Person(name='Fred')
-    >>> p.save(using='first')  # (statement 1)
-    >>> p.save(using='second') # (statement 2)
+    >>> p.save(using='first')  # （第一句）
+    >>> p.save(using='second') # （第二名）
 
-In statement 1, a new ``Person`` object is saved to the ``first``
-database. At this time, ``p`` doesn't have a primary key, so Django
-issues a SQL ``INSERT`` statement. This creates a primary key, and
-Django assigns that primary key to ``p``.
+在第一名中，一个新的 ``Person`` 对象被保存到 ``first`` 数据库中。这时， ``p``
+还没有一个主键，因此 Django 执行了一个 ``INSERT`` SQL 语句。这样就会创建一个
+主键，并将这个主键分配给 ``p`` 。
 
-When the save occurs in statement 2, ``p`` already has a primary key
-value, and Django will attempt to use that primary key on the new
-database. If the primary key value isn't in use in the ``second``
-database, then you won't have any problems -- the object will be
-copied to the new database.
+在第二句中，因为 ``p`` 已经有了一个主键，所以 Django 在保存对象时会尝试在新的
+数据库中使用这个主键。如果 ``second`` 数据库中没有使用这个主键，那就不会有问题，
+该对象会复制到新数据库。
 
-However, if the primary key of ``p`` is already in use on the
-``second`` database, the existing object in the ``second`` database
-will be overridden when ``p`` is saved.
+然而，如果 ``p`` 的主键在 ``second`` 数据库中已经使用过了，那么 ``second`` 使用
+这个主键的已存在的对象将会被 ``p`` 覆盖。
 
-You can avoid this in two ways. First, you can clear the primary key
-of the instance. If an object has no primary key, Django will treat it
-as a new object, avoiding any loss of data on the ``second``
-database::
+有两种方法可以避免上述情况的发生。第一，你可以清除实例的主键。如果一个对象没有
+主主键，那么 Django 会把它看作一个新对象，在保存到 ``second`` 数据库中时就不会
+带来数据的损失::
 
     >>> p = Person(name='Fred')
     >>> p.save(using='first')
-    >>> p.pk = None # Clear the primary key.
-    >>> p.save(using='second') # Write a completely new object.
+    >>> p.pk = None # 清除主键。
+    >>> p.save(using='second') # 写入一个全新的对象。
 
-The second option is to use the ``force_insert`` option to ``save()``
-to ensure that Django does a SQL ``INSERT``::
+第二种方法是在 ``save()`` 方法中使用 ``force_insert`` 选项来保证 Django 执行
+一个 ``INSERT`` SQL::
 
     >>> p = Person(name='Fred')
     >>> p.save(using='first')
     >>> p.save(using='second', force_insert=True)
 
-This will ensure that the person named ``Fred`` will have the same
-primary key on both databases. If that primary key is already in use
-when you try to save onto the ``second`` database, an error will be
-raised.
+这样可以保证名为 ``Fred`` 的人员在两个数据库中使用相同的主键。如果在保存到
+``second`` 数据库时主键已被占用，会抛出一个错误。
 
-Selecting a database to delete from
------------------------------------
+选择一个要删除数据的数据库
+--------------------------
 
-By default, a call to delete an existing object will be executed on
-the same database that was used to retrieve the object in the first
-place::
+缺省情况下，一个现存对象从哪个数据库得到，删除这个对象也会在这个数据库中进行::
 
     >>> u = User.objects.using('legacy_users').get(username='fred')
-    >>> u.delete() # will delete from the `legacy_users` database
+    >>> u.delete() # 会从 `legacy_users` 数据库中删除
 
 To specify the database from which a model will be deleted, pass a
 ``using`` keyword argument to the ``Model.delete()`` method. This
