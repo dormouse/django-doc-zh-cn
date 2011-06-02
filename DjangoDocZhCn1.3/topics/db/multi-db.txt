@@ -336,44 +336,39 @@ Django 也提供一个可以让你通过代码完全控制数据库使用的 API
     >>> u = User.objects.using('legacy_users').get(username='fred')
     >>> u.delete() # 会从 `legacy_users` 数据库中删除
 
-To specify the database from which a model will be deleted, pass a
-``using`` keyword argument to the ``Model.delete()`` method. This
-argument works just like the ``using`` keyword argument to ``save()``.
+通过向 ``Model.delete()`` 方法传递 ``using`` 关键字参数可以定义在哪个数据库中删除
+数据。 ``using`` 的用法与 ``save()`` 方法中使用这个参数类似。
 
-For example, if you're migrating a user from the ``legacy_users``
-database to the ``new_users`` database, you might use these commands::
+例如，假设我们要把一个用户从 ``legacy_users`` 数据库移动到 ``new_users`` 数据库
+可以使用如下命令::
 
     >>> user_obj.save(using='new_users')
     >>> user_obj.delete(using='legacy_users')
 
-Using managers with multiple databases
---------------------------------------
+多数据库情况下使用管理器
+------------------------
 
-Use the ``db_manager()`` method on managers to give managers access to
-a non-default database.
+在管理器上使用 ``db_manager()`` ，可以让管理器访问一个非缺省数据库。
 
-For example, say you have a custom manager method that touches the
-database -- ``User.objects.create_user()``. Because ``create_user()``
-is a manager method, not a ``QuerySet`` method, you can't do
-``User.objects.using('new_users').create_user()``. (The
-``create_user()`` method is only available on ``User.objects``, the
-manager, not on ``QuerySet`` objects derived from the manager.) The
-solution is to use ``db_manager()``, like this::
+例如，假设你有一个操作数据库的自定义管理器 ``User.objects.create_user()`` 。
+因为 ``create_user()`` 是一个管理器方法，不是一个 ``查询集`` ，所以你不能用
+``User.objects.using('new_users').create_user()`` 。（ ``create_user()`` 方法
+只能用于 ``User.objects`` 管理器，而不能用于，管理器衍生出的 ``查询集`` 。）
+解决方法是使用 ``db_manager()`` ，就象下面这样::
 
     User.objects.db_manager('new_users').create_user(...)
 
-``db_manager()`` returns a copy of the manager bound to the database you specify.
+``db_manager()`` 返回的是绑定到你指定的数据库的管理器的一个副本。
 
-Using ``get_query_set()`` with multiple databases
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+多数据库情况下使用 ``get_query_set()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you're overriding ``get_query_set()`` on your manager, be sure to
-either call the method on the parent (using ``super()``) or do the
-appropriate handling of the ``_db`` attribute on the manager (a string
-containing the name of the database to use).
+如果你在管理器中重载了 ``get_query_set()`` ，请确保在其父类中也调用了相同的方法
+（使用 ``super()`` ）或者正确处理管理器中的 ``_db`` 属性（一个包含要使用的数据库
+名称的字符串）。
 
-For example, if you want to return a custom ``QuerySet`` class from
-the ``get_query_set`` method, you could do this::
+例如，如果你要从 ``get_query_set`` 方法返回一个自定义 ``查询集`` 类，那么你可以
+这样做::
 
     class MyManager(models.Manager):
         def get_query_set(self):
@@ -382,75 +377,66 @@ the ``get_query_set`` method, you could do this::
                 qs = qs.using(self._db)
             return qs
 
-Exposing multiple databases in Django's admin interface
-=======================================================
+在 Django 管理接口中使用多数据库
+================================
 
-Django's admin doesn't have any explicit support for multiple
-databases. If you want to provide an admin interface for a model on a
-database other than that that specified by your router chain, you'll
-need to write custom :class:`~django.contrib.admin.ModelAdmin` classes
-that will direct the admin to use a specific database for content.
+Django 的管理接口没有明显支持多数据库。如果想要支持的话你必须写自定义
+:class:`~django.contrib.admin.ModelAdmin` 。
 
-``ModelAdmin`` objects have five methods that require customization for
-multiple-database support::
+如果要支持多数据库，那么 ``ModelAdmin`` 对象有五个方法要自定义::
 
     class MultiDBModelAdmin(admin.ModelAdmin):
-        # A handy constant for the name of the alternate database.
+        # 为方便起见定义一个数据库名称常量。
         using = 'other'
 
         def save_model(self, request, obj, form, change):
-            # Tell Django to save objects to the 'other' database.
+            # 让 Django 保存对象到 'other' 数据库。
             obj.save(using=self.using)
 
         def delete_model(self, request, obj):
-            # Tell Django to delete objects from the 'other' database
+            # 让 Django 从 'other' 数据库中删除对象。
             obj.delete(using=self.using)
 
         def queryset(self, request):
-            # Tell Django to look for objects on the 'other' database.
+            # 让 Django 在 'other' 数据库中搜索对象。
             return super(MultiDBModelAdmin, self).queryset(request).using(self.using)
 
         def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-            # Tell Django to populate ForeignKey widgets using a query
-            # on the 'other' database.
+            # 让 Django 基于 'other' 数据库生成外键控件。
             return super(MultiDBModelAdmin, self).formfield_for_foreignkey(db_field, request=request, using=self.using, **kwargs)
 
         def formfield_for_manytomany(self, db_field, request=None, **kwargs):
-            # Tell Django to populate ManyToMany widgets using a query
-            # on the 'other' database.
+            # 让 Django 基于 'other' 数据库生成多对多关系控件。
             return super(MultiDBModelAdmin, self).formfield_for_manytomany(db_field, request=request, using=self.using, **kwargs)
 
-The implementation provided here implements a multi-database strategy
-where all objects of a given type are stored on a specific database
-(e.g., all ``User`` objects are in the ``other`` database). If your
-usage of multiple databases is more complex, your ``ModelAdmin`` will
-need to reflect that strategy.
+以上代码实现了一个多数据库策略：所有给定类型的对象全部储存到一个指定的数据库（
+如所有 ``User`` 对象都在 ``other`` 数据库中）。如果你的多数据库应用更复杂，你就
+需要自定义更复杂的 ``ModelAdmin`` 。
 
-Inlines can be handled in a similar fashion. They require three customized methods::
+内联也可以按上面类似的方式处理。内联处理需要三个自定义方法::
 
     class MultiDBTabularInline(admin.TabularInline):
         using = 'other'
 
         def queryset(self, request):
-            # Tell Django to look for inline objects on the 'other' database.
+            # 让 Django 在 'other' 数据库中搜索内联对象。
             return super(MultiDBTabularInline, self).queryset(request).using(self.using)
 
         def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-            # Tell Django to populate ForeignKey widgets using a query
+            # 让 Django 基于 'other' 数据库生成外键控件。
             # on the 'other' database.
             return super(MultiDBTabularInline, self).formfield_for_foreignkey(db_field, request=request, using=self.using, **kwargs)
 
         def formfield_for_manytomany(self, db_field, request=None, **kwargs):
-            # Tell Django to populate ManyToMany widgets using a query
+            # 让 Django 基于 'other' 数据库生成多对多关系控件。
             # on the 'other' database.
             return super(MultiDBTabularInline, self).formfield_for_manytomany(db_field, request=request, using=self.using, **kwargs)
 
-Once you've written your model admin definitions, they can be
-registered with any ``Admin`` instance::
+一旦你写好了管理模型的定义，就可被任何 ``Admin`` 实例注册使用::
 
     from django.contrib import admin
 
-    # Specialize the multi-db admin objects for use with specific models.
+    # 指定用于给定模型的多数据库管理对象。
     class BookInline(MultiDBTabularInline):
         model = Book
 
@@ -463,49 +449,36 @@ registered with any ``Admin`` instance::
     othersite = admin.Site('othersite')
     othersite.register(Publisher, MultiDBModelAdmin)
 
-This example sets up two admin sites. On the first site, the
-``Author`` and ``Publisher`` objects are exposed; ``Publisher``
-objects have an tabular inline showing books published by that
-publisher. The second site exposes just publishers, without the
-inlines.
+这个例子设置了两个管理站点。第一个管理站点，显示作者和出版商对象，出版商对象有
+一个内联表格显示该出版商所出版的书。第二个管理站点只显示出版商，没有内联对象。
 
-Using raw cursors with multiple databases
-=========================================
+多数据库情况下使用原始指针
+==========================
 
-If you are using more than one database you can use
-``django.db.connections`` to obtain the connection (and cursor) for a
-specific database. ``django.db.connections`` is a dictionary-like
-object that allows you to retrieve a specific connection using its
-alias::
+如果使用多个数据库，那么可以使用 ``django.db.connections`` 来获得特定数据库的
+连接（和指针）。 ``django.db.connections`` 是一个类似字典的对象，允许你通过别名
+来获得一个特定的连接::
 
     from django.db import connections
     cursor = connections['my_db_alias'].cursor()
 
-Limitations of multiple databases
-=================================
+多数据库的限制
+==============
 
 .. _no_cross_database_relations:
 
-Cross-database relations
-------------------------
+跨数据库关系
+------------
 
-Django doesn't currently provide any support for foreign key or
-many-to-many relationships spanning multiple databases. If you
-have used a router to partition models to different databases,
-any foreign key and many-to-many relationships defined by those
-models must be internal to a single database.
+Django 当前不支持外键或多对多关系跨数据库的情况。如果你已经通过使用路由把模型
+分配到不同的数据库中，那么任何外键或多对多关系涉及的模型必须放在同一个数据库中。
 
-This is because of referential integrity. In order to maintain a
-relationship between two objects, Django needs to know that the
-primary key of the related object is valid. If the primary key is
-stored on a separate database, it's not possible to easily evaluate
-the validity of a primary key.
+这里涉及到一个引用完整性问题。为了维护两个对象之间的关系， Django 需要知道相
+关联对象的主键是否合法。如果主键存放在另一个数据库，就不可能轻易的验证主键的
+合法性了。
 
-If you're using Postgres, Oracle, or MySQL with InnoDB, this is
-enforced at the database integrity level -- database level key
-constraints prevent the creation of relations that can't be validated.
+如果你正在使用 Postgres 、 Oracle 或 带有InnoDB 的 MySQL ，那么在数据库级别就
+已经限制跨数据库关系。
 
-However, if you're using SQLite or MySQL with MyISAM tables, there is
-no enforced referential integrity; as a result, you may be able to
-'fake' cross database foreign keys. However, this configuration is not
-officially supported by Django.
+但是，如是你正在使用的 SQLite 或只使用 MyISAM 表的 MySQL ，就没有这种限制，因此
+可以“假装”使用跨数据库外键，但是这种方式不被 Django 官方支持。

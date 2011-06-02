@@ -1,201 +1,185 @@
-============================
-Database access optimization
-============================
+==============
+数据库访问优化
+==============
 
-Django's database layer provides various ways to help developers get the most
-out of their databases. This document gathers together links to the relevant
-documentation, and adds various tips, organized under an number of headings that
-outline the steps to take when attempting to optimize your database usage.
+Django 的数据库层提供了多种方法来帮助开发者尽可能的远离数据库底层。本文档收集了
+多种文档的链接，并增加了许多技巧。当你尝试优化数据库使用时，可以把本文作为一个
+大纲作为参考。
 
-Profile first
-=============
+评估第一
+========
 
-As general programming practice, this goes without saying. Find out :ref:`what
-queries you are doing and what they are costing you
-<faq-see-raw-sql-queries>`. You may also want to use an external project like
-'django-debug-toolbar', or a tool that monitors your database directly.
+作为通常的编程实践，这是不言而喻的。要知道到 :ref:`你到底在做什么查询，这些查询
+的成本是多少 <faq-see-raw-sql-queries>` 。你可能还需要使用象
+django-debug-toolbar_ 之类的其他项目或直接监视你的数据库的工具。
 
-Remember that you may be optimizing for speed or memory or both, depending on
-your requirements. Sometimes optimizing for one will be detrimental to the
-other, but sometimes they will help each other. Also, work that is done by the
-database process might not have the same cost (to you) as the same amount of
-work done in your Python process. It is up to you to decide what your
-priorities are, where the balance must lie, and profile all of these as required
-since this will depend on your application and server.
+请记住，你可能为了速度或者内存或者两者兼而有之作优化，这视你的需要而定。当你为
+其中一个目标优化后可能会损害另一个目标，但有时也会两者都受惠。同时作数据库优化
+可能还不如优化 Python 代码。这些都取决于你的重点在哪里，平衡点在哪里。优化依赖
+于你的应用和服务器，因此我们必须进行评估。
 
-With everything that follows, remember to profile after every change to ensure
-that the change is a benefit, and a big enough benefit given the decrease in
-readability of your code. **All** of the suggestions below come with the caveat
-that in your circumstances the general principle might not apply, or might even
-be reversed.
 
-Use standard DB optimization techniques
-=======================================
+在进行优化时应牢记在每次变动之后应当进行评估，以确保变动有益的，并且益处在远大
+于降低代码可读性带来的害处。下文 **所有** 建议都有一个附加警示：在你的环境中，
+一般的原则可能失效，甚至是有害的。
 
-...including:
+.. _django-debug-toolbar: http://robhudson.github.com/django-debug-toolbar/
 
-* Indexes. This is a number one priority, *after* you have determined from
-  profiling what indexes should be added. Use :attr:`django.db.models.Field.db_index` to add
-  these from Django.
+使用标准数据库技术
+==================
 
-* Appropriate use of field types.
+...包括：
 
-We will assume you have done the obvious things above. The rest of this document
-focuses on how to use Django in such a way that you are not doing unnecessary
-work. This document also does not address other optimization techniques that
-apply to all expensive operations, such as :doc:`general purpose caching
-</topics/cache>`.
+* 建立索引。在你评估应当建立哪些索引 *之后* ，建立索引第一件要做的事。可以使用
+  :attr:`django.db.models.Field.db_index` 来建立索引。
 
-Understand QuerySets
-====================
+* 选择适当的字段类型。
 
-Understanding :doc:`QuerySets </ref/models/querysets>` is vital to getting good
-performance with simple code. In particular:
+本文我们假设你已经把上述显而易见的事情都做好了。下文主要关注在你做了必要的工作
+的情况下如何使用 Django 。同时本文也不涉及重量级的操作，如 :doc:`一般目标下的
+缓存 </topics/cache>` 。
 
-Understand QuerySet evaluation
-------------------------------
+理解查询集
+==========
 
-To avoid performance problems, it is important to understand:
+理解 :doc:`查询集 </ref/models/querysets>` 是非常重要的，只有理解了查询集才可能
+用简明的代码获得优异的性能。尤其要掌握以下几点：
 
-* that :ref:`QuerySets are lazy <querysets-are-lazy>`.
+理解查询集的执行
+----------------
 
-* when :ref:`they are evaluated <when-querysets-are-evaluated>`.
+为避免性能问题，以下几点必须理解：
 
-* how :ref:`the data is held in memory <caching-and-querysets>`.
+* :ref:`查询集是惰性的 <querysets-are-lazy>` 。
 
-Understand cached attributes
-----------------------------
+* :ref:`查询集是何时执行的 <when-querysets-are-evaluated>` 。
 
-As well as caching of the whole ``QuerySet``, there is caching of the result of
-attributes on ORM objects. In general, attributes that are not callable will be
-cached. For example, assuming the :ref:`example weblog models
-<queryset-model-example>`:
+* :ref:`数据是如何存放在内存中的 <caching-and-querysets>` 。
+
+理解缓存属性
+------------
+
+和缓存整个 ``查询集`` 一样， ORM 对象的属性也是有缓存的。通常，不可调用的属性
+会被缓存。例如，假设 :ref:`一个示例博客模型 <queryset-model-example>`::
 
   >>> entry = Entry.objects.get(id=1)
-  >>> entry.blog   # Blog object is retrieved at this point
-  >>> entry.blog   # cached version, no DB access
+  >>> entry.blog   # 获得 Blog 对象
+  >>> entry.blog   # 只调用缓存，不操作数据库
 
-But in general, callable attributes cause DB lookups every time::
+但是通常可调用的属性每次都会引发数据库查询::
 
   >>> entry = Entry.objects.get(id=1)
-  >>> entry.authors.all()   # query performed
-  >>> entry.authors.all()   # query performed again
+  >>> entry.authors.all()   # 执行查询
+  >>> entry.authors.all()   # 再次执行查询
 
-Be careful when reading template code - the template system does not allow use
-of parentheses, but will call callables automatically, hiding the above
-distinction.
+在阅读模板代码时要小心，因为模板代码是不允许使用圆括号的，但仍会自动调用可调用
+的属性。
 
-Be careful with your own custom properties - it is up to you to implement
-caching.
+还要小心你自定义的属性，因为自定义属性是否调用缓存是你自己决定的。
 
-Use the ``with`` template tag
------------------------------
+使用 ``with`` 模板标记
+----------------------
 
-To make use of the caching behaviour of ``QuerySet``, you may need to use the
-:ttag:`with` template tag.
+要使用 ``查询集`` 的缓存行为，你可能需要使用 :ttag:`with` 模板标记。
 
-Use ``iterator()``
-------------------
+使用 ``iterator()``
+-------------------
 
-When you have a lot of objects, the caching behaviour of the ``QuerySet`` can
-cause a large amount of memory to be used. In this case,
-:meth:`~django.db.models.QuerySet.iterator()` may help.
+当你有大量对象时， ``查询集`` 缓存行为可能消耗大量内存，在这种情况下使用
+:meth:`~django.db.models.QuerySet.iterator()` 可能有帮助。
 
-Do database work in the database rather than in Python
+不要在 Python 执行数据库操作，尽量在数据库中实现
 ======================================================
 
-For instance:
+例如：
 
-* At the most basic level, use :ref:`filter and exclude <queryset-api>` to do
-  filtering in the database.
+* 在多数基本层面，通过使用 :ref:`过滤和排除 <queryset-api>` 来在数据库中过滤。
 
-* Use :ref:`F() object query expressions <query-expressions>` to do filtering
-  against other fields within the same model.
+* 使用 :ref:`F() 对象查询表达式 <query-expressions>` 来过滤同一模型中的其他字段。
 
-* Use :doc:`annotate to do aggregation in the database </topics/db/aggregation>`.
+* 通过使用 :doc:`统计 </topics/db/aggregation>` 来在数据库中进行统计。
 
-If these aren't enough to generate the SQL you need:
+如果上述内容还不足生成你所需要的 SQL ，那么可以：
 
-Use ``QuerySet.extra()``
-------------------------
+使用 ``QuerySet.extra()``
+-------------------------
 
-A less portable but more powerful method is
-:meth:`~django.db.models.QuerySet.extra()`, which allows some SQL to be
-explicitly added to the query. If that still isn't powerful enough:
+一个不是很轻便但是更有力的方法是使用
+:meth:`~django.db.models.QuerySet.extra()` 。它可以允许在查询中显式地加入一些
+SQL 。如果还不够，可以：
 
-Use raw SQL
------------
+使用原始 SQL
+------------
 
-Write your own :doc:`custom SQL to retrieve data or populate models
-</topics/db/sql>`. Use ``django.db.connection.queries`` to find out what Django
-is writing for you and start from there.
+你可以使用 :doc:`自己写的 SQL 语句 </topics/db/sql>` 来获取数据或生成模型。在
+使用原始 SQL 之前，请先使用 ``django.db.connection.queries`` 来查看 Django 是
+如何为你生成 SQL 的。
 
-Retrieve everything at once if you know you will need it
-========================================================
+一次性获取你所要的一切
+======================
 
-Hitting the database multiple times for different parts of a single 'set' of
-data that you will need all parts of is, in general, less efficient than
-retrieving it all in one query. This is particularly important if you have a
-query that is executed in a loop, and could therefore end up doing many database
-queries, when only one was needed. So:
+分批从数据库中获得你要的数据往往比一次性获得所有数据效率低。当在一个循环中这样
+获得数据时时效率更低，这会带查询数量的激增。所以请：
 
-Use ``QuerySet.select_related()``
----------------------------------
+使用 ``QuerySet.select_related()``
+----------------------------------
 
-Understand :ref:`QuerySet.select_related() <select-related>` thoroughly, and use it:
+彻底理解 :ref:`QuerySet.select_related() <select-related>` ，并使用在以下地方：
 
-* in view code,
+* 在视图代码中，
 
-* and in :doc:`managers and default managers </topics/db/managers>` where
-  appropriate. Be aware when your manager is and is not used; sometimes this is
-  tricky so don't make assumptions.
+* 在适当的 :doc:`管理器和缺省管理器 </topics/db/managers>` 中。请小心确认何时
+  使用了或者没有使用管理器，有时这是一个容易迷惑的问题，小心阴沟里翻船。
 
-Don't retrieve things you don't need
-====================================
+不要获取你不需要的东西
+======================
 
-Use ``QuerySet.values()`` and ``values_list()``
+使用 ``QuerySet.values()`` 和 ``values_list()``
 -----------------------------------------------
 
-When you just want a dict/list of values, and don't need ORM model objects, make
-appropriate usage of :meth:`~django.db.models.QuerySet.values()`.
-These can be useful for replacing model objects in template code - as long as
-the dicts you supply have the same attributes as those used in the template, you
-are fine.
+当你只需要一个包含值的 ``dict`` 或 ``list`` ，且不需要 ORM 模型对象时，请正确
+使用 :meth:`~django.db.models.QuerySet.values()` 。这个方法可用于在模板代码中
+代替模型对象，因为你提供的字典提供了同样的属性。.
 
-Use ``QuerySet.defer()`` and ``only()``
+使用 ``QuerySet.defer()`` 和 ``only()``
 ---------------------------------------
 
-Use :meth:`~django.db.models.QuerySet.defer()` and
-:meth:`~django.db.models.QuerySet.only()` if there are database columns you
-know that you won't need (or won't need in most cases) to avoid loading
-them. Note that if you *do* use them, the ORM will have to go and get them in a
-separate query, making this a pessimization if you use it inappropriately.
+如果数据库中有不需要（或者大多数情况下不需要）的列时请使用
+:meth:`~django.db.models.QuerySet.defer()` 和
+:meth:`~django.db.models.QuerySet.only()` ，这样可以载入这些列。注意，如果你
+*不* 使用它们， ORM 将只能通过一个单独的查询去获取这些列，这样就不好了。
 
-Use QuerySet.count()
---------------------
+同时，应当看到当使用延时的字段构建模型时， Django 内部还是需要花费一定成本的。
+因此不要不经过评估就乱用延时字段，毕竟为了一行数据，哪怕最后只一小部分列，数据
+库还是得从磁盘读入大多数非文本或非字符类型的数据的。 ``defer()`` 和 ``only()``
+方法最适用于避免载入大量文本情形下，因为把大量文本转换为 Python 对象还是很消耗
+资源的。但是还是要唠叨一句：先评估，再优化。
 
-...if you only want the count, rather than doing ``len(queryset)``.
-
-Use QuerySet.exists()
+使用 QuerySet.count()
 ---------------------
 
-...if you only want to find out if at least one result exists, rather than ``if
-queryset``.
+...如果你只想要计数，那么 QuerySet.count() 比 ``len(queryset)`` 好。
 
-But:
+使用 QuerySet.exists()
+----------------------
 
-Don't overuse ``count()`` and ``exists()``
+...如果你只想要发现是否起码存在一个结果，那么 QuerySet.exists() 比
+``if queryset`` 好。
+
+但是：
+
+不要过度使用 ``count()`` 和 ``exists()``
 ------------------------------------------
 
-If you are going to need other data from the QuerySet, just evaluate it.
+如果你还需要查询集中的其他数据，那么就不要使用 ``count()`` 和 ``exists()`` 。
 
-For example, assuming an Email class that has a ``body`` attribute and a
-many-to-many relation to User, the following template code is optimal:
+例如，假设有一个电子邮件模型，这个模型有一个 ``body`` 属性并且有一个对应 User的
+多对多关系。下面的模板代码是最优的：
 
 .. code-block:: html+django
 
    {% if display_inbox %}
-     {% with user.emails.all as emails %}
+     {% with emails=user.emails.all %}
        {% if emails %}
          <p>You have {{ emails|length }} email(s)</p>
          {% for email in emails %}
@@ -208,51 +192,46 @@ many-to-many relation to User, the following template code is optimal:
    {% endif %}
 
 
-It is optimal because:
+以上代码最优的理由如下：
 
- 1. Since QuerySets are lazy, this does no database if 'display_inbox' is False.
+ 1. 因为查询集是惰性的，所以如果 'display_inbox' 为假，那么就不会执行数据库查询。
 
- #. Use of ``with`` means that we store ``user.emails.all`` in a variable for
-    later use, allowing its cache to be re-used.
+ #. 使用 ``with`` 就意味我们把 ``user.emails.all`` 储存到变量中以备后用，也就是
+    允许缓存它用于以后反复使用。
 
- #. The line ``{% if emails %}`` causes ``QuerySet.__nonzero__()`` to be called,
-    which causes the ``user.emails.all()`` query to be run on the database, and
-    at the least the first line to be turned into an ORM object. If there aren't
-    any results, it will return False, otherwise True.
+ #. ``{% if emails %}`` 这行代码引发 ``QuerySet.__nonzero__()`` 被调用，引发 
+    ``user.emails.all()`` 查询在数据库中执行，并且至少使第一行转化为一个 ORM 
+    对象。如果有结果则返回 True ，否则返回 False 。
 
- #. The use of ``{{ emails|length }}`` calls ``QuerySet.__len__()``, filling
-    out the rest of the cache without doing another query.
+ #. 使用 ``{{ emails|length }}`` 就是调用 ``QuerySet.__len__()`` ，这里调用缓存
+    而不会再做查询。
 
- #. The ``for`` loop iterates over the already filled cache.
+ #. ``for`` 循环反复作用于缓存上。
 
-In total, this code does either one or zero database queries. The only
-deliberate optimization performed is the use of the ``with`` tag. Using
-``QuerySet.exists()`` or ``QuerySet.count()`` at any point would cause
-additional queries.
+总而言之，以上代码只会做一次或不做查询。代码中最重要的优化就是使用 ``with``
+标记。如果在任何地方使用 ``QuerySet.exists()`` 或 ``QuerySet.count()`` 就会带来
+额外的查询。
 
-Use ``QuerySet.update()`` and ``delete()``
+使用 ``QuerySet.update()`` 和 ``delete()``
 ------------------------------------------
 
-Rather than retrieve a load of objects, set some values, and save them
-individual, use a bulk SQL UPDATE statement, via :ref:`QuerySet.update()
-<topics-db-queries-update>`. Similarly, do :ref:`bulk deletes
-<topics-db-queries-delete>` where possible.
+如果有大量对象要赋值并保存，那么与其一个一个分别执行，不如使用一个批量
+SQL UPDATE 语句 :ref:`QuerySet.update() <topics-db-queries-update>` 。同理，
+只要有可能就应当使用 :ref:`批量删除 <topics-db-queries-delete>` 。
 
-Note, however, that these bulk update methods cannot call the ``save()`` or ``delete()``
-methods of individual instances, which means that any custom behaviour you have
-added for these methods will not be executed, including anything driven from the
-normal database object :doc:`signals </ref/signals>`.
+注意，这些批量操作语句不能调用每个实例的 ``save()`` 或 ``delete()`` 方法，这就
+意味着你加在这些方法上的自定义行为就不会被执行，包括由一般数据库对象
+:doc:`信号 </ref/signals>` 驱动的任何东西也不会被执行。
 
-Use foreign key values directly
--------------------------------
+直接使用外键的值
+----------------
 
-If you only need a foreign key value, use the foreign key value that is already on
-the object you've got, rather than getting the whole related object and taking
-its primary key. i.e. do::
+如果你只需要一个外键的值，那么请直接使用你已获得的对象上的外键值，而不要获取
+整个关系对象再获得其主键。例如应当这样::
 
    entry.blog_id
 
-instead of::
+不应当这样::
 
    entry.blog.id
 
