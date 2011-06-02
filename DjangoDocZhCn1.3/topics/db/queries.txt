@@ -10,7 +10,7 @@
 抽象的 API ，以用于创建、检索、更新和删除对象。本文为你介绍如何使用这套 API 。
 所有不同种类的搜索参数详见 :doc:`数据模型参考 </ref/models/index>` 。
 
-本文所有内容（包括本手册）全部围绕以下模型展开，这些模型可以组成一个博客应用：
+本文所有内容（包括本手册）全部围绕以下模型展开，这些模型组成了一个博客应用：
 
 .. _queryset-model-example:
 
@@ -35,6 +35,7 @@
         headline = models.CharField(max_length=255)
         body_text = models.TextField()
         pub_date = models.DateTimeField()
+        mod_date = models.DateTimeField()
         authors = models.ManyToManyField(Author)
         n_comments = models.IntegerField()
         n_pingbacks = models.IntegerField()
@@ -57,7 +58,7 @@
 
 假设模型存在于文件 ``mysite/blog/models.py`` 中，示例如下::
 
-    >>> from mysite.blog.models import Blog
+    >>> from blog.models import Blog
     >>> b = Blog(name='Beatles Blog', tagline='All the latest Beatles news.')
     >>> b.save()
 
@@ -89,17 +90,21 @@ name 并且会修改数据库中相应的数据::
 保存 ``外键`` 和 ``多对多字段`` 字段
 -----------------------------------------------
 
-更新 ``外键`` 字段的方法与一般的字段一样，只要设置正确的字段类型就可以了::
+更新一个 ``外键`` 字段的方法与一般的字段一样，只要设置正确的字段类型就可以了。
+本例更新了一个 ``Entry`` 实例的 ``blog`` 属性::
 
+    >>> from blog.models import Entry
+    >>> entry = Entry.objects.get(pk=1)
     >>> cheese_blog = Blog.objects.get(name="Cheddar Talk")
     >>> entry.blog = cheese_blog
     >>> entry.save()
 
-更新一个 ``多对多字段`` 稍有不同，要对更新的字段使用 ``add()`` 方法来
-为关系增加一个记录::
+更新一个 ``多对多字段`` 稍有不同，要对更新的字段使用 ``add()`` 方法来为关系增加
+一个记录。本例在 ``entry`` 对象中加入了 ``Author`` 实例 ``joe`` ::
 
-    >> joe = Author.objects.create(name="Joe")
-    >> entry.authors.add(joe)
+    >>> from blog.models import Author
+    >>> joe = Author.objects.create(name="Joe")
+    >>> entry.authors.add(joe)
 
 如果你尝试使用不正确的对象类型，那么 Django 会有意见的。
 
@@ -232,12 +237,38 @@ name 并且会修改数据库中相应的数据::
 数据， ``查询集`` 被 *执行* 了。更多关于执行的精确时间的内容参见
 :ref:`when-querysets-are-evaluated` 。
 
-其他查询集方法
-~~~~~~~~~~~~~~
 
-大多数时间，当需要在数据库中查找对象时会使用 ``all()`` 、 ``filter()`` 和
-``exclude()`` 。但是，这还是远远不够的。要得到所有 ``查询集`` 方法的完整列表，请
-参阅 :ref:`查询集 API 手册 <queryset-api>` 。
+.. _retrieving-single-object-with-get:
+
+使用 get 获取一个单一的对象
+---------------------------
+
+``.filter()`` 总是给你一个 ``查询集`` ，即使只有一个对象符合查询条件也会返回只
+包含一个对象的 ``查询集`` 。
+
+如果你确定你的查询只有一个符合条件的对象，那么你可以使用在 `管理器` 上使用
+``get()`` 方法直接获取这个对象::
+
+    >>> one_entry = Entry.objects.get(pk=1)
+
+你可以象 ``filter()`` 一样在 ``get()`` 上使用任何查询表达式。参见下文的
+`字段查找`_ 。
+
+注意， ``filter()`` 和 ``get()`` 有一点不同。如果没有找到符合条件的对象，那么
+``.get()`` 会抛出一个 ``DoesNotExist`` 异常。这个异常是被执行查询的模型类的一个
+属性。在上面的例子中，如果没有这键为 1 的 ``Entry`` ，那么 Django 会抛出
+``Entry.DoesNotExist`` 异常。
+
+同样，如果多个对象符合条件， Django 也会不爽，会抛出
+``MultipleObjectsReturned`` 异常。这个异常也是模型类的一个属性。
+
+
+其他查询集方法
+--------------
+
+大多数时间，当需要在数据库中查找对象时会使用 ``all()`` 、 ``get()`` 、
+``filter()`` 和 ``exclude()`` 。但是，这还是远远不够的。要得到所有 ``查询集``
+方法的完整列表，请参阅 :ref:`查询集 API 手册 <queryset-api>` 。
 
 .. _limiting-querysets:
 
@@ -274,7 +305,7 @@ name 并且会修改数据库中相应的数据::
     >>> Entry.objects.order_by('headline')[0:1].get()
 
 注意：当查询结果为空时，第一个例子会产生 ``IndexError`` 异常，而第二个例子则
-产生 ``DoesNotExist`` 异常。详见 ``get()`` 。
+产生 ``DoesNotExist`` 异常。详见 :meth:`~django.db.models.QuerySet.get` 。
 
 .. _field-lookups-intro:
 
@@ -397,8 +428,6 @@ Django 提供一个有力且直观的方法来“追踪”查找中的关系，�
 跨越多值关系
 ~~~~~~~~~~~~
 
-.. versionadded:: 1.0
-
 当你基于一个 ``多对多字段`` 对象或一个反向 ``外键`` 过滤时，有两种不同的过滤
 方法值得注意。对于 ``博客`` 与 ``条目`` 关系（ ``博客`` 对于 ``条目`` 是一对多
 关系），我们可能会想要查找一个博客，这个必须博客包括一个符合以下条件的条目：在
@@ -442,8 +471,6 @@ Django 提供一个有力且直观的方法来“追踪”查找中的关系，�
 过滤器可以引用模型中的字段
 --------------------------
 
-.. versionadded:: 1.1
-
 迄今为止的例子中，我们构建的过滤器都是比较字段和常量的，但是如果我们要比较同一
 模型中的两个不同字段怎么办？
 
@@ -466,9 +493,17 @@ Django 支持 ``F()`` 对象的加减乘除和取模运算。要查找广播数�
     >>> Entry.objects.filter(rating__lt=F('n_comments') + F('n_pingbacks'))
 
 你也可以在 ``F()`` 对象中使用双下划线来跨越关系。带有双下划线的 ``F()`` 对象会
-自动使用必须联合。例如查找所有作者为博客名称的条目，可以使用如下查询：
+自动使用必须联合。例如查找所有作者为博客名称的条目，可以使用如下查询::
 
     >>> Entry.objects.filter(authors__name=F('blog__name'))
+
+.. versionadded:: 1.3
+
+对于日期和日期时间字段你可以加上或减去一个 ``datetime.timedelta`` 对象。下例
+可以返回所有在发布三天后修改过条目::
+   
+    >>> from datetime import timedelta
+    >>> Entry.objects.filter(mod_date__gt=F('pub_date') + timedelta(days=3))
 
 pk 缩写
 ----------------------
@@ -556,6 +591,7 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
 
 例如，下面的 ``Q`` 对象封装了一个单一的 ``LIKE`` 查询::
 
+    from django.db.models import Q
     Q(question__startswith='What')
 
 ``Q`` 对象可以用 ``&`` 和 ``|`` 操作符联结，联结之后会产生一个新的 ``Q`` 对象。
@@ -609,7 +645,7 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
 
     Django 单元测试中的 `逻辑或查询例子`_ 中有一些 ``Q`` 对象的使用例子。
 
-    .. _逻辑或查询例子: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/or_lookups/models.py
+    .. _逻辑或查询例子: http://code.djangoproject.com/browser/django/trunk/tests/modeltests/or_lookups/tests.py
 
 比较对象
 ========
@@ -647,12 +683,16 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
 的 ``delete()`` 方法。如果你要执行自定义的 ``delete()`` 方法，那么必须“手动”
 删除。（例如遍历一个 ``查询集`` ，对每个单独的对象执行 ``delete()`` 方法。）
 
-当 Django 删除一个对象，它会模拟 SQL 的约束 ``ON DELETE CASCADE`` 换句话说，
-任何有外键指向被删除对象的对象都会同时被删除。例如::
+当 Django 删除一个对象，缺省情况下它会模拟 SQL 的约束 ``ON DELETE CASCADE`` ，
+换句话说，任何有外键指向被删除对象的对象都会同时被删除。例如::
 
     b = Blog.objects.get(pk=1)
     # 以下语句会删除博客和它所有的条目。
     b.delete()
+
+.. versionadded:: 1.3
+    这种联动行为可以通过在 :class:`~django.db.models.ForeignKey` 上面加上
+    :attr:`~django.db.models.ForeignKey.on_delete` 参数来定制。
 
 注意， ``delete()`` 方法是唯一没有暴露给“管理器”的 ``查询集`` 方法。这是一个
 保护机制，以防止你意外地使用了 ``Entry.objects.delete()`` ,删除了 *所有* 条目。
@@ -664,8 +704,6 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
 
 一次更新多个对象
 ================
-
-.. versionadded:: 1.0
 
 有时需要把一个 ``查询集`` 中所有对象的某个字段的值设置为同一个特定值，你可以
 使用 ``update()`` 方法。例如::
@@ -700,8 +738,6 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
     for item in my_queryset:
         item.save()
 
-.. versionadded:: 1.1
-
 也可以通过使用 :ref:`F() 对象 <query-expressions>` 来基于模型中的其他字段的值来
 更新。这种方法对于基于字段当前值来增加计数特别有用。例如，要给博客中的每个条目
 增加广播的计数，可以这样写::
@@ -713,6 +749,8 @@ Django 会帮你处理引号，上例的相应的 SQL 如下：
 
     # 这会引发一个 FieldError
     >>> Entry.objects.update(headline=F('blog__name'))
+
+.. _topics-db-queries-related:
 
 相关联的对象
 ============
