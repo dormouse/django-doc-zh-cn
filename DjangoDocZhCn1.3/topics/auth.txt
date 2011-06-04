@@ -1,144 +1,127 @@
 =============================
-User authentication in Django
+Django 中的用户认证
 =============================
 
 .. module:: django.contrib.auth
    :synopsis: Django's authentication framework.
 
-Django comes with a user authentication system. It handles user accounts,
-groups, permissions and cookie-based user sessions. This document explains how
-things work.
+Django 自带一个用户认证系统，这个系统处理用户帐户、组、权限和基于 cookie 的
+会话。本文说明这个系统是如何工作的。
 
-Overview
-========
+概览
+====
 
-The auth system consists of:
+认证系统由以下部分组成：
 
-    * Users
-    * Permissions: Binary (yes/no) flags designating whether a user may perform
-      a certain task.
-    * Groups: A generic way of applying labels and permissions to more than one
-      user.
-    * Messages: A simple way to queue messages for given users.
+    * 用户
+    * 权限：控制用户进否可以执行某项任务的二进制（是/否）标志。
+    * 组：一种为多个用户加上标签和权限的常用方式。
+    * 消息：一种为指定用户生成简单消息队列的方式。
 
 .. deprecated:: 1.2
-   The Messages component of the auth system will be removed in Django 1.4.
+   认证系统的消息部分将会在 Django 1.4 版中去除。
 
-Installation
-============
+安装
+====
 
-Authentication support is bundled as a Django application in
-``django.contrib.auth``. To install it, do the following:
+认证系统打包在 Django 的 ``django.contrib.auth`` 应用中，安装它有以下步骤：
 
-    1. Put ``'django.contrib.auth'`` and ``'django.contrib.contenttypes'`` in
-       your :setting:`INSTALLED_APPS` setting.
-       (The :class:`~django.contrib.auth.models.Permission` model in
-       :mod:`django.contrib.auth` depends on :mod:`django.contrib.contenttypes`.)
-    2. Run the command ``manage.py syncdb``.
+    1. 把 ``'django.contrib.auth'`` 和 ``'django.contrib.contenttypes'`` 放到
+       :setting:`INSTALLED_APPS` 设置中。（ :mod:`django.contrib.auth` 中的
+       :class:`~django.contrib.auth.models.Permission` 模型依赖于
+       :mod:`django.contrib.contenttypes` 。）
+    2. 运行命令 ``manage.py syncdb`` 。
 
-Note that the default :file:`settings.py` file created by
-:djadmin:`django-admin.py startproject <startproject>` includes
-``'django.contrib.auth'`` and ``'django.contrib.contenttypes'`` in
-:setting:`INSTALLED_APPS` for convenience.  If your :setting:`INSTALLED_APPS`
-already contains these apps, feel free to run :djadmin:`manage.py syncdb
-<syncdb>` again; you can run that command as many times as you'd like, and each
-time it'll only install what's needed.
+注意：为了方便起见， :djadmin:`django-admin.py startproject  <startproject>`
+创建的缺省:file:`settings.py` 文件的 :setting:`INSTALLED_APPS` 中已包含
+``'django.contrib.auth'`` 和 ``'django.contrib.contenttypes'`` 。如果你的
+:setting:`INSTALLED_APPS` 早已包含这些应用，你可以放心地再次运行
+:djadmin:`manage.py syncdb <syncdb>` 。这个命令可以多次执行，因为每次它只会安装
+需要安装的东西。
 
-The :djadmin:`syncdb` command creates the necessary database tables, creates
-permission objects for all installed apps that need 'em, and prompts you to
-create a superuser account the first time you run it.
+:djadmin:`syncdb` 命令创建必须的数据库表和所有已安装应用需要的权限对象。第一次
+运行这个命令会提示你创建一个超级用户。
 
-Once you've taken those steps, that's it.
+通过以上步骤，认证系统就安装完成了。
 
-Users
+用户
 =====
 
 .. class:: models.User
 
-API reference
+API 手册
 -------------
 
-Fields
+字段
 ~~~~~~
 
 .. class:: models.User
 
-    :class:`~django.contrib.auth.models.User` objects have the following
-    fields:
+    :class:`~django.contrib.auth.models.User` 对象有以下字段：
 
     .. attribute:: models.User.username
 
-        Required. 30 characters or fewer. Alphanumeric characters only
-        (letters, digits and underscores).
+        必选项。 小于等于 30 个字符。 只能是字母数字（字母、数字和下划线）。
 
         .. versionchanged:: 1.2
-           Usernames may now contain ``@``, ``+``, ``.`` and ``-`` characters.
+           用户名现在可以包含 ``@`` 、 ``+`` 、 ``.`` 和 ``-`` 字符。
 
     .. attribute:: models.User.first_name
 
-        Optional. 30 characters or fewer.
+        可选项。 小于等于 30 个字符。
 
     .. attribute:: models.User.last_name
 
-        Optional. 30 characters or fewer.
+        可选项。 小于等于 30 个字符。
 
     .. attribute:: models.User.email
 
-        Optional. E-mail address.
+        可选项。电子邮件地址。
 
     .. attribute:: models.User.password
 
-        Required. A hash of, and metadata about, the password. (Django doesn't
-        store the raw password.) Raw passwords can be arbitrarily long and can
-        contain any character. See the "Passwords" section below.
+        必选项。密码（哈希值，元数据）。 Django 不储存原始密码。原始密码可以是
+        任意长度的，包含任何字符。参见下面“密码”一节。
 
     .. attribute:: models.User.is_staff
 
-        Boolean. Designates whether this user can access the admin site.
+        布尔值。指明这个用户是否可以进入管理站点。
 
     .. attribute:: models.User.is_active
 
-        Boolean. Designates whether this user account should be considered
-        active. We recommend that you set this flag to ``False`` instead of
-        deleting accounts; that way, if your applications have any foreign keys
-        to users, the foreign keys won't break.
+        布尔值。指明这个用户帐户是否是活动的。我们建议把这个标记设置为
+        ``False`` 来代替删除用户帐户，这样就不会影响指向用户的外键。
 
-        This doesn't necessarily control whether or not the user can log in.
-        Authentication backends aren't required to check for the ``is_active``
-        flag, so if you want to reject a login based on ``is_active`` being
-        ``False``, it's up to you to check that in your own login view.
-        However, the :class:`~django.contrib.auth.forms.AuthenticationForm`
-        used by the :func:`~django.contrib.auth.views.login` view *does*
-        perform this check, as do the permission-checking methods such as
-        :meth:`~models.User.has_perm` and the authentication in the Django
-        admin. All of those functions/methods will return ``False`` for
-        inactive users.
+        这个属性不控制用户是否可以登录。登录验证时不会核查 ``is_active`` 标志。
+        因此，如果在登录时需要检查 ``is_active`` 标志，需要你在自己的登录视图中
+        实现。但是用于 :func:`~django.contrib.auth.views.login` 视图的
+        :class:`~django.contrib.auth.forms.AuthenticationForm` *会* 执行这个
+        检查，因此应当在 Django 站点中进行认证并执行
+        :meth:`~models.User.has_perm` 之类的权限检查方法。所有那些方法或函数
+        对于不活动的用户都会返回 ``False`` 。
 
     .. attribute:: models.User.is_superuser
 
-        Boolean. Designates that this user has all permissions without
-        explicitly assigning them.
+        布尔值。指明用户拥有所有权限（包括显式赋予和非显式赋予的）。
 
     .. attribute:: models.User.last_login
 
-        A datetime of the user's last login. Is set to the current date/time by
-        default.
+        缺省情况下设置为用户最后一次登录的日期时间。
 
     .. attribute:: models.User.date_joined
 
-        A datetime designating when the account was created. Is set to the
-        current date/time by default when the account is created.
+        缺省情况下设置为用户帐户创建的日期时间。
 
-Methods
+方法
 ~~~~~~~
 
 .. class:: models.User
 
-    :class:`~django.contrib.auth.models.User` objects have two many-to-many
-    fields: models.User. ``groups`` and ``user_permissions``.
-    :class:`~django.contrib.auth.models.User` objects can access their related
-    objects in the same way as any other :doc:`Django model
-    </topics/db/models>`:
+    :class:`~django.contrib.auth.models.User` 对象有两个多对多字段
+    fields: models.User. ``组（ groups  ）`` 和
+    ``用户权限（ user_permissions ）`` 。
+    :class:`~django.contrib.auth.models.User` 对象可以象其它
+    :doc:`Django 模型 </topics/db/models>` 一样操作关联对象：
 
     .. code-block:: python
 
@@ -151,219 +134,191 @@ Methods
         myuser.user_permissions.remove(permission, permission, ...)
         myuser.user_permissions.clear()
 
-    In addition to those automatic API methods,
-    :class:`~django.contrib.auth.models.User` objects have the following custom
-    methods:
+    除了那些自动 API 方法之外， :class:`~django.contrib.auth.models.User` 对象
+    还有以下自己的方法：
 
     .. method:: models.User.is_anonymous()
 
-        Always returns ``False``. This is a way of differentiating
-        :class:`~django.contrib.auth.models.User` and
-        :class:`~django.contrib.auth.models.AnonymousUser` objects.
-        Generally, you should prefer using
-        :meth:`~django.contrib.auth.models.User.is_authenticated()` to this
-        method.
+        总是返回 ``False`` 。这是一个区别
+        :class:`~django.contrib.auth.models.User` 和 
+        :class:`~django.contrib.auth.models.AnonymousUser` 对象的方法。
+        通常，你会更喜欢用
+        :meth:`~django.contrib.auth.models.User.is_authenticated()` 来代替这个
+        方法。
 
     .. method:: models.User.is_authenticated()
 
-        Always returns ``True``. This is a way to tell if the user has been
-        authenticated. This does not imply any permissions, and doesn't check
-        if the user is active - it only indicates that the user has provided a
-        valid username and password.
+        总是返回 ``True`` 。这是一个测试用户是否经过验证的方法。这并不表示任何
+        权限，也不测试用户是否是活动的。这只是验证用户是否合法，密码是否正确。
 
     .. method:: models.User.get_full_name()
 
-        Returns the :attr:`~django.contrib.auth.models.User.first_name` plus
-        the :attr:`~django.contrib.auth.models.User.last_name`, with a space in
-        between.
+        返回 :attr:`~django.contrib.auth.models.User.first_name` 加上
+        :attr:`~django.contrib.auth.models.User.last_name` ，中间加上一个空格。
 
     .. method:: models.User.set_password(raw_password)
 
-        Sets the user's password to the given raw string, taking care of the
-        password hashing. Doesn't save the
-        :class:`~django.contrib.auth.models.User` object.
+        根据原始字符串设置用户密码，要注意密码的哈希算法。不保存
+        :class:`~django.contrib.auth.models.User` 对象。
 
     .. method:: models.User.check_password(raw_password)
 
-        Returns ``True`` if the given raw string is the correct password for
-        the user. (This takes care of the password hashing in making the
-        comparison.)
+        如果密码正确则返回 ``True`` 。（在比较密码时要注意哈希算法。）
 
     .. method:: models.User.set_unusable_password()
 
-        Marks the user as having no password set.  This isn't the same as
-        having a blank string for a password.
-        :meth:`~django.contrib.auth.models.User.check_password()` for this user
-        will never return ``True``. Doesn't save the
-        :class:`~django.contrib.auth.models.User` object.
+        标记用户可以不设置密码，这与用户使用空字符串作为密码是不同的。对这种
+        用户， :meth:`~django.contrib.auth.models.User.check_password()`
+        肯定不会返回 ``True`` 。不保存
+        :class:`~django.contrib.auth.models.User` 对象。
 
-        You may need this if authentication for your application takes place
-        against an existing external source such as an LDAP directory.
+        如果你的应用存在于如 LDAP 目录之类的外部来源时，那么可能需要这个方法。
 
     .. method:: models.User.has_usable_password()
 
-        Returns ``False`` if
-        :meth:`~django.contrib.auth.models.User.set_unusable_password()` has
-        been called for this user.
+        如果对于这个用户调用
+        :meth:`~django.contrib.auth.models.User.set_unusable_password()` 则返回
+        ``False`` 。
 
     .. method:: models.User.get_group_permissions(obj=None)
 
-        Returns a set of permission strings that the user has, through his/her
-        groups.
+        通过用户的组返回用户的一套权限字符串。
 
         .. versionadded:: 1.2
 
-        If ``obj`` is passed in, only returns the group permissions for
-        this specific object.
+        如果有 ``obj`` 参数，则只返回这个特定对象的组权限。
+
 
     .. method:: models.User.get_all_permissions(obj=None)
 
-        Returns a set of permission strings that the user has, both through
-        group and user permissions.
+        通过用户的组和用户权限返回用户的一套权限字符串。
 
         .. versionadded:: 1.2
 
-        If ``obj`` is passed in, only returns the permissions for this
-        specific object.
+        如果有 ``obj`` 参数，则只返回这个特定对象的组权限。
 
     .. method:: models.User.has_perm(perm, obj=None)
 
-        Returns ``True`` if the user has the specified permission, where perm is
-        in the format ``"<app label>.<permission codename>"``. (see
-        `permissions`_ section below). If the user is inactive, this method will
-        always return ``False``.
+        如果用户有特定的权限则返回 ``True`` ，这里的 perm 的格式为
+        ``"<app label>.<permission codename>"`` 。（参见下面 `权限`_ 一节。）
+        如果用户是不活动的，这个方法总是返回 ``False`` 。
 
         .. versionadded:: 1.2
 
-        If ``obj`` is passed in, this method won't check for a permission for
-        the model, but for this specific object.
+        如果有 ``obj`` 参数，这个方法不会检查模型的权限，只会检查这个特定对象的
+        权限。
 
     .. method:: models.User.has_perms(perm_list, obj=None)
 
-        Returns ``True`` if the user has each of the specified permissions,
-        where each perm is in the format
-        ``"<app label>.<permission codename>"``. If the user is inactive,
-        this method will always return ``False``.
+        如果用户有列表中每个特定的权限则返回 ``True`` ，这里的 perm 的格式为
+        ``"<app label>.<permission codename>"`` 。如果用户是不活动的，这个方法
+        总是返回 ``False`` 。
 
         .. versionadded:: 1.2
 
-        If ``obj`` is passed in, this method won't check for permissions for
-        the model, but for the specific object.
+        如果有 ``obj`` 参数，这个方法不会检查模型的权限，只会检查这个特定对象的
+        权限。
 
     .. method:: models.User.has_module_perms(package_name)
 
-        Returns ``True`` if the user has any permissions in the given package
-        (the Django app label). If the user is inactive, this method will
-        always return ``False``.
+        如果用户在给定的包（ Django 应用标签）中有任何一个权限则返回
+        ``True`` 。如果用户是不活动的，这个方法总是返回 ``False`` 。
 
     .. method:: models.User.get_and_delete_messages()
 
-        Returns a list of :class:`~django.contrib.auth.models.Message` objects
-        in the user's queue and deletes the messages from the queue.
+        在用户的列表中获得 :class:`~django.contrib.auth.models.Message` 对象
+        列表，并从队列中删除。
 
     .. method:: models.User.email_user(subject, message, from_email=None)
 
-        Sends an e-mail to the user. If
-        :attr:`~django.contrib.auth.models.User.from_email` is ``None``, Django
-        uses the :setting:`DEFAULT_FROM_EMAIL`.
+        发送一个电子邮件给用户。如果
+        :attr:`~django.contrib.auth.models.User.from_email` 为 ``None`` ，则
+        使用 :setting:`DEFAULT_FROM_EMAIL` 。
 
     .. method:: models.User.get_profile()
 
-        Returns a site-specific profile for this user. Raises
-        :exc:`django.contrib.auth.models.SiteProfileNotAvailable` if the
-        current site doesn't allow profiles. For information on how to define a
-        site-specific user profile, see the section on `storing additional user
-        information`_ below.
+        返回用户的特定站点的描述。如果当前站点不提供描述则引发
+        :exc:`django.contrib.auth.models.SiteProfileNotAvailable` 。关于定义
+        特定站点用户描述，参见下文 `储存用户的额外信息` 一节。
 
-.. _storing additional user information: #storing-additional-information-about-users
+.. _储存用户的额外信息: #storing-additional-information-about-users
 
-Manager functions
+管理器函数
 ~~~~~~~~~~~~~~~~~
 
 .. class:: models.UserManager
 
-    The :class:`~django.contrib.auth.models.User` model has a custom manager
-    that has the following helper functions:
+    :class:`~django.contrib.auth.models.User` 模型有一个包含以下实用函数的
+    自定义管理器：
 
     .. method:: models.UserManager.create_user(username, email, password=None)
 
-        Creates, saves and returns a :class:`~django.contrib.auth.models.User`.
+        创建、保存并返回一个 :class:`~django.contrib.auth.models.User` 。
 
-        The :attr:`~django.contrib.auth.models.User.username` and
-        :attr:`~django.contrib.auth.models.User.password` are set as given. The
-        domain portion of :attr:`~django.contrib.auth.models.User.email` is
-        automatically convered to lowercase, and the returned
-        :class:`~django.contrib.auth.models.User` object will have
-        :attr:`~models.User.is_active` set to ``True``.
+        :attr:`~django.contrib.auth.models.User.username` 属性和
+        :attr:`~django.contrib.auth.models.User.password` 属性根据给出的参数
+        设置。 :attr:`~django.contrib.auth.models.User.email` 属性自动转换为
+        小写字母，且返回的 :class:`~django.contrib.auth.models.User` 对象会有
+        一个设置为 ``True`` 的 :attr:`~models.User.is_active` 属性。
 
-        If no password is provided,
-        :meth:`~django.contrib.auth.models.User.set_unusable_password()` will
-        be called.
+        如果没有提供密码，就会调用
+        :meth:`~django.contrib.auth.models.User.set_unusable_password()` 。
 
-        See `Creating users`_ for example usage.
+        使用举例参见 `创建用户`_ 。
 
     .. method:: models.UserManager.make_random_password(length=10, allowed_chars='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
 
-        Returns a random password with the given length and given string of
-        allowed characters. (Note that the default value of ``allowed_chars``
-        doesn't contain letters that can cause user confusion, including:
+        根据给定的长度和给定的可用字符串返回一个随机密码。注意缺省的可用字符串
+        不包括以下容易混淆的字符：
 
-            * ``i``, ``l``, ``I``, and ``1`` (lowercase letter i, lowercase
-              letter L, uppercase letter i, and the number one)
-            * ``o``, ``O``, and ``0`` (uppercase letter o, lowercase letter o,
+            * ``i`` 、 ``l`` 、 ``I`` 和 ``1`` （小写字母 i 、小写字母 L 、大写
+              字母 i 和数字一）
+            * ``o`` 、 ``O`` 和 ``0`` （大写字母 o 、小写字母 o 和零）
               and zero)
 
-Basic usage
+基本用法
 -----------
 
 .. _topics-auth-creating-users:
 
-Creating users
+创建用户
 ~~~~~~~~~~~~~~
 
-The most basic way to create users is to use the
-:meth:`~django.contrib.auth.models.UserManager.create_user` helper function
-that comes with Django::
+最基本的创建用户的方法是使用 Django 自带的
+:meth:`~django.contrib.auth.models.UserManager.create_user` 助理函数::
 
     >>> from django.contrib.auth.models import User
     >>> user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
 
-    # At this point, user is a User object that has already been saved
-    # to the database. You can continue to change its attributes
-    # if you want to change other fields.
+    # 到这里， user 是一个已存入数据库的 User 对象。如果要改变其它字段可以继续
+    # 改变这个对象的属性。
     >>> user.is_staff = True
     >>> user.save()
 
-You can also create users using the Django admin site. Assuming you've enabled
-the admin site and hooked it to the URL ``/admin/``, the "Add user" page is at
-``/admin/auth/user/add/``. You should also see a link to "Users" in the "Auth"
-section of the main admin index page. The "Add user" admin page is different
-than standard admin pages in that it requires you to choose a username and
-password before allowing you to edit the rest of the user's fields.
+你也可以用 Django 的管理站点来创建用户。假设你已经启用了管理站点并把站点挂接到
+``/admin/`` ， ``/admin/auth/user/add/`` 页面会有一个“增加用户（ Add user ）”
+按钮。在管理站点的主页面中的“认证” 小节中还可以看见一个“用户（ Users ）”
+链接。“增加用户”页面与标准的管理站点页面不同之处在于在允许编辑其它用户字段之前
+必须确定用户名和密码。
 
-Also note: if you want your own user account to be able to create users using
-the Django admin site, you'll need to give yourself permission to add users
-*and* change users (i.e., the "Add user" and "Change user" permissions). If
-your account has permission to add users but not to change them, you won't be
-able to add users. Why? Because if you have permission to add users, you have
-the power to create superusers, which can then, in turn, change other users. So
-Django requires add *and* change permissions as a slight security measure.
+同时要注意：在管理站点中，如果要你的帐户可以创建用户，那么必须有添加 *和* 变更
+用户的权限。如果只有添加用户权限而没变更权限，那么是不能创建用户的。因为如果有
+添加用户权限，那么就可以添加超级用户，然后就可以变更其他用户。所以 Django 需要
+同时具备添加 *和* 变更权限。这是出于安全性考虑。
 
-Changing passwords
+变更密码
 ~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 1.2
-   The ``manage.py changepassword`` command was added.
+   增加了 ``manage.py changepassword`` 命令。
 
-:djadmin:`manage.py changepassword *username* <changepassword>` offers a method
-of changing a User's password from the command line. It prompts you to
-change the password of a given user which you must enter twice. If
-they both match, the new password will be changed immediately. If you
-do not supply a user, the command will attempt to change the password
-whose username matches the current user.
+:djadmin:`manage.py changepassword *username* <changepassword>` 提供了一个用
+命令行方式变更用户密码的途径。如果给定了用户名，这个命令会提示你输入两次密码。
+当两次输入的密码相同时，该用户的新密码会立即生效。如果没有给定用户，这个命令会
+尝试改变与当前用户名匹配的用户的密码。
 
-You can also change a password programmatically, using
-:meth:`~django.contrib.auth.models.User.set_password()`:
+你也可以使用 :meth:`~django.contrib.auth.models.User.set_password()` 来变更
+密码:
 
 .. code-block:: python
 
@@ -372,216 +327,188 @@ You can also change a password programmatically, using
     >>> u.set_password('new password')
     >>> u.save()
 
-Don't set the :attr:`~django.contrib.auth.models.User.password` attribute
-directly unless you know what you're doing. This is explained in the next
-section.
+不要直接设置 :attr:`~django.contrib.auth.models.User.password` 属性，除非必须。
+下一节会说明原因。
 
-Passwords
+密码
 ---------
 
-The :attr:`~django.contrib.auth.models.User.password` attribute of a
-:class:`~django.contrib.auth.models.User` object is a string in this format::
+:class:`~django.contrib.auth.models.User` 对象的
+:attr:`~django.contrib.auth.models.User.password` 属性是一个如下格式的字符串::
 
     hashtype$salt$hash
 
-That's hashtype, salt and hash, separated by the dollar-sign character.
+由哈希类型、盐值和哈希值组成，用美元符合分隔。
 
-Hashtype is either ``sha1`` (default), ``md5`` or ``crypt`` -- the algorithm
-used to perform a one-way hash of the password. Salt is a random string used
-to salt the raw password to create the hash. Note that the ``crypt`` method is
-only supported on platforms that have the standard Python ``crypt`` module
-available.
+哈希类型可以是 ``sha1`` （缺省值）、 ``md5`` 或 ``crypt`` ，表明使用哪种单向
+哈希算法来处理密码。盐值是一个随机字符串，用于在哈希过程中加盐。注意 ``crypt``
+方法只适用于装有标准 Python ``crypt`` 模块的平台下。
 
-For example::
+密码例子::
 
     sha1$a1976$a36cc8cbf81742a8fb52e221aaeab48ed7f58ab4
 
-The :meth:`~django.contrib.auth.models.User.set_password` and
-:meth:`~django.contrib.auth.models.User.check_password` functions handle the
-setting and checking of these values behind the scenes.
+:meth:`~django.contrib.auth.models.User.set_password` 方法和
+:meth:`~django.contrib.auth.models.User.check_password` 函数用于设置和检查
+密码。
 
-Previous Django versions, such as 0.90, used simple MD5 hashes without password
-salts. For backwards compatibility, those are still supported; they'll be
-converted automatically to the new style the first time
-:meth:`~django.contrib.auth.models.User.check_password()` works correctly for
-a given user.
+以前版本的 Django ，如 0.90 版，只是简单使用 MD5 哈希，并且不使用盐值。为了向后
+兼容，这些密码还是被支持的，指定用户的密码在第一次正常使用
+:meth:`~django.contrib.auth.models.User.check_password()` 后，会自动转换为新的
+形式。
 
-Anonymous users
+匿名用户
 ---------------
 
 .. class:: models.AnonymousUser
 
-    :class:`django.contrib.auth.models.AnonymousUser` is a class that
-    implements the :class:`django.contrib.auth.models.User` interface, with
-    these differences:
+    :class:`django.contrib.auth.models.AnonymousUser` 是一个
+    :class:`django.contrib.auth.models.User` 接口实现的类，区别如下：
 
-    * :attr:`~django.contrib.auth.models.User.id` is always ``None``.
-    * :attr:`~django.contrib.auth.models.User.is_staff` and
-      :attr:`~django.contrib.auth.models.User.is_superuser` are always
-      ``False``.
-    * :attr:`~django.contrib.auth.models.User.is_active` is always ``False``.
-    * :attr:`~django.contrib.auth.models.User.groups` and
-      :attr:`~django.contrib.auth.models.User.user_permissions` are always
-      empty.
-    * :meth:`~django.contrib.auth.models.User.is_anonymous()` returns ``True``
-      instead of ``False``.
-    * :meth:`~django.contrib.auth.models.User.is_authenticated()` returns
-      ``False`` instead of ``True``.
-    * :meth:`~django.contrib.auth.models.User.set_password()`,
-      :meth:`~django.contrib.auth.models.User.check_password()`,
-      :meth:`~django.contrib.auth.models.User.save()`,
-      :meth:`~django.contrib.auth.models.User.delete()`,
-      :meth:`~django.contrib.auth.models.User.set_groups()` and
-      :meth:`~django.contrib.auth.models.User.set_permissions()` raise
-      :exc:`NotImplementedError`.
+    * :attr:`~django.contrib.auth.models.User.id` 总是 ``None`` 。
+    * :attr:`~django.contrib.auth.models.User.is_staff` 和
+      :attr:`~django.contrib.auth.models.User.is_superuser` 都总是
+      ``False`` 。
+    * :attr:`~django.contrib.auth.models.User.is_active` 总是 ``False`` 。
+    * :attr:`~django.contrib.auth.models.User.groups` 和
+      :attr:`~django.contrib.auth.models.User.user_permissions` 都总是空的。
+    * :meth:`~django.contrib.auth.models.User.is_anonymous()` 返回 ``True`` ，
+      而不是 ``False`` 。
+    * :meth:`~django.contrib.auth.models.User.is_authenticated()` 返回
+      ``False`` ，而不是 ``True`` 。
+    * :meth:`~django.contrib.auth.models.User.set_password()` 、
+      :meth:`~django.contrib.auth.models.User.check_password()` 、
+      :meth:`~django.contrib.auth.models.User.save()` 、
+      :meth:`~django.contrib.auth.models.User.delete()` 、
+      :meth:`~django.contrib.auth.models.User.set_groups()` 和
+      :meth:`~django.contrib.auth.models.User.set_permissions()` 引发
+      :exc:`NotImplementedError` 。
 
-In practice, you probably won't need to use
-:class:`~django.contrib.auth.models.AnonymousUser` objects on your own, but
-they're used by Web requests, as explained in the next section.
+在实践中，你一般不会自己使用
+:class:`~django.contrib.auth.models.AnonymousUser` 对象，但是 Web 请求会使用，
+在下节会详述。
 
 .. _topics-auth-creating-superusers:
 
-Creating superusers
+创建超级用户
 -------------------
 
-:djadmin:`manage.py syncdb <syncdb>` prompts you to create a superuser the
-first time you run it after adding ``'django.contrib.auth'`` to your
-:setting:`INSTALLED_APPS`. If you need to create a superuser at a later date,
-you can use a command line utility::
+在 :setting:`INSTALLED_APPS` 中添加 ``'django.contrib.auth'`` 后第一次运行
+:djadmin:`manage.py syncdb <syncdb>` 会提示你创建一个超级用户。如何在以后单独
+创建可以使用以下命令行工具::
 
     manage.py createsuperuser --username=joe --email=joe@example.com
 
-You will be prompted for a password. After you enter one, the user will be
-created immediately. If you leave off the :djadminopt:`--username` or the
-:djadminopt:`--email` options, it will prompt you for those values.
+运行后会提供输入密码。输入密码后，用户会被立即创建。如果没有写明
+:djadminopt:`--username` 或 :djadminopt:`--email` ，会提示你输入这两个值。
 
-If you're using an older release of Django, the old way of creating a superuser
-on the command line still works::
+如果你使用的是老版本的 Django ，则可以使用如下命令::
 
     python /path/to/django/contrib/auth/create_superuser.py
 
-...where :file:`/path/to` is the path to the Django codebase on your
-filesystem. The ``manage.py`` command is preferred because it figures out the
-correct path and environment for you.
+...这里的 :file:`/path/to` 是你系统中 Django 代码所在路径。推荐使用
+``manage.py`` 命令，因为它为你提供了恰当的路径和环境。
 
 .. _auth-profiles:
 
-Storing additional information about users
+为用户储存额外的信息
 ------------------------------------------
 
-If you'd like to store additional information related to your users, Django
-provides a method to specify a site-specific related model -- termed a "user
-profile" -- for this purpose.
+如果要储存用户相关的额外信息， Django 提供了一个方法来定义一个站点相关模型，称
+之为“用户概况（ user profile ）”。
 
-To make use of this feature, define a model with fields for the
-additional information you'd like to store, or additional methods
-you'd like to have available, and also add a
-:class:`~django.db.models.Field.OneToOneField` from your model to the
-:class:`~django.contrib.auth.models.User` model. This will ensure only
-one instance of your model can be created for each
-:class:`~django.contrib.auth.models.User`.
+具体实现的方式是定义一个用于储存额外信息或附加方法的模型，同时在模型中添加一个
+:class:`~django.db.models.Field.OneToOneField` 关联到
+:class:`~django.contrib.auth.models.User` 模型。这样就可以保证每个
+:class:`~django.contrib.auth.models.User` 只能创建唯一的模型实例。
 
-To indicate that this model is the user profile model for a given site, fill in
-the setting :setting:`AUTH_PROFILE_MODULE` with a string consisting of the
-following items, separated by a dot:
+为了使定义的模型成为站点的用户概况模型，必须有 :setting:`AUTH_PROFILE_MODULE` 
+设置中定义一个包含以下条目的字符串，条目间以点号分隔：
 
-1. The name of the application (case sensitive) in which the user
-   profile model is defined (in other words, the
-   name which was passed to :djadmin:`manage.py startapp <startapp>` to create
-   the application).
+1. 使用用户概况模型的应用名称（大小写敏感）。亦即用来创建应用而传递给
+   :djadmin:`manage.py startapp <startapp>` 的名称。
 
-2. The name of the model (not case sensitive) class.
+2. 模型的名称（大小写不敏感）。
 
-For example, if the profile model was a class named ``UserProfile`` and was
-defined inside an application named ``accounts``, the appropriate setting would
-be::
+例如，如果用户概况模型名称为 ``UserProfile`` 且定义在一个名称为 ``accounts`` 的
+应用中，那么正确的设置是::
 
     AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
-When a user profile model has been defined and specified in this manner, each
-:class:`~django.contrib.auth.models.User` object will have a method --
-:class:`~django.contrib.auth.models.User.get_profile()` -- which returns the
-instance of the user profile model associated with that
-:class:`~django.contrib.auth.models.User`.
+当一个用户概况模型定义好并按上述方法指定之后，每个
+:class:`~django.contrib.auth.models.User` 对象就会有一个
+:class:`~django.contrib.auth.models.User.get_profile()` 方法，这个方法可以返回
+与 :class:`~django.contrib.auth.models.User` 相关联的用户概况模型。
 
-The method :class:`~django.contrib.auth.models.User.get_profile()`
-does not create the profile, if it does not exist. You need to
-register a handler for the signal
-:attr:`django.db.models.signals.post_save` on the User model, and, in
-the handler, if created=True, create the associated user profile.
+如果用户概况不存在，则 :class:`~django.contrib.auth.models.User.get_profile()`
+方法不会创建用户概况。你必需在用户模型中为
+:attr:`django.db.models.signals.post_save` 信号注册一个句柄，并且在句柄中，如果
+created=True ，则创建相关的用户概况。
 
-For more information, see `Chapter 12 of the Django book`_.
+更多信息，参见 `Django 之书第十二章`_.
 
-.. _Chapter 12 of the Django book: http://www.djangobook.com/en/1.0/chapter12/#cn222
+.. _Django 之书第十二章: http://www.djangobook.com/en/1.0/chapter12/#cn222
 
-Authentication in Web requests
-==============================
+Web 请求中的认证
+================
 
-Until now, this document has dealt with the low-level APIs for manipulating
-authentication-related objects. On a higher level, Django can hook this
-authentication framework into its system of
-:class:`request objects <django.http.HttpRequest>`.
+到这里本文谈得是手动处理认证相关对象的低级 API ，在更高的级别 Django 可以把这个
+认证框架挂接到 :class:`request objects <django.http.HttpRequest>` 系统中。
 
-First, install the
-:class:`~django.contrib.sessions.middleware.SessionMiddleware` and
-:class:`~django.contrib.auth.middleware.AuthenticationMiddleware`
-middlewares by adding them to your :setting:`MIDDLEWARE_CLASSES` setting. See
-the :doc:`session documentation </topics/http/sessions>` for more information.
+首先，通过 :setting:`MIDDLEWARE_CLASSES` 设置安装
+:class:`~django.contrib.sessions.middleware.SessionMiddleware` 和
+:class:`~django.contrib.auth.middleware.AuthenticationMiddleware` 中间件。详见
+:doc:`session documentation </topics/http/sessions>` 。
 
-Once you have those middlewares installed, you'll be able to access
-:attr:`request.user <django.http.HttpRequest.user>` in views.
-:attr:`request.user <django.http.HttpRequest.user>` will give you a
-:class:`~django.contrib.auth.models.User` object representing the currently
-logged-in user. If a user isn't currently logged in,
-:attr:`request.user <django.http.HttpRequest.user>` will be set to an instance
-of :class:`~django.contrib.auth.models.AnonymousUser` (see the previous
-section). You can tell them apart with
-:meth:`~django.contrib.auth.models.User.is_authenticated()`, like so::
+安装完中间件后就可以在视图中操作
+:attr:`request.user <django.http.HttpRequest.user>` 了。
+:attr:`request.user <django.http.HttpRequest.user>` 会给你一个
+:class:`~django.contrib.auth.models.User` 对象来表现当前已登录的用户。如果用户
+还没有登录，那么 :attr:`request.user <django.http.HttpRequest.user>` 会被设置为
+一个 :class:`~django.contrib.auth.models.AnonymousUser` 的实例（参见前一节）。
+你可以用于 :meth:`~django.contrib.auth.models.User.is_authenticated()` 来区别
+对待，如下例::
 
     if request.user.is_authenticated():
-        # Do something for authenticated users.
+        # 做一些已登录用户的事。
     else:
-        # Do something for anonymous users.
+        # 做一些匿名用户的事。
 
 .. _how-to-log-a-user-in:
 
-How to log a user in
+如何登录一个用户
 --------------------
 
-Django provides two functions in :mod:`django.contrib.auth`:
-:func:`~django.contrib.auth.authenticate()` and
-:func:`~django.contrib.auth.login()`.
+Django 在 :mod:`django.contrib.auth` 模型中提供两个函数:
+:func:`~django.contrib.auth.authenticate()` 和
+:func:`~django.contrib.auth.login()` .
 
 .. function:: authenticate()
 
-    To authenticate a given username and password, use
-    :func:`~django.contrib.auth.authenticate()`. It takes two keyword
-    arguments, ``username`` and ``password``, and it returns a
-    :class:`~django.contrib.auth.models.User` object if the password is valid
-    for the given username. If the password is invalid,
-    :func:`~django.contrib.auth.authenticate()` returns ``None``. Example::
+    :func:`~django.contrib.auth.authenticate()` 用于验证指定用户的用户名和
+    密码。这个函数有两个关键字参数， ``username`` 和 ``password`` ，如果密码与
+    用户匹配则返回一个 :class:`~django.contrib.auth.models.User` 对象。否则返回
+    ``None`` 。例如::
 
         from django.contrib.auth import authenticate
         user = authenticate(username='john', password='secret')
         if user is not None:
             if user.is_active:
-                print "You provided a correct username and password!"
+                print "你提供了一个正确的用户名和密码！"
             else:
-                print "Your account has been disabled!"
+                print "帐户已禁用！"
         else:
-            print "Your username and password were incorrect."
+            print "用户名或密码不正确。"
 
 .. function:: login()
 
-    To log a user in, in a view, use :func:`~django.contrib.auth.login()`. It
-    takes an :class:`~django.http.HttpRequest` object and a
-    :class:`~django.contrib.auth.models.User` object.
-    :func:`~django.contrib.auth.login()` saves the user's ID in the session,
-    using Django's session framework, so, as mentioned above, you'll need to
-    make sure to have the session middleware installed.
+    :func:`~django.contrib.auth.login()` 用于在视图中登录用户。它带有一个
+    :class:`~django.http.HttpRequest` 对象和一个
+    :class:`~django.contrib.auth.models.User` 对象。
+    :func:`~django.contrib.auth.login()` 使用 Django 的会话框架在会话中保存用户
+    的 ID 。因此如前文所述，会话中间件必须已经安装。
 
-    This example shows how you might use both
-    :func:`~django.contrib.auth.authenticate()` and
+    本例展示如何同时使用 :func:`~django.contrib.auth.authenticate()` 和
     :func:`~django.contrib.auth.login()`::
 
         from django.contrib.auth import authenticate, login
@@ -593,119 +520,108 @@ Django provides two functions in :mod:`django.contrib.auth`:
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    # Redirect to a success page.
+                    # 重定向到一个登录成功页面。
                 else:
-                    # Return a 'disabled account' error message
+                    # 返回一个“帐户已禁用”错误信息。
             else:
-                # Return an 'invalid login' error message.
+                # 返回一个“非法用户名或密码”错误信息。
 
-.. admonition:: Calling ``authenticate()`` first
+.. admonition:: 首先调用 ``authenticate()``
 
-    When you're manually logging a user in, you *must* call
-    :func:`~django.contrib.auth.authenticate()` before you call
-    :func:`~django.contrib.auth.login()`.
-    :func:`~django.contrib.auth.authenticate()`
-    sets an attribute on the :class:`~django.contrib.auth.models.User` noting
-    which authentication backend successfully authenticated that user (see the
-    `backends documentation`_ for details), and this information is needed
-    later during the login process.
+    当你手动登录一个用户时， *必须* 在调用
+    :func:`~django.contrib.auth.login()` 之前调用
+    :func:`~django.contrib.auth.authenticate()` 。在成功验证用户后，
+    :func:`~django.contrib.auth.authenticate()` 会在
+    :class:`~django.contrib.auth.models.User` 上设置一个空属性（详见
+    `其他认证资源`_ ），这个信息在以后登录过程中要用到。
 
-.. _backends documentation: #other-authentication-sources
+.. _其他认证资源: #other-authentication-sources
 
-Manually checking a user's password
------------------------------------
+手动检查一个用户的密码
+----------------------
 
 .. currentmodule:: django.contrib.auth.models
 
 .. function:: check_password()
 
-    If you'd like to manually authenticate a user by comparing a plain-text
-    password to the hashed password in the database, use the convenience
-    function :func:`django.contrib.auth.models.check_password`. It takes two
-    arguments: the plain-text password to check, and the full value of a user's
-    ``password`` field in the database to check against, and returns ``True``
-    if they match, ``False`` otherwise.
+    如果要通过比较明文密码和数据库中的哈希密码来手动认证用户，可以使用便捷的
+    :func:`django.contrib.auth.models.check_password` 函数。它带有两个参数：要
+    比较的明文密码和被比较的数据库中用户 ``密码`` 字段的完整值。如果匹配则返回
+    ``True`` ，否则返回 ``False`` 。
 
-How to log a user out
----------------------
+如何登出一个用户
+----------------
 
 .. currentmodule:: django.contrib.auth
 
 .. function:: logout()
 
-    To log out a user who has been logged in via
-    :func:`django.contrib.auth.login()`, use
-    :func:`django.contrib.auth.logout()` within your view. It takes an
-    :class:`~django.http.HttpRequest` object and has no return value.
-    Example::
+    在视图中可以使用 :func:`django.contrib.auth.logout()` 来登出通过
+    :func:`django.contrib.auth.login()` 登录的用户。它带有一个
+    :class:`~django.http.HttpRequest` 对象，没有返回值。
+    例如::
 
         from django.contrib.auth import logout
 
         def logout_view(request):
             logout(request)
-            # Redirect to a success page.
+            # 重定向到一个登出成功页面。
 
-    Note that :func:`~django.contrib.auth.logout()` doesn't throw any errors if
-    the user wasn't logged in.
+    注意当用户没有登录时，调用 :func:`~django.contrib.auth.logout()` 函数不会
+    引发任何错误。
 
-    When you call :func:`~django.contrib.auth.logout()`, the session data for
-    the current request is completely cleaned out. All existing data is
-    removed. This is to prevent another person from using the same Web browser
-    to log in and have access to the previous user's session data. If you want
-    to put anything into the session that will be available to the user
-    immediately after logging out, do that *after* calling
-    :func:`django.contrib.auth.logout()`.
+    当调用 :func:`~django.contrib.auth.logout()` 时，当前请求的会话数据会清空。
+    这是为了防止另一个用户使用同一个浏览器登录时会使用到前一个用户的会话数据。
+    如果要在用户登出后有会话中储存一些数据，那么得在
+    :func:`django.contrib.auth.logout()` *之后* 储存。
 
 .. _topics-auth-signals:
 
-Login and logout signals
+登录和登出信号
 ------------------------
 
 .. versionadded:: 1.3
 
-The auth framework uses two :doc:`signals </topics/signals>` that can be used
-for notification when a user logs in or out.
+当一个用户登录或登出时认证框架使用两个用于通知的
+:doc:`信号 </topics/signals>` 。
 
 .. data:: django.contrib.auth.signals.user_logged_in
 
-Sent when a user logs in successfully.
+成功登录时所发的信号。
 
-Arguments sent with this signal:
+这个信号的参数：
 
     ``sender``
-        As above: the class of the user that just logged in.
+        同上，登录成功的用户类。
 
     ``request``
-        The current :class:`~django.http.HttpRequest` instance.
+        当前 :class:`~django.http.HttpRequest` 实例。
 
     ``user``
-        The user instance that just logged in.
+        登录成功的用户实例。
 
 .. data:: django.contrib.auth.signals.user_logged_out
 
-Sent when the logout method is called.
+调用登出方法时发的信号。
 
     ``sender``
-        As above: the class of the user that just logged out or ``None``
-        if the user was not authenticated.
+        同上：登出的用户类或者 ``None`` （用户验证失败时）。 
 
     ``request``
-        The current :class:`~django.http.HttpRequest` instance.
+        当前 :class:`~django.http.HttpRequest` 实例。
 
     ``user``
-        The user instance that just logged out or ``None`` if the
-        user was not authenticated.
+        登出成功的用户实例或者 ``None`` （用户验证失败时）。
 
-Limiting access to logged-in users
+控制非登录用户的页面权限
 ----------------------------------
 
-The raw way
+原始方式
 ~~~~~~~~~~~
 
-The simple, raw way to limit access to pages is to check
-:meth:`request.user.is_authenticated()
-<django.contrib.auth.models.User.is_authenticated()>` and either redirect to a
-login page::
+页面限制的简单原始方式是检查 :meth:`request.user.is_authenticated()
+<django.contrib.auth.models.User.is_authenticated()>` 并且重定向到一个登录
+页面::
 
     from django.http import HttpResponseRedirect
 
@@ -714,20 +630,20 @@ login page::
             return HttpResponseRedirect('/login/?next=%s' % request.path)
         # ...
 
-...or display an error message::
+...或显示一个出错页面::
 
     def my_view(request):
         if not request.user.is_authenticated():
             return render_to_response('myapp/login_error.html')
         # ...
 
-The login_required decorator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+登录要求饰件
+~~~~~~~~~~~~
 
 .. function:: decorators.login_required([redirect_field_name=REDIRECT_FIELD_NAME, login_url=None])
 
-    As a shortcut, you can use the convenient
-    :func:`~django.contrib.auth.decorators.login_required` decorator::
+    做为一个捷径，可以使用方便的
+    :func:`~django.contrib.auth.decorators.login_required` 饰件::
 
         from django.contrib.auth.decorators import login_required
 
@@ -735,20 +651,18 @@ The login_required decorator
         def my_view(request):
             ...
 
-    :func:`~django.contrib.auth.decorators.login_required` does the following:
+    :func:`~django.contrib.auth.decorators.login_required` 做以下事情：
 
-    * If the user isn't logged in, redirect to
-      :setting:`settings.LOGIN_URL <LOGIN_URL>`, passing the current absolute
-      path in the query string. Example: ``/accounts/login/?next=/polls/3/``.
+    * 如果用户没有登录，那么就重定向到
+      :setting:`settings.LOGIN_URL <LOGIN_URL>` ，并在查询字符串中传递当前绝对
+      路径。例如： ``/accounts/login/?next=/polls/3/`` 。
 
-    * If the user is logged in, execute the view normally. The view code is
-      free to assume the user is logged in.
+    * 如果用户已登录，则正常的执行视图。视图代码认为用户已登录。
 
-    By default, the path that the user should be redirected to upon
-    successful authentication is stored in a query string parameter called
-    ``"next"``. If you would prefer to use a different name for this parameter,
-    :func:`~django.contrib.auth.decorators.login_required` takes an
-    optional ``redirect_field_name`` parameter::
+    缺省情况下，成功登录后重定向的路径是保存在 ``next`` 参数中的。如果你想用
+    另一个名称，那么
+    :func:`~django.contrib.auth.decorators.login_required` 可以使用一个可选的
+    ``redirect_field_name`` 参数::
 
         from django.contrib.auth.decorators import login_required
 
@@ -756,15 +670,14 @@ The login_required decorator
         def my_view(request):
             ...
 
-    Note that if you provide a value to ``redirect_field_name``, you will most
-    likely need to customize your login template as well, since the template
-    context variable which stores the redirect path will use the value of
-    ``redirect_field_name`` as it's key rather than ``"next"`` (the default).
+    注意，如果你提供了一个值给 ``redirect_field_name`` ，那么你最好也同样自定义
+    你的登录模板。因为保存重定向路径的模板环境变量会使用
+    ``redirect_field_name`` 作为关键值，而不使用缺省的 ``"next"`` 。
 
     .. versionadded:: 1.3
 
-    :func:`~django.contrib.auth.decorators.login_required` also takes an
-    optional ``login_url`` parameter. Example::
+    :func:`~django.contrib.auth.decorators.login_required` 还有一个可选的
+    ``login_url`` 参数。例如::
 
         from django.contrib.auth.decorators import login_required
 
@@ -772,63 +685,55 @@ The login_required decorator
         def my_view(request):
             ...
 
-    Note that if you don't specify the ``login_url`` parameter, you'll need to map
-    the appropriate Django view to :setting:`settings.LOGIN_URL <LOGIN_URL>`. For
-    example, using the defaults, add the following line to your URLconf::
+    注意，如果你没有指定 ``login_url`` 参数，那么你需要为
+    :setting:`settings.LOGIN_URL <LOGIN_URL>` 映射适当的视图。例如，在缺省情况
+    下，在你的 URLconf 中加入以下一行::
 
         (r'^accounts/login/$', 'django.contrib.auth.views.login'),
 
 .. function:: views.login(request, [template_name, redirect_field_name, authentication_form])
 
-    Here's what ``django.contrib.auth.views.login`` does:
+    以下是 ``django.contrib.auth.views.login`` 做了什么：
 
-        * If called via ``GET``, it displays a login form that POSTs to the
-          same URL. More on this in a bit.
+        * 如果是通过 ``GET`` 调用的，则显示一个 POST 到相同 URL 的登录表单。
+          稍后会以更多的说明。
 
-        * If called via ``POST``, it tries to log the user in. If login is
-          successful, the view redirects to the URL specified in ``next``. If
-          ``next`` isn't provided, it redirects to
-          :setting:`settings.LOGIN_REDIRECT_URL <LOGIN_REDIRECT_URL>` (which
-          defaults to ``/accounts/profile/``). If login isn't successful, it
-          redisplays the login form.
+        * 如果是通过 ``POST`` 调用的，则会尝试登录用户。如果登录成功，则会重
+          定向到 ``next`` 指定的 URL 。如果 ``next`` 没有提供，则重定向到
+          :setting:`settings.LOGIN_REDIRECT_URL <LOGIN_REDIRECT_URL>` （缺省
+          的是 ``/accounts/profile/`` ）。如果登录不成功，则重新显示登录表单。
 
-    It's your responsibility to provide the login form in a template called
-    ``registration/login.html`` by default. This template gets passed four
-    template context variables:
+    缺省情况下，在名为 ``registration/login.html`` 的模板中提供一个登录表单是
+    你的责任。这个模板要传递四个环境变量：
 
-        * ``form``: A :class:`~django.forms.Form` object representing the login
-          form. See the :doc:`forms documentation </topics/forms/index>` for
-          more on ``Form`` objects.
+        * ``form``: 一个表现登录表单的 :class:`~django.forms.Form` 对象。关于
+          ``Form`` 对象的更多内容
+          :doc:`表单文档 </topics/forms/index>` 。
 
-        * ``next``: The URL to redirect to after successful login. This may
-          contain a query string, too.
+        * ``next``: 登录成功后要重定向的 URL 。也可以包含一个查询字符串。
 
-        * ``site``: The current :class:`~django.contrib.sites.models.Site`,
-          according to the :setting:`SITE_ID` setting. If you don't have the
-          site framework installed, this will be set to an instance of
-          :class:`~django.contrib.sites.models.RequestSite`, which derives the
-          site name and domain from the current
-          :class:`~django.http.HttpRequest`.
+        * ``site``: 当前的 :class:`~django.contrib.sites.models.Site` ，依赖于
+          :setting:`SITE_ID` 设置。如果没有安装站点框架，则会被设置为一个
+          :class:`~django.contrib.sites.models.RequestSite` 实例,这个实例会使用
+          从当前 :class:`~django.http.HttpRequest` 中派生出的站点名称和域名。
 
-        * ``site_name``: An alias for ``site.name``. If you don't have the site
-          framework installed, this will be set to the value of
-          :attr:`request.META['SERVER_NAME'] <django.http.HttpRequest.META>`.
-          For more on sites, see :doc:`/ref/contrib/sites`.
+        * ``site_name``: ``site.name`` 的一个别名。如果没有安装站点框架，则会被
+          设置为
+          :attr:`request.META['SERVER_NAME'] <django.http.HttpRequest.META>` 的
+          值。更多关于站点的内容参见 :doc:`/ref/contrib/sites` 。
 
-    If you'd prefer not to call the template :file:`registration/login.html`,
-    you can pass the ``template_name`` parameter via the extra arguments to
-    the view in your URLconf. For example, this URLconf line would use
-    :file:`myapp/login.html` instead::
+    如果你不想调用模板文件 :file:`registration/login.html` ，那么可以在 URLconf 
+    通过额外参数把 ``template_name`` 传递给视图。例如，以下的 URLconf 设置会
+    使用 :file:`myapp/login.html` 来代替缺省的模板::
 
         (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'myapp/login.html'}),
 
-    You can also specify the name of the ``GET`` field which contains the URL
-    to redirect to after login by passing ``redirect_field_name`` to the view.
-    By default, the field is called ``next``.
+    你还可以通过传递 ``redirect_field_name`` 给视图来指定包含登录后重定向 URL
+    的 ``GET`` 字段的名称。这个字段缺省值为 ``next`` 。
 
-    Here's a sample :file:`registration/login.html` template you can use as a
-    starting point. It assumes you have a :file:`base.html` template that
-    defines a ``content`` block:
+    这里有一个例子模板文件 :file:`registration/login.html` ，你可以作为一个
+    基础。它假设你有一个 :file:`base.html` 模板，模板中定义了一个 ``content``
+    块:
 
     .. code-block:: html+django
 
@@ -862,243 +767,219 @@ The login_required decorator
 
     .. versionadded:: 1.2
 
-    If you are using alternate authentication (see
-    :ref:`authentication-backends`) you can pass a custom authentication form
-    to the login view via the ``authentication_form`` parameter. This form must
-    accept a ``request`` keyword argument in its ``__init__`` method, and
-    provide a ``get_user`` method which returns the authenticated user object
-    (this method is only ever called after successful form validation).
+    如果你使用是其它认证方式（参见 :ref:`authentication-backends` ），那么可以
+    通过 ``authentication_form`` 参数把自定义的认证表单传递给登录视图。这个表单
+    必须在它的 ``__init__`` 方法接受一个 ``request`` 关键字参数，并且提供一个
+    用于返回认证用户对象的 ``get_user`` 方法（这个方法只会在表单验证成功后
+    调用）。
 
     .. _forms documentation: ../forms/
     .. _site framework docs: ../sites/
 
-Other built-in views
+其他内建视图
 --------------------
 
 .. module:: django.contrib.auth.views
 
-In addition to the :func:`~views.login` view, the authentication system
-includes a few other useful built-in views located in
-:mod:`django.contrib.auth.views`:
+除了 :func:`~views.login` 视图外，认证系统还有其他一些有用的内建视图。这些
+视图都在 :mod:`django.contrib.auth.views` 中:
 
 .. function:: logout(request, [next_page, template_name, redirect_field_name])
 
-    Logs a user out.
+    登出用户。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``next_page``: The URL to redirect to after logout.
+        * ``next_page``: 登出后转向的 URL 。
 
-        * ``template_name``: The full name of a template to display after
-          logging the user out. This will default to
-          :file:`registration/logged_out.html` if no argument is supplied.
+        * ``template_name``: 登出后要显示的模板的全名。如果没有提供这个参数，
+          缺省为 :file:`registration/logged_out.html` 。
 
-        * ``redirect_field_name``: The name of a ``GET`` field containing the
-          URL to redirect to after log out. Overrides ``next_page`` if the given
-          ``GET`` parameter is passed.
+        * ``redirect_field_name``: 包含登出后转向的 URL 的 ``GET`` 字段的名称。
+          如果给出则覆盖 ``next_page`` 。
 
-    **Template context:**
+    **模板语境：**
 
-        * ``title``: The string "Logged out", localized.
+        * ``title``: 本地化的 "Logged out" 字符串。
 
 .. function:: logout_then_login(request[, login_url])
 
-    Logs a user out, then redirects to the login page.
+    登出用户，并重定向到登录页面。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``login_url``: The URL of the login page to redirect to. This will
-          default to :setting:`settings.LOGIN_URL <LOGIN_URL>` if not supplied.
+        * ``login_url``: 要重定向到的登录页面的 URL 。如果没有给出这个参数，则
+          缺省为 :setting:`settings.LOGIN_URL <LOGIN_URL>` 。
 
 .. function:: password_change(request[, template_name, post_change_redirect, password_change_form])
 
-    Allows a user to change their password.
+    允许一个用户更改自己的密码。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``template_name``: The full name of a template to use for
-          displaying the password change form. This will default to
-          :file:`registration/password_change_form.html` if not supplied.
+        * ``template_name``: 显示用户更改页面的模板全名。如果没有给出，则缺省为
+          :file:`registration/password_change_form.html` 。
 
-        * ``post_change_redirect``: The URL to redirect to after a successful
-          password change.
+        * ``post_change_redirect``: 成功更改密码后要转向到的 URL 。
 
         * .. versionadded:: 1.2
 
-          ``password_change_form``: A custom "change password" form which must
-          accept a ``user`` keyword argument. The form is responsible for
-          actually changing the user's password.
+          ``password_change_form``: 一个自定义的“更改密码”的表单，必须接受一个
+          ``user`` 关键字参数。这个表单负责改变用户密码。
 
 
-    **Template context:**
+    **模板语境：**
 
-        * ``form``: The password change form.
+        * ``form``: 密码变更表单。
 
 .. function:: password_change_done(request[, template_name])
 
-    The page shown after a user has changed their password.
+    用户变更密码后要显示的页面。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``template_name``: The full name of a template to use. This will
-          default to :file:`registration/password_change_done.html` if not
-          supplied.
+        * ``template_name``: 模板的全名。缺省为
+          :file:`registration/password_change_done.html` 。
 
 .. function:: password_reset(request[, is_admin_site, template_name, email_template_name, password_reset_form, token_generator, post_reset_redirect, from_email])
 
-    Allows a user to reset their password by generating a one-time use link
-    that can be used to reset the password, and sending that link to the
-    user's registered e-mail address.
+    生成一个用于用户重置密码的一次性链接，并通过电子邮件发送这个链接。
 
     .. versionchanged:: 1.3
-        The ``from_email`` argument was added.
+        增加了 ``from_email`` 参数。
 
-    **Optional arguments:**
 
-        * ``template_name``: The full name of a template to use for
-          displaying the password reset form. This will default to
-          :file:`registration/password_reset_form.html` if not supplied.
+    **可选参数：**
 
-        * ``email_template_name``: The full name of a template to use for
-          generating the e-mail with the new password. This will default to
-          :file:`registration/password_reset_email.html` if not supplied.
+        * ``template_name``: 用于显示密码重置页面的模板全名。如果没有给出，则
+          缺省为 :file:`registration/password_reset_form.html` 。
 
-        * ``password_reset_form``: Form that will be used to set the password.
-          Defaults to :class:`~django.contrib.auth.forms.PasswordResetForm`.
+        * ``email_template_name``: 用于生成包含新密码的电子邮件的页面的模板
+          全名。如果没有给出，则缺省为
+          :file:`registration/password_reset_email.html` 。
 
-        * ``token_generator``: Instance of the class to check the password. This
-          will default to ``default_token_generator``, it's an instance of
-          ``django.contrib.auth.tokens.PasswordResetTokenGenerator``.
+        * ``password_reset_form``: 用于设置密码的表单。缺省为
+          :class:`~django.contrib.auth.forms.PasswordResetForm` 。
 
-        * ``post_reset_redirect``: The URL to redirect to after a successful
-          password change.
+        * ``token_generator``: 检查密码的类的实例。缺省为
+          ``default_token_generator`` ，它是一个
+          ``django.contrib.auth.tokens.PasswordResetTokenGenerator`` 的实例。
 
-        * ``from_email``: A valid e-mail address. By default Django uses
-          the :setting:`DEFAULT_FROM_EMAIL`.
+        * ``post_reset_redirect``: 成功变更密码后要转向的 URL 。
 
-    **Template context:**
+        * ``from_email``: 一个可用的电子邮件地址。缺省情况下 Django 使用
+          :setting:`DEFAULT_FROM_EMAIL` 。
 
-        * ``form``: The form for resetting the user's password.
+    **模板语境：**
+
+        * ``form``: 用于重置密码的表单。
 
 .. function:: password_reset_done(request[, template_name])
 
-    The page shown after a user has reset their password.
+    重置密码显示的页面。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``template_name``: The full name of a template to use. This will
-          default to :file:`registration/password_reset_done.html` if not
-          supplied.
+        * ``template_name``: 模板的全名。缺省为
+          :file:`registration/password_reset_done.html` 。
 
 .. function:: redirect_to_login(next[, login_url, redirect_field_name])
 
-    Redirects to the login page, and then back to another URL after a
-    successful login.
+    重定向到登录页面，成功登录后回到另一个 URL 。
 
-    **Required arguments:**
+    **必选参数：**
 
-        * ``next``: The URL to redirect to after a successful login.
+        * ``next``: 成功登录后到转向的 URL 。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``login_url``: The URL of the login page to redirect to. This will
-          default to :setting:`settings.LOGIN_URL <LOGIN_URL>` if not supplied.
+        * ``login_url``: 登录页面的 URL 。缺省为
+          :setting:`settings.LOGIN_URL <LOGIN_URL>` 。
 
-        * ``redirect_field_name``: The name of a ``GET`` field containing the
-          URL to redirect to after log out. Overrides ``next`` if the given
-          ``GET`` parameter is passed.
-
+        * ``redirect_field_name``: 包含登录后要转向的 URL 的 ``GET`` 字段的
+          名称。如果给出则覆盖 ``next`` 。
 
 .. function:: password_reset_confirm(request[, uidb36, token, template_name, token_generator, set_password_form, post_reset_redirect])
 
-    Presents a form for entering a new password.
+    给出一个输入新密码的表单。
 
-    **Optional arguments:**
+    **可选参数：**
 
-        * ``uidb36``: The user's id encoded in base 36. This will default to
-          ``None``.
-        * ``token``: Token to check that the password is valid. This will default to ``None``.
-        * ``template_name``: The full name of a template to display the confirm
-          password view. Default value is :file:`registration/password_reset_confirm.html`.
-        * ``token_generator``: Instance of the class to check the password. This
-          will default to ``default_token_generator``, it's an instance of
-          ``django.contrib.auth.tokens.PasswordResetTokenGenerator``.
-        * ``set_password_form``: Form that will be used to set the password.
-          This will default to ``SetPasswordForm``.
-        * ``post_reset_redirect``: URL to redirect after the password reset
-          done. This will default to ``None``.
+        * ``uidb36``: 用户的 id 以 base 36 方式编码。缺省为 ``None`` 。
+        * ``token``: 检查密码是否有效的标志。缺省为 ``None``.
+        * ``template_name``: 显示确认密码视图的模板的全名。缺省为
+          :file:`registration/password_reset_confirm.html` 。
+        * ``token_generator``: 检查密码的类的实例。缺省为
+          ``default_token_generator`` ，它是一个
+          ``django.contrib.auth.tokens.PasswordResetTokenGenerator`` 的实例。
+        * ``set_password_form``: 用于设置密码的表单。缺省为
+          ``SetPasswordForm`` 。
+        * ``post_reset_redirect``: 重置密码的要转向的 URL 。缺省为 ``None`` 。
 
 .. function:: password_reset_complete(request[,template_name])
 
-   Presents a view which informs the user that the password has been
-   successfully changed.
+   展现一个通知用户密码已成功变更的视图。
 
-   **Optional arguments:**
+   **可选参数：**
 
-       * ``template_name``: The full name of a template to display the view.
-         This will default to :file:`registration/password_reset_complete.html`.
+       * ``template_name``: 显示视图的模板的全名。缺省为
+         :file:`registration/password_reset_complete.html` 。
 
-Built-in forms
+内建表单
 --------------
 
 .. module:: django.contrib.auth.forms
 
-If you don't want to use the built-in views, but want the convenience of not
-having to write forms for this functionality, the authentication system
-provides several built-in forms located in :mod:`django.contrib.auth.forms`:
+如果你不想使用内建的视图，但是想自己写表单，那么认证系统在
+:mod:`django.contrib.auth.forms` 中提供了一些内建的表单：
 
 .. class:: AdminPasswordChangeForm
 
-    A form used in the admin interface to change a user's password.
+    在管理接口中改变用户密码的表单。
 
 .. class:: AuthenticationForm
 
-    A form for logging a user in.
+    登录表单。
 
 .. class:: PasswordChangeForm
 
-    A form for allowing a user to change their password.
+    变更密码表单。
 
 .. class:: PasswordResetForm
 
-    A form for generating and e-mailing a one-time use link to reset a
-    user's password.
+    生成重置密码链接并通过电子邮件发送链接的表单。
 
 .. class:: SetPasswordForm
 
-    A form that lets a user change his/her password without entering the old
-    password.
+    不需要输入旧密码就可以变更用户密码的表单。
 
 .. class:: UserChangeForm
 
-    A form used in the admin interface to change a user's information and
-    permissions.
+    在管理接口中变更用户信息和权限的表单。
 
 .. class:: UserCreationForm
 
-    A form for creating a new user.
+    创建新用户的表单。
 
-Limiting access to logged-in users that pass a test
+通过测试来限制页面操作
 ---------------------------------------------------
 
 .. currentmodule:: django.contrib.auth.decorators
 
-To limit access based on certain permissions or some other test, you'd do
-essentially the same thing as described in the previous section.
+要基于一定的权限或测试来限制页面的操作，其本质上和上一节的内容相同。
 
-The simple way is to run your test on :attr:`request.user
-<django.http.HttpRequest.user>` in the view directly. For example, this view
-checks to make sure the user is logged in and has the permission
-``polls.can_vote``::
+最简单的方式是在社图中直接在 :attr:`request.user
+<django.http.HttpRequest.user>` 上直接运行你的测试。例如，这个视图调试用户是否
+已登录并拥有 ``polls.can_vote`` 权限::
 
     def my_view(request):
         if not request.user.has_perm('polls.can_vote'):
-            return HttpResponse("You can't vote in this poll.")
+            return HttpResponse("在这个选举中你不能投票。")
         # ...
 
 .. function:: user_passes_test()
 
-    As a shortcut, you can use the convenient ``user_passes_test`` decorator::
+    作为一个捷径，你可使用方便的 ``user_passes_test`` 装饰件::
 
         from django.contrib.auth.decorators import user_passes_test
 
@@ -1106,24 +987,22 @@ checks to make sure the user is logged in and has the permission
         def my_view(request):
             ...
 
-    We're using this particular test as a relatively simple example. However,
-    if you just want to test whether a permission is available to a user, you
-    can use the :func:`~django.contrib.auth.decorators.permission_required()`
-    decorator, described later in this document.
+    我们使用这个特定的测试作为一个相关的简单的例子。然而，如果你只要测试一个
+    用户是否有一个权限，那么你可以使用
+    :func:`~django.contrib.auth.decorators.permission_required()` 装饰件，稍后
+    会谈到这个装饰件。
 
-    :func:`~django.contrib.auth.decorators.user_passes_test` takes a required
-    argument: a callable that takes a
-    :class:`~django.contrib.auth.models.User` object and returns ``True`` if
-    the user is allowed to view the page. Note that
-    :func:`~django.contrib.auth.decorators.user_passes_test` does not
-    automatically check that the :class:`~django.contrib.auth.models.User` is
-    not anonymous.
+    :func:`~django.contrib.auth.decorators.user_passes_test` 有一个必选参数：
+    带有一个 :class:`~django.contrib.auth.models.User` 对象的可调用的函数，并且
+    如果用户被允许查看页面时返回 ``True`` 。注意
+    :func:`~django.contrib.auth.decorators.user_passes_test` 不自动检查
+    :class:`~django.contrib.auth.models.User` 是否是匿名用户。
 
-    :func:`~django.contrib.auth.decorators.user_passes_test()` takes an
-    optional ``login_url`` argument, which lets you specify the URL for your
-    login page (:setting:`settings.LOGIN_URL <LOGIN_URL>` by default).
+    :func:`~django.contrib.auth.decorators.user_passes_test()` 有一个可选的
+    ``login_url`` 参数，这个参数让你指定登录页面的 URL （缺省为
+    :setting:`settings.LOGIN_URL <LOGIN_URL>` ）。
 
-    For example::
+    例如::
 
         from django.contrib.auth.decorators import user_passes_test
 
@@ -1131,46 +1010,45 @@ checks to make sure the user is logged in and has the permission
         def my_view(request):
             ...
 
-The permission_required decorator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+权限需求装饰件
+~~~~~~~~~~~~~~
 
 .. function:: permission_required()
 
-    It's a relatively common task to check whether a user has a particular
-    permission. For that reason, Django provides a shortcut for that case: the
-    :func:`~django.contrib.auth.decorators.permission_required()` decorator.
-    Using this decorator, the earlier example can be written as::
+    检查用户是否有特定的权限是一个比较常见的任务。因此， Django 为此提供了一个
+    捷径：
+    :func:`~django.contrib.auth.decorators.permission_required()` 装饰件。
+    使用这个装饰件，先前的例子可以写成::
 
         from django.contrib.auth.decorators import permission_required
 
-        @permission_required('polls.can_vote')
         def my_view(request):
             ...
+        my_view = permission_required('polls.can_vote')(my_view)
 
-    As for the :meth:`User.has_perm` method, permission names take the form
-    ``"<app label>.<permission codename>"`` (i.e. ``polls.can_vote`` for a
-    permission on a model in the ``polls`` application).
+    至于 :meth:`User.has_perm` 方法，权限名称以
+    ``"<app label>.<permission codename>"`` 形式组成（例如 ``polls.can_vote`` 
+    就是 ``poll`` 应用中的模型中的一个权限）。
 
-    Note that :func:`~django.contrib.auth.decorators.permission_required()`
-    also takes an optional ``login_url`` parameter. Example::
+    注意 :func:`~django.contrib.auth.decorators.permission_required()`
+    也有一个可选的 ``login_url`` 参数。例如::
 
         from django.contrib.auth.decorators import permission_required
 
-        @permission_required('polls.can_vote', login_url='/loginpage/')
         def my_view(request):
             ...
+        my_view = permission_required('polls.can_vote', login_url='/loginpage/')(my_view)
 
-    As in the :func:`~decorators.login_required` decorator, ``login_url``
-    defaults to :setting:`settings.LOGIN_URL <LOGIN_URL>`.
+    在 :func:`~decorators.login_required` 装饰件中 ``login_url`` 缺省为
+    :setting:`settings.LOGIN_URL <LOGIN_URL>` 。
 
 .. currentmodule:: django.contrib.auth
 
-Limiting access to generic views
---------------------------------
+限制通用视图的操作
+------------------
 
-To limit access to a :doc:`generic view </ref/generic-views>`, write a thin
-wrapper around the view, and point your URLconf to your wrapper instead of the
-generic view itself. For example::
+要限制一个 :doc:`通用视图 </ref/generic-views>` 操作，可以写一个视图的薄包装，
+然后把你的 URLconf 指向薄包装而不是通用视图本身。例如::
 
     from django.views.generic.date_based import object_detail
 
@@ -1178,53 +1056,39 @@ generic view itself. For example::
     def limited_object_detail(*args, **kwargs):
         return object_detail(*args, **kwargs)
 
-.. _permissions:
+.. _权限:
 
-Permissions
-===========
+权限
+====
 
-Django comes with a simple permissions system. It provides a way to assign
-permissions to specific users and groups of users.
+Django 自带了一个简单的权限系统，它可以管理特定的用户和用户组的权限。
 
-It's used by the Django admin site, but you're welcome to use it in your own
-code.
+这个系统是用于 Django 管理站点的，但是欢迎在你自己的代码中使用它。
 
-The Django admin site uses permissions as follows:
+Django 管理站点使用如下权限：
 
-    * Access to view the "add" form and add an object is limited to users with
-      the "add" permission for that type of object.
-    * Access to view the change list, view the "change" form and change an
-      object is limited to users with the "change" permission for that type of
-      object.
-    * Access to delete an object is limited to users with the "delete"
-      permission for that type of object.
+    * 查看“增加”表单和增加对象需要有该种对象的“增加”权限。
+    * 查看变更列表、“变更”表单和变更对象需要有该种对象的“变更”权限。
+    * 删除对象需要有该种对象的“删除”权限。
 
-Permissions are set globally per type of object, not per specific object
-instance. For example, it's possible to say "Mary may change news stories," but
-it's not currently possible to say "Mary may change news stories, but only the
-ones she created herself" or "Mary may only change news stories that have a
-certain status, publication date or ID." The latter functionality is something
-Django developers are currently discussing.
+权限是针对某种对象的全局性的设置，而不是针对某种对象的某个特定实例的。例如，
+我们可以说“玛丽可以改写故事”，但是不能说“玛丽可以改写故事，但只限于她自己的
+故事”，也不能说“玛丽只能改写符合特定条件（如出版日期、编号）的故事”。后面的
+两种情况是 Django 的开发者正在讨论的东西，现在还不支持。
 
-Default permissions
--------------------
+缺省权限
+--------
 
-When ``django.contrib.auth`` is listed in your :setting:`INSTALLED_APPS`
-setting, it will ensure that three default permissions -- add, change and
-delete -- are created for each Django model defined in one of your installed
-applications.
+当 ``django.contrib.auth`` 存在于你的 :setting:`INSTALLED_APPS` 设置中时，会
+确保你安装的应用中每个 Django 模型在三个缺省的权限——增加、变更和删除。
 
-These permissions will be created when you run :djadmin:`manage.py syncdb
-<syncdb>`; the first time you run ``syncdb`` after adding
-``django.contrib.auth`` to :setting:`INSTALLED_APPS`, the default permissions
-will be created for all previously-installed models, as well as for any new
-models being installed at that time. Afterward, it will create default
-permissions for new models each time you run :djadmin:`manage.py syncdb
-<syncdb>`.
+当你运行 :djadmin:`manage.py syncdb <syncdb>` 时这些权限会被创建。在向
+:setting:`INSTALLED_APPS` 增加 ``django.contrib.auth`` 后第一次运行 ``syncdb``
+时，会为以前已安装的模型和正在安装的模型创建缺省权限。以后每次运行
+:djadmin:`manage.py syncdb <syncdb>` 都会为所有模型创建缺省权限。
 
-Assuming you have an application with an
-:attr:`~django.db.models.Options.app_label` ``foo`` and a model named ``Bar``,
-to test for basic permissions you should use:
+假设你的应用有一个名为 ``foo`` 的 :attr:`~django.db.models.Options.app_label`
+和一个名为 ``Bar`` 的模型，要测试基本的权限可以这样::
 
     * add: ``user.has_perm('foo.add_bar')``
     * change: ``user.has_perm('foo.change_bar')``
@@ -1232,14 +1096,12 @@ to test for basic permissions you should use:
 
 .. _custom-permissions:
 
-Custom permissions
-------------------
+自定义权限
+----------
 
-To create custom permissions for a given model object, use the ``permissions``
-:ref:`model Meta attribute <meta-options>`.
+使用 ``权限`` :ref:`模型元属性 <meta-options>` 可以创建自定义权限。
 
-This example Task model creates three custom permissions, i.e., actions users
-can or cannot do with Task instances, specific to your appication::
+下例中的 Task 模型创建了三个自定义权限::
 
     class Task(models.Model):
         ...
@@ -1250,185 +1112,182 @@ can or cannot do with Task instances, specific to your appication::
                 ("can_close", "Can remove a task by setting its status as closed"),
             )
 
+以上代码只做了一件事：在运行 :djadmin:`manage.py syncdb <syncdb>` 时创建了三个
+额外的权限。
 The only thing this does is create those extra permissions when you run
 :djadmin:`manage.py syncdb <syncdb>`. Your code is in charge of checking the
 value of these permissions when an user is trying to access the functionality
 provided by the application (viewing tasks, changing the status of tasks,
 closing tasks.)
 
-API reference
--------------
+    class USCitizen(models.Model):
+        # ...
+        class Meta:
+            permissions = (
+                ("can_drive", "Can drive"),
+                ("can_vote", "Can vote in elections"),
+                ("can_drink", "Can drink alcohol"),
+            )
 
-.. currentmodule:: django.contrib.auth.models
+以下代码只做了一件事：在运行 :djadmin:`manage.py syncdb <syncdb>` 时创建了三个
+额外的权限。
 
-.. class:: Permission
+API 手册
+--------
 
-    Just like users, permissions are implemented in a Django model that lives
-    in `django/contrib/auth/models.py`_.
+.. class:: models.Permission
+
+    和用户一样，权限也在 `django/contrib/auth/models.py`_ Django 模型中实现。
 
 .. _django/contrib/auth/models.py: http://code.djangoproject.com/browser/django/trunk/django/contrib/auth/models.py
 
-Fields
-~~~~~~
+字段
+~~~~
 
-:class:`~django.contrib.auth.models.Permission` objects have the following
-fields:
+:class:`~django.contrib.auth.models.Permission` 对象有以下字段：
 
-.. attribute:: Permission.name
+.. attribute:: models.Permission.name
 
-    Required. 50 characters or fewer. Example: ``'Can vote'``.
+    必需的。 50 个字符以下。例如： ``'Can vote'`` 。
 
-.. attribute:: Permission.content_type
+.. attribute:: models.Permission.content_type
 
-    Required. A reference to the ``django_content_type`` database table, which
-    contains a record for each installed Django model.
+    属于的。一个 ``django_content_type`` 数据库表的引用，包含每一个已安装的
+    Django 模型。
 
-.. attribute:: Permission.codename
+.. attribute:: models.Permission.codename
 
-    Required. 100 characters or fewer. Example: ``'can_vote'``.
+    必需的。 100 个字符以下。例如： ``'Can_vote'`` 。
 
-Methods
-~~~~~~~
+方法
+~~~~
 
-:class:`~django.contrib.auth.models.Permission` objects have the standard
-data-access methods like any other :doc:`Django model </ref/models/instances>`.
+:class:`~django.contrib.auth.models.Permission` 对象和其它
+:doc:`Django 模型 </ref/models/instances>` 一样有标准数据操作方法。
 
-.. currentmodule:: django.contrib.auth
+模板中的认证数据
+================
 
-Authentication data in templates
-================================
+当你使用 :class:`~django.template.context.RequestContext` 时，当前已登录的用户
+及其权限在 :doc:`模板环境 </ref/templates/api>` 中提供。
 
-The currently logged-in user and his/her permissions are made available in the
-:doc:`template context </ref/templates/api>` when you use
-:class:`~django.template.context.RequestContext`.
+.. admonition:: 技术细节
 
-.. admonition:: Technicality
+   在技术细节上，这些变量只有当你使用
+   :class:`~django.template.context.RequestContext` ， *并且* 你的
+   :setting:`TEMPLATE_CONTEXT_PROCESSORS` 设置中包含
+   ``"django.contrib.auth.context_processors.auth"`` 时才在模板环境中可用，这是
+   缺省 情况。更多见容，详见
+   :ref:`请求环境文档 <subclassing-context-requestcontext>` 。
 
-   Technically, these variables are only made available in the template context
-   if you use :class:`~django.template.context.RequestContext` *and* your
-   :setting:`TEMPLATE_CONTEXT_PROCESSORS` setting contains
-   ``"django.contrib.auth.context_processors.auth"``, which is default. For
-   more, see the :ref:`RequestContext docs <subclassing-context-requestcontext>`.
+用户
+----
 
-Users
------
-
-When rendering a template :class:`~django.template.context.RequestContext`, the
-currently logged-in user, either a  :class:`~django.contrib.auth.models.User`
-instance or an :class:`~django.contrib.auth.models.AnonymousUser` instance, is
-stored in the template variable ``{{ user }}``:
+当渲染一个模板 :class:`~django.template.context.RequestContext` 时，当前已登录
+的用户（要么是一个 :class:`~django.contrib.auth.models.User` 实例，要么是一个
+:class:`~django.contrib.auth.models.AnonymousUser` 实例）被储存在模板变量
+``{{ user }}`` 中：
 
 .. code-block:: html+django
 
     {% if user.is_authenticated %}
-        <p>Welcome, {{ user.username }}. Thanks for logging in.</p>
+        <p>欢迎， {{ user.username }} 。谢谢登录。</p>
     {% else %}
-        <p>Welcome, new user. Please log in.</p>
+        <p>欢迎，新用户。请登录。</p>
     {% endif %}
 
-This template context variable is not available if a ``RequestContext`` is not
-being used.
+如果一个 ``RequestContext`` 未使用则这个模板环境变量不可用。
 
-Permissions
------------
+权限
+----
 
-The currently logged-in user's permissions are stored in the template variable
-``{{ perms }}``. This is an instance of
-:class:`django.contrib.auth.context_processors.PermWrapper`, which is a
-template-friendly proxy of permissions.
+当前已登录用户的权限储存在模板变量 ``{{ perms }}`` 中。这是一个
+:class:`django.core.context_processors.PermWrapper` 的实例。它是一个模板友好的
+权限的代理。
 
-.. versionchanged:: 1.3
-    Prior to version 1.3, ``PermWrapper`` was located in
-    ``django.contrib.auth.context_processors``.
+在 ``{{ perms }}`` 对象中，单个属性的查找是
+:meth:`User.has_module_perms <django.contrib.auth.models.User.has_module_perms>`
+方法的一个代理。
 
-In the ``{{ perms }}`` object, single-attribute lookup is a proxy to
-:meth:`User.has_module_perms <django.contrib.auth.models.User.has_module_perms>`.
-This example would display ``True`` if the logged-in user had any permissions
-in the ``foo`` app::
+如果已登录用户在 ``foo`` 应用中有权限，那么以下例子会显示 ``True`` ::
 
     {{ perms.foo }}
 
-Two-level-attribute lookup is a proxy to
-:meth:`User.has_perm <django.contrib.auth.models.User.has_perm>`. This example
-would display ``True`` if the logged-in user had the permission
-``foo.can_vote``::
+二维属性查找是 :meth:`User.has_perm <django.contrib.auth.models.User.has_perm>`
+方法的一个代理。如果已登录用户有 ``foo.can_vote`` 权限，那么以下例子会显示
+``True`` ::
 
     {{ perms.foo.can_vote }}
 
-Thus, you can check permissions in template ``{% if %}`` statements:
+然而，你可以在模板 ``{% if %}`` 语句中检查权限：
 
 .. code-block:: html+django
 
     {% if perms.foo %}
-        <p>You have permission to do something in the foo app.</p>
+        <p>你在 foo 应用中有权限。</p>
         {% if perms.foo.can_vote %}
-            <p>You can vote!</p>
+            <p>你可以投票！</p>
         {% endif %}
         {% if perms.foo.can_drive %}
-            <p>You can drive!</p>
+            <p>你可以驾驶！</p>
         {% endif %}
     {% else %}
-        <p>You don't have permission to do anything in the foo app.</p>
+        <p>你在 foo 应用中没有权限。</p>
     {% endif %}
 
-Groups
-======
+组
+==
 
-Groups are a generic way of categorizing users so you can apply permissions, or
-some other label, to those users. A user can belong to any number of groups.
+组是一种把用户分类以便于分配权限或打上标签的常用方式。一个用户可以属于任意多个
+组。
 
-A user in a group automatically has the permissions granted to that group. For
-example, if the group ``Site editors`` has the permission
-``can_edit_home_page``, any user in that group will have that permission.
+组中的用户自动被赋予这个组所拥有的权限。例如，如果 ``网站编辑`` 组拥有
+``can_edit_home_page`` 权限，那么这个组中的用户都有这个权限。
 
-Beyond permissions, groups are a convenient way to categorize users to give
-them some label, or extended functionality. For example, you could create a
-group ``'Special users'``, and you could write code that could, say, give them
-access to a members-only portion of your site, or send them members-only e-mail
-messages.
+除了权限外，组还是一个把用户分类以便于打上标签或给予特定功能的便捷方式。例如，
+你可创建一个 ``特别用户`` 组，然后就可以为这个编写特定的程序，给予站点特定的
+部分的全员专有访问权限或发送会员专有电子邮件等等。
 
-Messages
+消息
 ========
 
 .. deprecated:: 1.2
-   This functionality will be removed in Django 1.4.  You should use the
-   :doc:`messages framework </ref/contrib/messages>` for all new projects and
-   begin to update your existing code immediately.
+   这个功能将在 Django 1.4 版中取消。在新的项目中你应当使用
+   :doc:`消息框架 </ref/contrib/messages>` 。同时应当升级你的现有项目中的相关
+   代码。
 
-The message system is a lightweight way to queue messages for given users.
+消息系统是一个指定用户的消息队列的轻度实现。
 
-A message is associated with a :class:`~django.contrib.auth.models.User`.
-There's no concept of expiration or timestamps.
+每个消息与一个 :class:`~django.contrib.auth.models.User` 相关联。消息没有期限或
+时间戳。
 
-Messages are used by the Django admin after successful actions. For example,
-``"The poll Foo was created successfully."`` is a message.
+消息用于 Django 管理站点提示某个动作已成功完成。例如 ``"投票已成功创建"`` 就是
+一个消息。
 
-The API is simple:
+API 很简单：
 
 .. method:: models.User.message_set.create(message)
 
-    To create a new message, use
-    ``user_obj.message_set.create(message='message_text')``.
+    使用 ``user_obj.message_set.create(message='message_text')`` 可以创建一个新
+    消息。
 
-    To retrieve/delete messages, use
-    :meth:`user_obj.get_and_delete_messages() <django.contrib.auth.models.User.get_and_delete_messages>`,
-    which returns a list of ``Message`` objects in the user's queue (if any)
-    and deletes the messages from the queue.
+    取得或删除消息使用
+    :meth:`user_obj.get_and_delete_messages() <django.contrib.auth.models.User.get_and_delete_messages>`。
+    这个方法从用户的消息队列中取回（如果有消息的话）一个 ``消息`` 对象的列表并
+    在队列中删除这些消息。
 
-In this example view, the system saves a message for the user after creating
-a playlist::
+在以下的例子视图中，系统为用户保存了创建节目单后产生的一个消息::
 
     def create_playlist(request, songs):
         # Create the playlist with the given songs.
         # ...
-        request.user.message_set.create(message="Your playlist was added successfully.")
+        request.user.message_set.create(message="你的节目单已成功添加。")
         return render_to_response("playlists/create.html",
             context_instance=RequestContext(request))
 
-When you use :class:`~django.template.context.RequestContext`, the currently
-logged-in user and his/her messages are made available in the
-:doc:`template context </ref/templates/api>` as the template variable
-``{{ messages }}``. Here's an example of template code that displays messages:
+当你使用 :class:`~django.template.context.RequestContext` 时，当前的已登录用户
+及其消息可由 :doc:`模板环境 </ref/templates/api>` 中模板变量 ``{{ messages }}``
+来提供。下面就是显示消息的模板例子：
 
 .. code-block:: html+django
 
@@ -1441,109 +1300,91 @@ logged-in user and his/her messages are made available in the
     {% endif %}
 
 .. versionchanged:: 1.2
-   The ``messages`` template variable uses a backwards compatible method in the
-   :doc:`messages framework </ref/contrib/messages>` to retrieve messages from
-   both the user ``Message`` model and from the new framework.  Unlike in
-   previous revisions, the messages will not be erased unless they are actually
-   displayed.
+   ``messages`` 模板变量使用 :doc:`消息框架 </ref/contrib/messages>` 中的一个
+   向后兼容方法，既从用户的 ``Message`` 模型中，又从新的框架中获得消息。和以前
+   不同消息在真正显示之后才会被删除。
 
-Finally, note that this messages framework only works with users in the user
-database. To send messages to anonymous users, use the
-:doc:`messages framework </ref/contrib/messages>`.
+最后，注意消息框架只能用于用户数据库中已存在的用户。如果要向匿名用户发送消息，
+请使用 :doc:`消息框架 </ref/contrib/messages>` 。
 
 .. _authentication-backends:
 
-Other authentication sources
-============================
+其他认证资源
+============
 
-The authentication that comes with Django is good enough for most common cases,
-but you may have the need to hook into another authentication source -- that
-is, another source of usernames and passwords or authentication methods.
+Django 自带的认证系统对于一般情况已经够用了，但是你可能需要挂接其他的认证资源，
+即另一个用户名和密码资源或认证方法。
 
-For example, your company may already have an LDAP setup that stores a username
-and password for every employee. It'd be a hassle for both the network
-administrator and the users themselves if users had separate accounts in LDAP
-and the Django-based applications.
+例如，你的公司可能已有一个 LDAP ，其中已储存了每个员工的用户名和密码。如果在
+LDAP 和 基于 Django 的应用中使用两套帐户，那么对于管理员和用户来说都是不方便
+的。
 
-So, to handle situations like this, the Django authentication system lets you
-plug in other authentication sources. You can override Django's default
-database-based scheme, or you can use the default system in tandem with other
-systems.
+因此，为了应对这种情况， Django 的认证系统可以让你挂接其他认证资源。你可以重载
+Django 的缺省数据库计划或使缺省系统与其他系统协作。
 
-See the :doc:`authentication backend reference </ref/authbackends>`
-for information on the authentication backends included with Django.
+关于 Django 认证后台处理的内容参见
+:doc:`认证后台参考 </ref/authbackends>` 。
 
-Specifying authentication backends
-----------------------------------
+指定认证后端
+------------
 
-Behind the scenes, Django maintains a list of "authentication backends" that it
-checks for authentication. When somebody calls
-:func:`django.contrib.auth.authenticate()` -- as described in :ref:`How to log
-a user in <how-to-log-a-user-in>` above -- Django tries authenticating across
-all of its authentication backends. If the first authentication method fails,
-Django tries the second one, and so on, until all backends have been attempted.
+在后台， Django 维护着一个用于认证的“认证后端”列表。当象前文
+:ref:`如何登录一个用户 <how-to-log-a-user-in>` 一节中提到的，使用
+:func:`django.contrib.auth.authenticate()` 时， Django 会尝试列表中的所有
+后端。如果第一个不行，则尝试第二个，以此类推，直到最后一个。
 
-The list of authentication backends to use is specified in the
-:setting:`AUTHENTICATION_BACKENDS` setting. This should be a tuple of Python
-path names that point to Python classes that know how to authenticate. These
-classes can be anywhere on your Python path.
+认证后端的列表中 :setting:`AUTHENTICATION_BACKENDS` 设置中定义。设置内容应当是
+一个指向可以用于认证的 Python 类的路径名的元组。这些类可以放在 Python 路径下的
+任意位置。
 
-By default, :setting:`AUTHENTICATION_BACKENDS` is set to::
+缺省情况下， :setting:`AUTHENTICATION_BACKENDS` 被设置为::
 
     ('django.contrib.auth.backends.ModelBackend',)
 
-That's the basic authentication scheme that checks the Django users database.
+这是检查 Django 用户数据库的基本认证方案。
 
-The order of :setting:`AUTHENTICATION_BACKENDS` matters, so if the same
-username and password is valid in multiple backends, Django will stop
-processing at the first positive match.
+:setting:`AUTHENTICATION_BACKENDS` 的顺序是重要的，所以如果相同的用户名和密码在
+多个后端中同时存在， Django 会在第一个匹配的地方停止。
 
 .. note::
 
-    Once a user has authenticated, Django stores which backend was used to
-    authenticate the user in the user's session, and re-uses the same backend
-    for subsequent authentication attempts for that user. This effectively means
-    that authentication sources are cached, so if you change
-    :setting:`AUTHENTICATION_BACKENDS`, you'll need to clear out session data if
-    you need to force users to re-authenticate using different methods. A simple
-    way to do that is simply to execute ``Session.objects.all().delete()``.
+    一旦一个用户通过认证， Django 会在会话中储存该用户所使用的后端，并且在随后
+    的认证中使用已储存的后端。即认证资源会被缓存，如果你改变
+    :setting:`AUTHENTICATION_BACKENDS` ，并且要强迫用户使用不同的后端重新认证，
+    那么需要清除会话数据。一个简单的方法是执行
+    ``Session.objects.all().delete()`` 。
 
-Writing an authentication backend
----------------------------------
+编写一个认证后端
+----------------
 
-An authentication backend is a class that implements two methods:
-``get_user(user_id)`` and ``authenticate(**credentials)``.
+一个认证后端是一个执行两个方法的类：
+``get_user(user_id)`` 和 ``authenticate(**credentials)`` 。
 
-The ``get_user`` method takes a ``user_id`` -- which could be a username,
-database ID or whatever -- and returns a ``User`` object.
+``get_user`` 方法需要一个 ``user_id`` （可以是一个用户名、数据库 ID 或其他
+东东），并且返回一个 ``用户`` 对象。
 
-The ``authenticate`` method takes credentials as keyword arguments. Most of
-the time, it'll just look like this::
+``authenticate`` 方法有一个证书关键字参数。多数情况下看上去如下::
 
     class MyBackend:
         def authenticate(self, username=None, password=None):
-            # Check the username/password and return a User.
+            # 检查用户名和密码并返回一个用户。
 
-But it could also authenticate a token, like so::
+但是也可以认证一个标志，象下面这样::
 
     class MyBackend:
         def authenticate(self, token=None):
-            # Check the token and return a User.
+            # 检查标志并返回一个用户。
 
-Either way, ``authenticate`` should check the credentials it gets, and it
-should return a ``User`` object that matches those credentials, if the
-credentials are valid. If they're not valid, it should return ``None``.
+不管怎样， ``authenticate`` 应当检查得到的材料。当材料有效时，返回一个符合条件
+的 ``用户`` 对象，否则返回 ``None`` 。
 
-The Django admin system is tightly coupled to the Django ``User`` object
-described at the beginning of this document. For now, the best way to deal with
-this is to create a Django ``User`` object for each user that exists for your
-backend (e.g., in your LDAP directory, your external SQL database, etc.) You
-can either write a script to do this in advance, or your ``authenticate``
-method can do it the first time a user logs in.
+Django 管理系统与本文开头所谈的 Django ``用户`` 对象是紧密关联的。目前，最好的
+办法是为你的认证后端中存在的每个用户创建一个 Django ``用户`` 对象（例如，在你的
+LDAP 目录中，你的 SQL 数据库中等等）。你要么写一个脚本，要么你的 ``认证`` 方法
+在第一次用户登录时来创建 ``用户`` 对象。
 
-Here's an example backend that authenticates against a username and password
-variable defined in your ``settings.py`` file and creates a Django ``User``
-object the first time a user authenticates::
+以下是一个后端举例，它检查 ``settings.py`` 文件中定义的用户名和密码，并且在用户
+第一次登录时创建一个 ``用户`` 对象::
 
     from django.conf import settings
     from django.contrib.auth.models import User, check_password
@@ -1557,11 +1398,6 @@ object the first time a user authenticates::
         ADMIN_LOGIN = 'admin'
         ADMIN_PASSWORD = 'sha1$4e987$afbcf42e21bd417fb71db8c66b321e9fc33051de'
         """
-
-        supports_object_permissions = False
-        supports_anonymous_user = False
-        supports_inactive_user = False
-
         def authenticate(self, username=None, password=None):
             login_valid = (settings.ADMIN_LOGIN == username)
             pwd_valid = check_password(password, settings.ADMIN_PASSWORD)
@@ -1585,24 +1421,22 @@ object the first time a user authenticates::
             except User.DoesNotExist:
                 return None
 
-Handling authorization in custom backends
+在自定义后端中处理认证
 -----------------------------------------
 
-Custom auth backends can provide their own permissions.
+自定义后端可以提供自己的权限。
 
-The user model will delegate permission lookup functions
-(:meth:`~django.contrib.auth.models.User.get_group_permissions()`,
-:meth:`~django.contrib.auth.models.User.get_all_permissions()`,
-:meth:`~django.contrib.auth.models.User.has_perm()`, and
-:meth:`~django.contrib.auth.models.User.has_module_perms()`) to any
-authentication backend that implements these functions.
+用户模型会把权限查找函数
+（:meth:`~django.contrib.auth.models.User.get_group_permissions()` 、
+:meth:`~django.contrib.auth.models.User.get_all_permissions()` 、
+:meth:`~django.contrib.auth.models.User.has_perm()` 和
+:meth:`~django.contrib.auth.models.User.has_module_perms()` ）委托给执行这些
+函数的任何一个后端。
 
-The permissions given to the user will be the superset of all permissions
-returned by all backends. That is, Django grants a permission to a user that
-any one backend grants.
+提供给用户的权限将会是所有后端返回的权限的超集。即 Django 会把任一个后端的权限
+都提供给用户。
 
-The simple backend above could implement permissions for the magic admin
-fairly simply::
+上面的简单的后端可以相当简单的执行神奇的权限管理::
 
     class SettingsBackend:
 
@@ -1614,91 +1448,52 @@ fairly simply::
             else:
                 return False
 
-This gives full permissions to the user granted access in the above example.
-Notice that the backend auth functions all take the user object as an argument,
-and they also accept the same arguments given to the associated
-:class:`django.contrib.auth.models.User` functions.
+上例中通过验证的用户得到了所有权限。注意，后端认证函数都把用户对象作为一个参数
+并且接受与 :class:`django.contrib.auth.models.User` 同样的参数。 
 
-A full authorization implementation can be found in
-`django/contrib/auth/backends.py`_, which is the default backend and queries
-the ``auth_permission`` table most of the time.
+一个完整的认证实现参见 `django/contrib/auth/backends.py`_ 。通常情况下这是缺省
+后端，查询的是 ``auth_permission`` 表。
 
 .. _django/contrib/auth/backends.py: http://code.djangoproject.com/browser/django/trunk/django/contrib/auth/backends.py
 
-Authorization for anonymous users
+
+匿名用户认证
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 1.2
 
-An anonymous user is one that is not authenticated i.e. they have provided no
-valid authentication details. However, that does not necessarily mean they are
-not authorized to do anything. At the most basic level, most Web sites
-authorize anonymous users to browse most of the site, and many allow anonymous
-posting of comments etc.
+匿名用户是指没有经过认证的用户，如没有提供有效认证信息的用户。但是不等于说匿名
+用户就什么事也不能做。多数网站可以允许匿名用户浏览大多数网页，而且很多网站还允许
+匿名用户发表评论等。
 
-Django's permission framework does not have a place to store permissions for
-anonymous users. However, it has a foundation that allows custom authentication
-backends to specify authorization for anonymous users. This is especially useful
-for the authors of re-usable apps, who can delegate all questions of authorization
-to the auth backend, rather than needing settings, for example, to control
-anonymous access.
+Django 认证框架中没有地方储存匿名用户的权限，但是它允许自定义认证后端来处理匿名
+用户的认证。这个能力在重用应用时尤其有用，这样不用设置就可以解决认证后端的所有
+问题。
 
-To enable this in your own backend, you must set the class attribute
-``supports_anonymous_user`` to ``True``. (This precaution is to maintain
-compatibility with backends that assume that all user objects are actual
-instances of the :class:`django.contrib.auth.models.User` class). With this
-in place, :class:`django.contrib.auth.models.AnonymousUser` will delegate all
-the relevant permission methods to the authentication backends.
+在你的认证后端中要启用匿名用户认证，必须把类属性
+``supports_anonymous_user`` 设置为 ``True`` 。（这样是为了认证后端的兼容性，确保
+所有用户对象都是 :class:`django.contrib.auth.models.User` 类的真正实例。）这样，
+:class:`django.contrib.auth.models.AnonymousUser` 就会把相应的权限方法委派给认证
+后端。
 
-A nonexistent ``supports_anonymous_user`` attribute will raise a hidden
-``PendingDeprecationWarning`` if used in Django 1.2. In Django 1.3, this
-warning will be upgraded to a ``DeprecationWarning``, which will be displayed
-loudly. Additionally ``supports_anonymous_user`` will be set to ``False``.
-Django 1.4 will assume that every backend supports anonymous users being
-passed to the authorization methods.
+在 Django 1.2 中一个不存在的 ``supports_anonymous_user`` 属性会引发一个隐藏的
+``PendingDeprecationWarning`` 。在 Django 1.3 中，这个警告会升级为一个
+``DeprecationWarning`` ，非常显眼。附加的 ``supports_anonymous_user`` 会被设置为
+``False`` 。 Django 1.4 会假设每一个后端都支持传递给认证方法的匿名用户。
 
-Authorization for inactive users
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 1.3
-
-An inactive user is a one that is authenticated but has its attribute
-``is_active`` set to ``False``. However this does not mean they are not
-authorized to do anything. For example they are allowed to activate their
-account.
-
-The support for anonymous users in the permission system allows for
-anonymous users to have permissions to do something while inactive
-authenticated users do not.
-
-To enable this on your own backend, you must set the class attribute
-``supports_inactive_user`` to ``True``.
-
-A nonexisting ``supports_inactive_user`` attribute will raise a
-``PendingDeprecationWarning`` if used in Django 1.3. In Django 1.4, this
-warning will be updated to a ``DeprecationWarning`` which will be displayed
-loudly. Additionally ``supports_inactive_user`` will be set to ``False``.
-Django 1.5 will assume that every backend supports inactive users being
-passed to the authorization methods.
-
-
-Handling object permissions
+处理对象权限
 ---------------------------
 
-Django's permission framework has a foundation for object permissions, though
-there is no implementation for it in the core. That means that checking for
-object permissions will always return ``False`` or an empty list (depending on
-the check performed).
+Django 的权限框架支持对象权限。但是不是在框架的核心中实现的，这就意味着在检查
+对象权限时总是返回 ``False`` 或一个空列表（取决于如何检查）。
 
-To enable object permissions in your own
-:doc:`authentication backend </ref/authbackends>` you'll just have
-to allow passing an ``obj`` parameter to the permission methods and set the
-``supports_object_permissions`` class attribute to ``True``.
+要在你自己的 :doc:`认证后端 </ref/authbackends>` 中使用对象权限，只要允许向权限
+传递一个 ``obj`` 参数并且设置 ``supports_object_permissions`` 类属性为
+``True`` 。
 
-A nonexistent ``supports_object_permissions`` will raise a hidden
-``PendingDeprecationWarning`` if used in Django 1.2. In Django 1.3, this
-warning will be upgraded to a ``DeprecationWarning``, which will be displayed
-loudly. Additionally ``supports_object_permissions`` will be set to ``False``.
-Django 1.4 will assume that every backend supports object permissions and
-won't check for the existence of ``supports_object_permissions``, which
-means not supporting ``obj`` as a parameter will raise a ``TypeError``.
+在 Django 1.2 中一个不存在的 ``supports_object_permissions`` 属性会引发一个隐藏
+的 ``PendingDeprecationWarning`` 。在 Django 1.3 中，这个警告会升级为一个
+``DeprecationWarning`` ，非常显眼。附加的 ``supports_object_permissions`` 会被
+设置为 ``False`` 。 Django 1.4 会假设每一个后端都支持对象权限并且不会检查
+``supports_object_permissions`` 是否存在，意即不支持 ``obj`` 作为一个参数就会
+引发一个 ``TypeError`` 。

@@ -1,7 +1,7 @@
-Using Django
-============
+使用 Django
+===========
 
-Introductions to all the key parts of Django you'll need to know:
+介绍你想知道的 Django 的所有关键内容：
 
 .. toctree::
    :maxdepth: 1
@@ -26,8 +26,8 @@ Introductions to all the key parts of Django you'll need to know:
    settings
    signals
 
-Deprecated features
--------------------
+过时功能
+--------
 
 .. toctree::
    :maxdepth: 1

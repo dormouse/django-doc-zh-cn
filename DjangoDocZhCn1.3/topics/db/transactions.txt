@@ -17,7 +17,7 @@ Django 的缺省事务行为
 Django 会执行 ``INSERT``/``UPDATE``/``DELETE`` 语句，然后提交，不会有隐式
 ``回滚`` 。
 
-把事务与到 HTTP 请求绑定
+把事务与 HTTP 请求绑定
 ========================
 
 推荐的方式是通过 Django 的 ``TransactionMiddleware`` 来进行绑定。
@@ -25,7 +25,7 @@ Django 会执行 ``INSERT``/``UPDATE``/``DELETE`` 语句，然后提交，不会
 其工作原理就象这样：当一个请求开始时， Django 就开始一个事务。如果顺利产生一个
 响应， Django 就提交这个阶段的事务。如果视图函数产生异常，就回滚。
 
-要使用这个功能，只在把 ``TransactionMiddleware`` 中间件加入到
+要使用这个功能，只要把 ``TransactionMiddleware`` 中间件加入到
 :setting:`MIDDLEWARE_CLASSES` 设置中::
 
     MIDDLEWARE_CLASSES = (
@@ -40,7 +40,7 @@ Django 会执行 ``INSERT``/``UPDATE``/``DELETE`` 语句，然后提交，不会
 所有中间件模块。所以如果你把会话中间件放在事务中间件之后，那么会话创建也会变成
 事务的一部分。
 
-但以一几种中间件例外：
+但这几种中间件例外：
 :class:`~django.middleware.cache.CacheMiddleware` 、
 :class:`~django.middleware.cache.UpdateCacheMiddleware` 和
 :class:`~django.middleware.cache.FetchFromCacheMiddleware` 。
@@ -71,7 +71,7 @@ Django 会执行 ``INSERT``/``UPDATE``/``DELETE`` 语句，然后提交，不会
                 # 在事务内执行的代码
                 # ...
 
-      这个功能在所支持的 Python 版本（大于等于 2.4 ）中都可以使用。
+      这个功能在 Django 所支持的 Python 版本（大于等于 2.4 ）中都可以使用。
 
     * 作为一个环绕代码块的 `环境管理器`_ ::
 
@@ -98,14 +98,14 @@ Django 会执行 ``INSERT``/``UPDATE``/``DELETE`` 语句，然后提交，不会
 
 .. note::
 
-    虽然以下例子使用视图函数来举例，但是这些装饰器和环境管理器可以需要管理事务
-    的任何地方使用。
+    虽然以下例子使用视图函数来举例，但是这些装饰器和环境管理器可以在需要管理
+    事务的任何地方使用。
 
 .. _topics-db-transactions-autocommit:
 
 .. function:: autocommit
 
-    使用 ``autocommit`` 装饰器可以更换 Django 的缺省提交行为，使其不同于全局
+    使用 ``autocommit`` 装饰器可以更换 Django 的缺省提交行为，使其有别于全局
     事务设定。
 
     例如::
@@ -122,7 +122,7 @@ Django 会执行 ``INSERT``/``UPDATE``/``DELETE`` 语句，然后提交，不会
 
     在 ``viewfunc()`` 中当调用 ``model.save()`` 、 ``model.delete()`` 或其他写
     数据库函数时，事务会立即提交。在 ``viewfunc2()`` 中也会立即提交，但是使用的
-    是 ``"my_other_database"`` 连接。
+    连接是 ``"my_other_database"`` 。
 
 .. function:: commit_on_success
 
@@ -179,12 +179,12 @@ Django 会执行 ``INSERT``/``UPDATE``/``DELETE`` 语句，然后提交，不会
 
 .. versionadded:: 1.3
 
-Django 规定一个请求完成前每个开放的事务必须关闭。如果你使用:func:`autocommit`
+Django 规定一个请求完成前每个开放的事务必须关闭。如果你使用 :func:`autocommit`
 （缺省的提交方式）或 :func:`commit_on_success` ，那么这事是自动进行的，不用你
 操心。但是如果你手动管理事务（使用 :func:`commit_manually` 装饰器），那么你必须
 确保在请求完成完成前，事务都已提交或回滚。
 
-这个规则适用于所有数据库操作，而不仅仅是写操作。甚至只是从数据库中读数据，事务
+这个规则适用于所有数据库操作，而不仅仅是写操作。即使只是从数据库中读数据，事务
 也必须在请求完成之前提交或回滚。
 
 如果全局性停用事务管理
@@ -206,13 +206,13 @@ Django 规定一个请求完成前每个开放的事务必须关闭。如果你�
 ==========
 
 保存点是事务中的一个标记，可以让你只回滚部分事务，而不是整个事务。
-PostgreSQL 8 和 Oracle 支持保存点。其他数据库也提供保存点功能，但是是空操作，
+PostgreSQL 8 和 Oracle 支持保存点。其他数据库也提供保存点功能，但都是空操作，
 不做任何事情。
 
 使用 Django 缺省的 ``autocommit`` 行为时，保存点是没用的。但当你使用
 ``commit_on_success`` 或 ``commit_manually`` 时每个开放事务都会生成一系统数据库
 操作，并等待提交或回滚。如果你决定回滚，那么整个事务都会全部回滚。相对于执行
-``transaction.rollback()`` 产生的全部回滚，保存点可以提供对回滚的细粒度地控制。
+``transaction.rollback()`` 产生的全部回滚，保存点可以提供对回滚的细粒度控制。
 
 以下每个函数都有一个提供被操作的数据库名称的 ``using`` 参数。如果没有提供这个
 参数，那么就会使用 ``"缺省"`` 数据库。
@@ -227,15 +227,13 @@ PostgreSQL 8 和 Oracle 支持保存点。其他数据库也提供保存点功�
 
 .. method:: transaction.savepoint_commit(sid, using=None)
 
-    Updates the savepoint to include any operations that have been performed
-    since the savepoint was created, or since the last commit.
+    更新保存点，把自上次设置保存点或上次提交之后的动作包括进来。
 
 .. method:: transaction.savepoint_rollback(sid, using=None)
 
-    Rolls the transaction back to the last point at which the savepoint was
-    committed.
+    回滚至上一个提交的保存点。
 
-The following example demonstrates the use of savepoints::
+以下例子演示如何使用保存点::
 
     from django.db import transaction
 
@@ -243,107 +241,94 @@ The following example demonstrates the use of savepoints::
     def viewfunc(request):
 
       a.save()
-      # open transaction now contains a.save()
+      # 开放事务现在包含 a.save()
       sid = transaction.savepoint()
 
       b.save()
-      # open transaction now contains a.save() and b.save()
+      # 开放事务现在包含 a.save() 和 b.save()
 
       if want_to_keep_b:
           transaction.savepoint_commit(sid)
-          # open transaction still contains a.save() and b.save()
+          # 开放事务还是包含 a.save() 和 b.save()
       else:
           transaction.savepoint_rollback(sid)
-          # open transaction now contains only a.save()
+          # 开放事务现在只包含 a.save()
 
       transaction.commit()
 
-Transactions in MySQL
+MySQL 中的事务
 =====================
 
-If you're using MySQL, your tables may or may not support transactions; it
-depends on your MySQL version and the table types you're using. (By
-"table types," we mean something like "InnoDB" or "MyISAM".) MySQL transaction
-peculiarities are outside the scope of this article, but the MySQL site has
-`information on MySQL transactions`_.
+如果你使用 MySQL ，那么能否使用事务取决于你的 MySQL 版本和你使用的数据库表的
+类型（指 "InnoDB" 或 "MyISAM" 这类的东西）。 MySQL 事务的讨论不在本文范围内，
+请转至 `MySQL 事务信息`_.
 
-If your MySQL setup does *not* support transactions, then Django will function
-in auto-commit mode: Statements will be executed and committed as soon as
-they're called. If your MySQL setup *does* support transactions, Django will
-handle transactions as explained in this document.
+如果你的 MySQL *不* 支持事务，那么 Django 会转为自动提交模式。如果支持就会象
+上文所述运作。
 
-.. _information on MySQL transactions: http://dev.mysql.com/doc/refman/5.0/en/sql-syntax-transactions.html
+.. _MySQL 事务信息: http://dev.mysql.com/doc/refman/5.0/en/sql-syntax-transactions.html
 
-Handling exceptions within PostgreSQL transactions
+处理 PostgreSQL 事务中的异常
 ==================================================
 
-When a call to a PostgreSQL cursor raises an exception (typically
-``IntegrityError``), all subsequent SQL in the same transaction will fail with
-the error "current transaction is aborted, queries ignored until end of
-transaction block". Whilst simple use of ``save()`` is unlikely to raise an
-exception in PostgreSQL, there are more advanced usage patterns which
-might, such as saving objects with unique fields, saving using the
-force_insert/force_update flag, or invoking custom SQL.
+当调用一个 PostgreSQL 指针产生异常（典型异常为 ``IntegrityError`` ）时，同一
+事务中所有后续 SQL 都会失效出错。出错信息为“当前事务已中止，事务内查询已失效”。
+在 PostgreSQL 中，简单的使用 ``save()`` 一般不会产生异常。异常更多会发生在使用
+一些高级用法的时候，如使用唯一字段保存对象时、使用 force_insert/force_update
+保存对象时或使用自定义 SQL 时。
 
-There are several ways to recover from this sort of error.
+有几种方法可以从错误中恢复。
 
-Transaction rollback
+事务回滚
 --------------------
 
-The first option is to roll back the entire transaction. For example::
+第一种方法是回滚整个事务。例如::
 
-    a.save() # Succeeds, but may be undone by transaction rollback
+    a.save() # 成功，但可通过事务回滚恢复
     try:
-        b.save() # Could throw exception
+        b.save() # 会抛出异常
     except IntegrityError:
         transaction.rollback()
-    c.save() # Succeeds, but a.save() may have been undone
+    c.save() # 成功，但 a.save() 可能已被恢复
 
-Calling ``transaction.rollback()`` rolls back the entire transaction. Any
-uncommitted database operations will be lost. In this example, the changes
-made by ``a.save()`` would be lost, even though that operation raised no error
-itself.
+调用 ``transaction.rollback()`` 可回滚整个事务。在这个例子中，即使 ``a.save()``
+本身没有出错其所做的变动也会被恢复。
 
-Savepoint rollback
+保存点回滚
 ------------------
 
-If you are using PostgreSQL 8 or later, you can use :ref:`savepoints
-<topics-db-transactions-savepoints>` to control the extent of a rollback.
-Before performing a database operation that could fail, you can set or update
-the savepoint; that way, if the operation fails, you can roll back the single
-offending operation, rather than the entire transaction. For example::
+如果你使用 PostgreSQL 8 或更新版本，你可以使用 :ref:`保存点
+<topics-db-transactions-savepoints>` 来控制回滚的范围。在执行有可能出错的数据库
+操作前，可以设置或更新保存点。这样就可以只回滚单个操作，而不用回滚整个事务。
+例如::
 
-    a.save() # Succeeds, and never undone by savepoint rollback
+    a.save() # 成功，不会被保存点回滚恢复
     try:
         sid = transaction.savepoint()
-        b.save() # Could throw exception
+        b.save() # 会抛出异常
         transaction.savepoint_commit(sid)
     except IntegrityError:
         transaction.savepoint_rollback(sid)
-    c.save() # Succeeds, and a.save() is never undone
+    c.save() # 成功， a.save() 没有被恢复
 
-In this example, ``a.save()`` will not be undone in the case where
-``b.save()`` raises an exception.
+在这个例子中， ``a.save()`` 不会因为 ``b.save()`` 抛出一个异常而恢复。
 
-Database-level autocommit
+数据库级别的自动提交
 -------------------------
 
-With PostgreSQL 8.2 or later, there is an advanced option to run PostgreSQL
-with :doc:`database-level autocommit </ref/databases>`. If you use this option,
-there is no constantly open transaction, so it is always possible to continue
-after catching an exception. For example::
+在 PostgreSQL 8.2 版本或更新版本中，有一个高级选项可以运行
+以 :doc:`数据库级别自动提交 </ref/databases>` 方式运行 PostgreSQL 。如果你使用
+了这个选项，那么就不会有持续的事务，所以捕获异常后总是还可以继续。例如::
 
-    a.save() # succeeds
+    a.save() # 成功
     try:
-        b.save() # Could throw exception
+        b.save() # 会抛出异常
     except IntegrityError:
         pass
-    c.save() # succeeds
+    c.save() # 成功
 
 .. note::
 
-    This is not the same as the :ref:`autocommit decorator
-    <topics-db-transactions-autocommit>`. When using database level autocommit
-    there is no database transaction at all. The ``autocommit`` decorator
-    still uses transactions, automatically committing each transaction when
-    a database modifying operation occurs.
+    这和 :ref:`自动提交装饰器 <topics-db-transactions-autocommit>` 有所不同。当
+    使用数据库级别自动提交时，根本就不存在事务。而使用 ``autocommit`` 装饰器时
+    还是使用事务的，只是当数据库修改指针时自动提交事务罢了。
