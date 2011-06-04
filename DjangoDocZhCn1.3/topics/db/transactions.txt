@@ -206,7 +206,7 @@ Django 规定一个请求完成前每个开放的事务必须关闭。如果你�
 ==========
 
 保存点是事务中的一个标记，可以让你只回滚部分事务，而不是整个事务。
-PostgreSQL 8 and Oracle 支持保存点。其他数据库提供保存点功能，但是是空操作，
+PostgreSQL 8 和 Oracle 支持保存点。其他数据库也提供保存点功能，但是是空操作，
 不做任何事情。
 
 使用 Django 缺省的 ``autocommit`` 行为时，保存点是没用的。但当你使用
@@ -221,11 +221,9 @@ PostgreSQL 8 and Oracle 支持保存点。其他数据库提供保存点功能�
 
 .. method:: transaction.savepoint(using=None)
 
-    创建一个新的保存点。
-    Creates a new savepoint. This marks a point in the transaction that
-    is known to be in a "good" state.
+    创建一个新的保存点，在事务中作了一个标记，表明当前状态“良好”。
 
-    Returns the savepoint ID (sid).
+    返回的是保存点 ID （ sid ）。
 
 .. method:: transaction.savepoint_commit(sid, using=None)
 
