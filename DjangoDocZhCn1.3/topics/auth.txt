@@ -1112,28 +1112,14 @@ Django 管理站点使用如下权限：
                 ("can_close", "Can remove a task by setting its status as closed"),
             )
 
-以上代码只做了一件事：在运行 :djadmin:`manage.py syncdb <syncdb>` 时创建了三个
-额外的权限。
-The only thing this does is create those extra permissions when you run
-:djadmin:`manage.py syncdb <syncdb>`. Your code is in charge of checking the
-value of these permissions when an user is trying to access the functionality
-provided by the application (viewing tasks, changing the status of tasks,
-closing tasks.)
-
-    class USCitizen(models.Model):
-        # ...
-        class Meta:
-            permissions = (
-                ("can_drive", "Can drive"),
-                ("can_vote", "Can vote in elections"),
-                ("can_drink", "Can drink alcohol"),
-            )
-
-以下代码只做了一件事：在运行 :djadmin:`manage.py syncdb <syncdb>` 时创建了三个
-额外的权限。
+当运行 :djadmin:`manage.py syncdb <syncdb>` 时以上代码只做了一件事：创建了三个
+额外的权限。当用户尝试操作应用提供的功能（查看任务、改变任务状态和关闭任务）
+时，你的代码必须负责检查权限的值。
 
 API 手册
 --------
+
+.. currentmodule:: django.contrib.auth.models
 
 .. class:: models.Permission
 
@@ -1146,16 +1132,16 @@ API 手册
 
 :class:`~django.contrib.auth.models.Permission` 对象有以下字段：
 
-.. attribute:: models.Permission.name
+.. attribute:: Permission.name
 
     必需的。 50 个字符以下。例如： ``'Can vote'`` 。
 
-.. attribute:: models.Permission.content_type
+.. attribute:: Permission.content_type
 
     属于的。一个 ``django_content_type`` 数据库表的引用，包含每一个已安装的
     Django 模型。
 
-.. attribute:: models.Permission.codename
+.. attribute:: Permission.codename
 
     必需的。 100 个字符以下。例如： ``'Can_vote'`` 。
 
@@ -1164,6 +1150,8 @@ API 手册
 
 :class:`~django.contrib.auth.models.Permission` 对象和其它
 :doc:`Django 模型 </ref/models/instances>` 一样有标准数据操作方法。
+
+.. currentmodule:: django.contrib.auth
 
 模板中的认证数据
 ================
@@ -1202,8 +1190,12 @@ API 手册
 ----
 
 当前已登录用户的权限储存在模板变量 ``{{ perms }}`` 中。这是一个
-:class:`django.core.context_processors.PermWrapper` 的实例。它是一个模板友好的
-权限的代理。
+:class:`django.contrib.auth.context_processors.PermWrapper` 的实例。它是一个
+模板友好的权限的代理。
+
+.. versionchanged:: 1.3
+    在 1.3 版本之前， ``PermWrapper`` 位于
+    ``django.contrib.auth.context_processors`` 中。
 
 在 ``{{ perms }}`` 对象中，单个属性的查找是
 :meth:`User.has_module_perms <django.contrib.auth.models.User.has_module_perms>`
@@ -1398,6 +1390,11 @@ LDAP 目录中，你的 SQL 数据库中等等）。你要么写一个脚本，�
         ADMIN_LOGIN = 'admin'
         ADMIN_PASSWORD = 'sha1$4e987$afbcf42e21bd417fb71db8c66b321e9fc33051de'
         """
+
+        supports_object_permissions = False
+        supports_anonymous_user = False
+        supports_inactive_user = False
+
         def authenticate(self, username=None, password=None):
             login_valid = (settings.ADMIN_LOGIN == username)
             pwd_valid = check_password(password, settings.ADMIN_PASSWORD)
@@ -1476,10 +1473,28 @@ Django 认证框架中没有地方储存匿名用户的权限，但是它允许�
 :class:`django.contrib.auth.models.AnonymousUser` 就会把相应的权限方法委派给认证
 后端。
 
-在 Django 1.2 中一个不存在的 ``supports_anonymous_user`` 属性会引发一个隐藏的
-``PendingDeprecationWarning`` 。在 Django 1.3 中，这个警告会升级为一个
-``DeprecationWarning`` ，非常显眼。附加的 ``supports_anonymous_user`` 会被设置为
-``False`` 。 Django 1.4 会假设每一个后端都支持传递给认证方法的匿名用户。
+在 Django 1.2 中如果不存在 ``supports_anonymous_user`` 属性会引发一个隐藏的
+``PendingDeprecationWarning`` 警告。在 Django 1.3 中，这个警告会升级为一个显眼
+的 ``DeprecationWarning`` 警告。另外， ``supports_anonymous_user`` 会被设置
+为 ``False`` 。 Django 1.4 会假设每一个后端都支持把匿名用户传递给认证方法。
+
+非活动用户的认证
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.3
+
+一个非活动用户是指已经被认证过但是 ``is_active`` 属性为 ``False`` 的用户。但是
+非活动用户是经过认证的，还是有一定权限的，比如他们被允许激活他们的帐户。
+
+在权限系统中因为有对匿名用户的支持，所以匿名用户有一定的权限而不活动用户则没有。
+
+要使非活动用户有一定权限，必须把类属性
+``supports_inactive_user`` 设置为 ``True`` 。
+
+在 Django 1.3 中如果不存在 ``supports_inactive_user`` 属性会引发一个
+``PendingDeprecationWarning`` 警告。在 Django 1.4 中，这个警告会升级为一个显眼
+的 ``DeprecationWarning`` 警告。另外， ``supports_inactive_user`` 会被设置为
+``False`` 。 Django 1.5 会假设每一个后端都支持把非活动用户传递给认证方法。
 
 处理对象权限
 ---------------------------
