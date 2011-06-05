@@ -1,67 +1,58 @@
 ==================
-Working with forms
+使用表单
 ==================
 
-.. admonition:: About this document
+.. admonition:: 关于本文
 
-    This document provides an introduction to Django's form handling features.
-    For a more detailed look at specific areas of the forms API, see
-    :doc:`/ref/forms/api`, :doc:`/ref/forms/fields`, and
-    :doc:`/ref/forms/validation`.
+    本文只是 Django 表单处理功能的一个介绍。更深入的细节参见
+    :doc:`/ref/forms/api` 、 :doc:`/ref/forms/fields` 和
+    :doc:`/ref/forms/validation` 。
 
 .. highlightlang:: html+django
 
-``django.forms`` is Django's form-handling library.
+``django.forms`` 是 Django 的表单处理库。
 
-While it is possible to process form submissions just using Django's
-:class:`~django.http.HttpRequest` class, using the form library takes care of a
-number of common form-related tasks. Using it, you can:
+虽然只使用 :class:`~django.http.HttpRequest` 也能处理表单，但是使用表单库可以
+更好的完成相关的一系列表单工作。如：
 
-    1. Display an HTML form with automatically generated form widgets.
-    2. Check submitted data against a set of validation rules.
-    3. Redisplay a form in the case of validation errors.
-    4. Convert submitted form data to the relevant Python data types.
+    1. 显示一个包含自动生成的表单控件的表单。
+    2. 根据一套规则校验表单提交的数据。
+    3. 在校验出错时重新显示一个表单。
+    4. 把提交的数据转换为相应的 Python 数据类型。
 
-Overview
+概述
 ========
 
-The library deals with these concepts:
+本库涉及以下概念：
 
 .. glossary::
 
-    Widget
-        A class that corresponds to an HTML form widget, e.g.
-        ``<input type="text">`` or ``<textarea>``. This handles rendering of the
-        widget as HTML.
+    控件
+        一个相当于 HTML 表单控件（如 ``<input type="text">`` 或 ``<textarea>``
+        ）的类。这个类负责把控件渲染成 HTML 。
 
-    Field
-        A class that is responsible for doing validation, e.g.
-        an ``EmailField`` that makes sure its data is a valid e-mail address.
+    字段
+        一个可以用于验证的类。如一个 ``EmailField`` 字段可以保证其数据是一个
+        合法的电子邮件地址。
 
-    Form
-        A collection of fields that knows how to validate itself and
-        display itself as HTML.
+    表单
+        一个知道如何验证自己的数据并且能够以 HTML 显示自己的字段的集合。
 
-    Form Media
-        The CSS and JavaScript resources that are required to render a form.
+    表单媒体
+        渲染一个表单时需要的 CSS 和 JavaScript 资源。
 
-The library is decoupled from the other Django components, such as the database
-layer, views and templates. It relies only on Django settings, a couple of
-``django.utils`` helper functions and Django's internationalization hooks (but
-you're not required to be using internationalization features to use this
-library).
+本库与其他 Django 组件（如数据库层、视图和模板）是不挂钩的。本库只依赖 Django
+设置、几个 ``django.utils`` 助手和 Django 的国际化钩子（但是在使用本库时你不
+一定要用到国际化功能）。
 
-Form objects
+表单对象
 ============
 
-A Form object encapsulates a sequence of form fields and a collection of
-validation rules that must be fulfilled in order for the form to be accepted.
-Form classes are created as subclasses of ``django.forms.Form`` and
-make use of a declarative style that you'll be familiar with if you've used
-Django's database models.
+一个表单对象封装了一系列表单字段和一套验证规则。表单对象继承自
+``django.forms.Form`` 。如果你熟悉 Django 数据库模型，你会发现表单对象的声明
+形式与数据库模型的形式相似。
 
-For example, consider a form used to implement "contact me" functionality on a
-personal Web site:
+例如，假设有在一个个人网站上有一个用于实现”与我联系“功能的表单：
 
 .. code-block:: python
 
@@ -73,79 +64,67 @@ personal Web site:
         sender = forms.EmailField()
         cc_myself = forms.BooleanField(required=False)
 
-A form is composed of ``Field`` objects. In this case, our form has four
-fields: ``subject``, ``message``, ``sender`` and ``cc_myself``. ``CharField``,
-``EmailField`` and ``BooleanField`` are just three of the available field types;
-a full list can be found in :doc:`/ref/forms/fields`.
+一个表单由 ``Field`` 对象组成。上例中，我们的表单包含四个字段：
+``subject`` 、 ``message`` 、 ``sender`` 和 ``cc_myself`` 。 ``CharField`` 、
+``EmailField`` 和 ``BooleanField`` 是三种验证字段（完整列表详见
+:doc:`/ref/forms/fields` ）。
 
-If your form is going to be used to directly add or edit a Django model, you can
-use a :doc:`ModelForm </topics/forms/modelforms>` to avoid duplicating your model
-description.
+如果你的表单准备用于直接增加或编辑一个 Django 模型，你可以使用
+:doc:`ModelForm </topics/forms/modelforms>` ，这样可以避免重复你的模型定义。
 
-Using a form in a view
+在视图中使用表单
 ----------------------
 
-The standard pattern for processing a form in a view looks like this:
+在视图中使用表单的标准模式如下：
 
 .. code-block:: python
 
    def contact(request):
-       if request.method == 'POST': # If the form has been submitted...
-           form = ContactForm(request.POST) # A form bound to the POST data
-           if form.is_valid(): # All validation rules pass
-               # Process the data in form.cleaned_data
+       if request.method == 'POST': # 如果表单已被提交...
+           form = ContactForm(request.POST) # 一个表单绑定到提交的数据
+           if form.is_valid(): # 通过所有的验证规则
+               # 在 form.cleaned_data 中加工数据
                # ...
-               return HttpResponseRedirect('/thanks/') # Redirect after POST
+               return HttpResponseRedirect('/thanks/') # 在提交后重定向
        else:
-           form = ContactForm() # An unbound form
+           form = ContactForm() # 一个未绑定的表单
 
        return render_to_response('contact.html', {
            'form': form,
        })
 
+主要分三步：
 
-There are three code paths here:
+    1. 如果表单还没提交，一个未绑定的 ContactForm 实例被创建并传递给模板。
+    2. 如果表单已经提交，会使用 ``request.POST`` 创建一个绑定的表单实例。如果
+       提交的数据验证通过，就会继续下去，用户会被重定向到 "thanks" 页面。
+    3. 如果提交的表单没有通过验证，绑定的表单实例会传递给模板。
 
-    1. If the form has not been submitted, an unbound instance of ContactForm is
-       created and passed to the template.
-    2. If the form has been submitted, a bound instance of the form is created
-       using ``request.POST``. If the submitted data is valid, it is processed
-       and the user is re-directed to a "thanks" page.
-    3. If the form has been submitted but is invalid, the bound form instance is
-       passed on to the template.
+**绑定** 和 **未绑定** 表单之间的区别很重要。一个未绑定表单没有与之关联的数据。
+当渲染给用户时，会出现空值或缺省值。一个绑定表单有提交的数据，因此可以用于被
+验证数据。如果一个不合法的绑定表单被渲染，那么会包含内联错误信息用以告知用户
+哪里出错了。
 
-The distinction between **bound** and **unbound** forms is important. An unbound
-form does not have any data associated with it; when rendered to the user, it
-will be empty or will contain default values. A bound form does have submitted
-data, and hence can be used to tell if that data is valid. If an invalid bound
-form is rendered it can include inline error messages telling the user where
-they went wrong.
+关于绑定和未绑定表单之间的区别更进一步的内容，参见
+:ref:`ref-forms-api-bound-unbound` 。
 
-See :ref:`ref-forms-api-bound-unbound` for further information on the
-differences between bound and unbound forms.
-
-Handling file uploads with a form
+用表单处理文件上传
 ---------------------------------
 
-To see how to handle file uploads with your form see
-:ref:`binding-uploaded-files` for more information.
+用表单处理文件上传参见 :ref:`binding-uploaded-files` 。
 
-Processing the data from a form
+处理表单中的数据
 -------------------------------
 
-Once ``is_valid()`` returns ``True``, you can process the form submission safe
-in the knowledge that it conforms to the validation rules defined by your form.
-While you could access ``request.POST`` directly at this point, it is better to
-access ``form.cleaned_data``. This data has not only been validated but will
-also be converted in to the relevant Python types for you. In the above example,
-``cc_myself`` will be a boolean value. Likewise, fields such as ``IntegerField``
-and ``FloatField`` convert values to a Python int and float respectively. Note
-that read-only fields are not available in ``form.cleaned_data`` (and setting
-a value in a custom ``clean()`` method won't have any effect) because these
-fields are displayed as text rather than as input elements, and thus are not
-posted back to the server.
+一旦 ``is_valid()`` 返回 ``True`` ，你就可以认为数据符合表单的验证规则，可以
+安全提交了。这时，与其直接操作 ``request.POST`` 不如操作 ``form.cleaned_data`` 。
+因为它不仅给过了验证还已经被转换为相应的 Python 类型。如在上例中， ``cc_myself``
+将会是一个布尔值。同理， ``IntegerField`` 和 ``FloatField`` 这类的字段会转换为
+相应的 Python int 和 float 类型。注意，只读字段不能使用 ``form.cleaned_data``
+（并且在自定义 ``clean()`` 方法中设置一个值是无效的），因为这些字段会被显示为
+本文而不是输入元素，它们不会被提交回服务器。
 
-Extending the above example, here's how the form data could be processed:
+扩展上面的例子，举例说明表单数据是如何处理的：
 
 .. code-block:: python
 
@@ -161,36 +140,32 @@ Extending the above example, here's how the form data could be processed:
 
         from django.core.mail import send_mail
         send_mail(subject, message, sender, recipients)
-        return HttpResponseRedirect('/thanks/') # Redirect after POST
+        return HttpResponseRedirect('/thanks/') # 在提交后重定向
 
-For more on sending e-mail from Django, see :doc:`/topics/email`.
+关于更多在 Django 中发送电子邮件的内容，参见 :doc:`/topics/email` 。
 
-Displaying a form using a template
+使用模板显示一个表单
 ----------------------------------
 
-Forms are designed to work with the Django template language. In the above
-example, we passed our ``ContactForm`` instance to the template using the
-context variable ``form``. Here's a simple example template::
+表间被设计与 Django 模板一起工作。在上面的例子中，我们通过环境变量 ``form`` 把
+``ContactForm`` 实例传递给了模板。以下是一个简单的例子模板::
 
     <form action="/contact/" method="post">{% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Submit" />
     </form>
 
-The form only outputs its own fields; it is up to you to provide the surrounding
-``<form>`` tags and the submit button.
+表单只输出它自己的字段，因此必须由你提供其周围相应的 ``<form>`` 标记和提交按钮。
 
-.. admonition:: Forms and Cross Site Request Forgery protection
+.. admonition:: 表单和跨站请求伪造保护
 
-   Django ships with an easy-to-use :doc:`protection against Cross Site Request
-   Forgeries </ref/contrib/csrf>`. When submitting a form via POST with
-   CSRF protection enabled you must use the :ttag:`csrf_token` template tag
-   as in the preceding example. However, since CSRF protection is not
-   directly tied to forms in templates, this tag is omitted from the
-   following examples in this document.
+   Django 自带一个易用的 :doc:`跨站请求伪造保护机制 </ref/contrib/csrf>` 。在
+   上面的例子中，当在保护机制下使用 POST 提交一个表单时你必须使用
+   :ttag:`csrf_token` 模板标记。但是，这种保护机制没有直接与表单相关联，那么在
+   本文下面的例子中均省略这个标记。
 
-``form.as_p`` will output the form with each form field and accompanying label
-wrapped in a paragraph. Here's the output for our example template::
+``form.as_p`` 输了每一个表单字段并用 label 和 p HTML 标记来包围。上文的例子模板
+输出如下::
 
    <form action="/contact/" method="post">
    <p><label for="id_subject">Subject:</label>
@@ -204,21 +179,19 @@ wrapped in a paragraph. Here's the output for our example template::
    <input type="submit" value="Submit" />
    </form>
 
-Note that each form field has an ID attribute set to ``id_<field-name>``, which
-is referenced by the accompanying label tag. This is important for ensuring
-forms are accessible to assistive technology such as screen reader software. You
-can also :ref:`customize the way in which labels and ids are generated
-<ref-forms-api-configuring-label>`.
+注意，每个表单字段都有一个设置为 ``id_<field-name>`` 的 ID 属性，这个属性被相应
+的 label 标记引用。这一点对于保证表单易于被辅助技术（如屏幕阅读软件）操作是很
+重要的。你也可以 :ref:`定制 label 和 id 产生的方式
+<ref-forms-api-configuring-label>` 。
 
-You can also use ``form.as_table`` to output table rows (you'll need to provide
-your own ``<table>`` tags) and ``form.as_ul`` to output list items.
+你还可以使用 ``form.as_table`` 来输了表格行（你得自行提供自己的 ``<table>``
+标记），使用 ``form.as_ul`` 来输出列表项。
 
-Customizing the form template
+定制表单模板
 -----------------------------
 
-If the default generated HTML is not to your taste, you can completely customize
-the way a form is presented using the Django template language. Extending the
-above example::
+如果缺省产生的 HTML 不合你的胃口，那么你可以使用 Django 模板语言定制输出表单。
+我们来扩展上面的例子::
 
     <form action="/contact/" method="post">
         {{ form.non_field_errors }}
@@ -245,18 +218,17 @@ above example::
         <p><input type="submit" value="Send message" /></p>
     </form>
 
-Each named form-field can be output to the template using
-``{{ form.name_of_field }}``, which will produce the HTML needed to display the
-form widget. Using ``{{ form.name_of_field.errors }}`` displays a list of form
-errors, rendered as an unordered list. This might look like::
+每个已命名的表单字段可以用 ``{{ form.name_of_field }}`` 输出到模板。
+ ``{{ form.name_of_field }}`` 会产生需要显示的 HTML 控件。使用
+``{{ form.name_of_field.errors }}`` 可以显示一个无序表单错误列表，其输也可能
+如下::
 
    <ul class="errorlist">
        <li>Sender is required.</li>
    </ul>
 
-The list has a CSS class of ``errorlist`` to allow you to style its appearance.
-If you wish to further customize the display of errors you can do so by looping
-over them::
+这个列表有一个 ``errorlist`` CSS 样式，可用于定制其表现形式。如果你要更进一步
+定制错误显示样式，你可以通过循环遍历错误实现::
 
     {% if form.subject.errors %}
         <ol>
@@ -266,12 +238,11 @@ over them::
         </ol>
     {% endif %}
 
-Looping over the form's fields
+遍历表单字段
 ------------------------------
 
-If you're using the same HTML for each of your form fields, you can reduce
-duplicate code by looping through each field in turn using a ``{% for %}``
-loop::
+如果你的表单字段都使用相同的 HTML ，那么你可以通过使用一个 ``{% for %}`` 循环来
+减少重复代码::
 
     <form action="/contact/" method="post">
         {% for field in form %}
@@ -283,9 +254,8 @@ loop::
         <p><input type="submit" value="Send message" /></p>
     </form>
 
-Within this loop, ``{{ field }}`` is an instance of :class:`BoundField`.
-``BoundField`` also has the following attributes, which can be useful in your
-templates:
+在这个循环中， ``{{ field }}`` 是一个 :class:`BoundField` 的实例。
+``BoundField`` 还有以下在模板十分有用的属性：
 
     ``{{ field.label }}``
         The label of the field, e.g. ``E-mail address``.
