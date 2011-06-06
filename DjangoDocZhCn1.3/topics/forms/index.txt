@@ -13,7 +13,7 @@
 ``django.forms`` 是 Django 的表单处理库。
 
 虽然只使用 :class:`~django.http.HttpRequest` 也能处理表单，但是使用表单库可以
-更好的完成相关的一系列表单工作。如：
+更好地完成一系列相关的表单工作。如：
 
     1. 显示一个包含自动生成的表单控件的表单。
     2. 根据一套规则校验表单提交的数据。
@@ -52,7 +52,7 @@
 ``django.forms.Form`` 。如果你熟悉 Django 数据库模型，你会发现表单对象的声明
 形式与数据库模型的形式相似。
 
-例如，假设有在一个个人网站上有一个用于实现”与我联系“功能的表单：
+例如，假设在一个个人网站上有一个用于实现“与我联系”功能的表单：
 
 .. code-block:: python
 
@@ -64,18 +64,18 @@
         sender = forms.EmailField()
         cc_myself = forms.BooleanField(required=False)
 
-一个表单由 ``Field`` 对象组成。上例中，我们的表单包含四个字段：
+一个表单由 ``字段`` 对象组成。上例中的表单包含四个字段：
 ``subject`` 、 ``message`` 、 ``sender`` 和 ``cc_myself`` 。 ``CharField`` 、
 ``EmailField`` 和 ``BooleanField`` 是三种验证字段（完整列表详见
 :doc:`/ref/forms/fields` ）。
 
-如果你的表单准备用于直接增加或编辑一个 Django 模型，你可以使用
+如果你的表单用于直接增加或编辑一个 Django 模型，你可以使用
 :doc:`ModelForm </topics/forms/modelforms>` ，这样可以避免重复你的模型定义。
 
 在视图中使用表单
 ----------------------
 
-在视图中使用表单的标准模式如下：
+在视图中使用表单的标准方式如下：
 
 .. code-block:: python
 
@@ -101,8 +101,8 @@
     3. 如果提交的表单没有通过验证，绑定的表单实例会传递给模板。
 
 **绑定** 和 **未绑定** 表单之间的区别很重要。一个未绑定表单没有与之关联的数据。
-当渲染给用户时，会出现空值或缺省值。一个绑定表单有提交的数据，因此可以用于被
-验证数据。如果一个不合法的绑定表单被渲染，那么会包含内联错误信息用以告知用户
+当渲染给用户时，会显示空值或缺省值。一个绑定表单有提交的数据，因此可以用于被
+验证数据。如果一个不合法的绑定表单被渲染，那么就会包含内联错误信息，来告知用户
 哪里出错了。
 
 关于绑定和未绑定表单之间的区别更进一步的内容，参见
@@ -118,7 +118,7 @@
 
 一旦 ``is_valid()`` 返回 ``True`` ，你就可以认为数据符合表单的验证规则，可以
 安全提交了。这时，与其直接操作 ``request.POST`` 不如操作 ``form.cleaned_data`` 。
-因为它不仅给过了验证还已经被转换为相应的 Python 类型。如在上例中， ``cc_myself``
+因为它不仅通过了验证还已经被转换为相应的 Python 类型。如在上例中， ``cc_myself``
 将会是一个布尔值。同理， ``IntegerField`` 和 ``FloatField`` 这类的字段会转换为
 相应的 Python int 和 float 类型。注意，只读字段不能使用 ``form.cleaned_data``
 （并且在自定义 ``clean()`` 方法中设置一个值是无效的），因为这些字段会被显示为
@@ -161,7 +161,7 @@
 
    Django 自带一个易用的 :doc:`跨站请求伪造保护机制 </ref/contrib/csrf>` 。在
    上面的例子中，当在保护机制下使用 POST 提交一个表单时你必须使用
-   :ttag:`csrf_token` 模板标记。但是，这种保护机制没有直接与表单相关联，那么在
+   :ttag:`csrf_token` 模板标记。但是，这种保护机制没有直接与表单相关联，所以在
    本文下面的例子中均省略这个标记。
 
 ``form.as_p`` 输了每一个表单字段并用 label 和 p HTML 标记来包围。上文的例子模板
@@ -219,8 +219,8 @@
     </form>
 
 每个已命名的表单字段可以用 ``{{ form.name_of_field }}`` 输出到模板。
- ``{{ form.name_of_field }}`` 会产生需要显示的 HTML 控件。使用
-``{{ form.name_of_field.errors }}`` 可以显示一个无序表单错误列表，其输也可能
+``{{ form.name_of_field }}`` 会产生需要显示的 HTML 控件。使用
+``{{ form.name_of_field.errors }}`` 可以显示一个无序表单错误列表，其输出可能
 如下::
 
    <ul class="errorlist">
@@ -255,58 +255,51 @@
     </form>
 
 在这个循环中， ``{{ field }}`` 是一个 :class:`BoundField` 的实例。
-``BoundField`` 还有以下在模板十分有用的属性：
+``BoundField`` 还有以下在模板中十分有用的属性：
 
     ``{{ field.label }}``
-        The label of the field, e.g. ``E-mail address``.
+        字段的标签，如 ``E-mail address`` 。
 
     ``{{ field.label_tag }}``
-        The field's label wrapped in the appropriate HTML ``<label>`` tag,
-        e.g. ``<label for="id_email">E-mail address</label>``
+        包含在相应的 ``<label>`` HTML 标记中的字段标签。如
+        ``<label for="id_email">E-mail address</label>``
 
     ``{{ field.html_name }}``
-        The name of the field that will be used in the input element's name
-        field. This takes the form prefix into account, if it has been set.
+        用于输入元素的字段名称。这个属性如果设置后会把表单前辍放入帐户。
 
     ``{{ field.help_text }}``
-        Any help text that has been associated with the field.
+        与字段相关的帮助文本。
 
     ``{{ field.errors }}``
-        Outputs a ``<ul class="errorlist">`` containing any validation errors
-        corresponding to this field. You can customize the presentation of
-        the errors with a ``{% for error in field.errors %}`` loop. In this
-        case, each object in the loop is a simple string containing the error
-        message.
+        输出一个包含与本字段相应的验证出错信息的 ``<ul class="errorlist">`` 。
+        你可以使用一个 ``{% for error in field.errors %}`` 循环来定制错误信息的
+        表现方式。在这种情况下，每个循环中的对象都是一个包含错误信息的简单
+        字符串。
 
     ``field.is_hidden``
-        This attribute is ``True`` if the form field is a hidden field and
-        ``False`` otherwise. It's not particularly useful as a template
-        variable, but could be useful in conditional tests such as::
+        当表单字段要么是隐藏的，要么是 ``False`` 时，这个属性为 ``True`` 。作为
+        一个模板变量这个属性不是很有用，但在条件测试时很有用，比如::
 
             {% if field.is_hidden %}
-               {# Do something special #}
+               {# 做点特殊的事情 #}
             {% endif %}
 
-Looping over hidden and visible fields
+遍历隐藏和可见字段
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you're manually laying out a form in a template, as opposed to relying on
-Django's default form layout, you might want to treat ``<input type="hidden">``
-fields differently than non-hidden fields. For example, because hidden fields
-don't display anything, putting error messages "next to" the field could cause
-confusion for your users -- so errors for those fields should be handled
-differently.
+如果你要在模板中手动布局一个表单，不使用 Django 缺省的表单布局，那么相对于非
+隐藏字段，你可能需要以不同的方式处理 ``<input type="hidden">`` 。比如，因为隐藏
+字段是不显示的，如果这个字段出现错误，那么出错信息就会紧邻其他的非隐藏字段，
+这样用户就容易迷惑。因此隐藏字段的出错处理与非隐藏字段的出错处理应当是不同的。
 
-Django provides two methods on a form that allow you to loop over the hidden
-and visible fields independently: ``hidden_fields()`` and
-``visible_fields()``. Here's a modification of an earlier example that uses
-these two methods::
+Django 提供了 ``hidden_fields()`` 和 ``visible_fields()`` 两种方法让你可以分别
+遍历隐藏和非隐藏字段。我们使用这两个方法来修改上面的例子::
 
     <form action="/contact/" method="post">
         {% for field in form.visible_fields %}
             <div class="fieldWrapper">
 
-                {# Include the hidden fields in the form #}
+                {# 在表单中包含隐藏字段 #}
                 {% if forloop.first %}
                     {% for hidden in form.hidden_fields %}
                     {{ hidden }}
@@ -320,17 +313,15 @@ these two methods::
         <p><input type="submit" value="Send message" /></p>
     </form>
 
-This example does not handle any errors in the hidden fields. Usually, an
-error in a hidden field is a sign of form tampering, since normal form
-interaction won't alter them. However, you could easily insert some error
-displays for those form errors, as well.
+这个例子不对隐藏字段的错误进行任何处理。因为一般的表单中的隐藏字段不进行交互，
+所以通常隐藏字段出错表明表单已经被破坏了。本例只是为了说明你可以方便的显示隐藏
+字段的出错信息。
 
-Reusable form templates
+可重用表单模板
 -----------------------
 
-If your site uses the same rendering logic for forms in multiple places, you
-can reduce duplication by saving the form's loop in a standalone template and
-using the :ttag:`include` tag to reuse it in other templates::
+如果你的站点在多处使用相同的表单渲染逻辑，那么你可以通过两种途径来减少重复
+代码：在单个模板中使用循环和使用 :ttag:`include` 标记重用其他模板::
 
     <form action="/contact/" method="post">
         {% include "form_snippet.html" %}
@@ -346,22 +337,21 @@ using the :ttag:`include` tag to reuse it in other templates::
         </div>
     {% endfor %}
 
-If the form object passed to a template has a different name within the
-context, you can alias it using the ``with`` argument of the :ttag:`include`
-tag::
+如果传递给模板的表单对象有一个与环境不同的名称，那么你可以使用 :ttag:`include`
+的 ``with`` 参数来使用别名::
 
     <form action="/comments/add/" method="post">
         {% include "form_snippet.html" with form=comment_form %}
         <p><input type="submit" value="Submit comment" /></p>
     </form>
 
-If you find yourself doing this often, you might consider creating a custom
-:ref:`inclusion tag<howto-custom-template-tags-inclusion-tags>`.
+如果你经常这样做，那么可能需要创建一个自定义
+:ref:`包含标记 <howto-custom-template-tags-inclusion-tags>` 。
 
-Further topics
+高级主题
 ==============
 
-This covers the basics, but forms can do a whole lot more:
+本文只涉及一些皮毛，表单还有更丰富的功能：
 
 .. toctree::
    :maxdepth: 2
@@ -372,6 +362,5 @@ This covers the basics, but forms can do a whole lot more:
 
 .. seealso::
 
-    :doc:`The Forms Reference </ref/forms/index>`
-        Covers the full API reference, including form fields, form widgets,
-        and form and field validation.
+    :doc:`表单参考手册 </ref/forms/index>`
+        涵盖全部 API 手册，包括表单字段、表单控件和表单及字段验证。

@@ -1,26 +1,24 @@
 .. _formsets:
 
-Formsets
+表单集
 ========
 
-A formset is a layer of abstraction to working with multiple forms on the same
-page. It can be best compared to a data grid. Let's say you have the following
-form::
+一个表单集是同一个页面中多个表单的抽象集合，相当于一个数据库网格。假设你有一个
+下面的表单::
 
     >>> from django import forms
     >>> class ArticleForm(forms.Form):
     ...     title = forms.CharField()
     ...     pub_date = forms.DateField()
 
-You might want to allow the user to create several articles at once. To create
-a formset out of an ``ArticleForm`` you would do::
+你可能想让用户可以一次创建多个文章，那么可以在 ``ArticleForm`` 之外创建一个
+表单集::
 
     >>> from django.forms.formsets import formset_factory
     >>> ArticleFormSet = formset_factory(ArticleForm)
 
-You now have created a formset named ``ArticleFormSet``. The formset gives you
-the ability to iterate over the forms in the formset and display them as you
-would with a regular form::
+现在创建了一个名为 ``ArticleFormSet`` 的表单集。表单集可以让你遍历集合中的
+表单并以整齐的方式显示它们::
 
     >>> formset = ArticleFormSet()
     >>> for form in formset:
@@ -28,35 +26,28 @@ would with a regular form::
     <tr><th><label for="id_form-0-title">Title:</label></th><td><input type="text" name="form-0-title" id="id_form-0-title" /></td></tr>
     <tr><th><label for="id_form-0-pub_date">Pub date:</label></th><td><input type="text" name="form-0-pub_date" id="id_form-0-pub_date" /></td></tr>
 
-As you can see it only displayed one empty form. The number of empty forms
-that is displayed is controlled by the ``extra`` parameter. By default,
-``formset_factory`` defines one extra form; the following example will
-display two blank forms::
+你会发现只显示了一个空表单。你可以通过 ``extra`` 参数控制表单的数量。缺省情况
+下， ``formset_factory`` 只设置一个表单，下面的例子会另外多显示两个空表单::
 
     >>> ArticleFormSet = formset_factory(ArticleForm, extra=2)
 
 .. versionchanged:: 1.3
 
-Prior to Django 1.3, formset instances were not iterable. To render
-the formset you iterated over the ``forms`` attribute::
+Django 1.3 版本之前，表单集实例是不能迭代的。要渲染表单集就要遍历 ``forms``
+属性::
 
     >>> formset = ArticleFormSet()
     >>> for form in formset.forms:
     ...     print form.as_table()
 
-Iterating over ``formset.forms`` will render the forms in the order
-they were created. The default formset iterator also renders the forms
-in this order, but you can change this order by providing an alternate
-implementation for the :meth:`__iter__()` method.
+遍历 ``formset.forms`` 将会按照创建顺序渲染表单。缺省的表单集迭代器也是按这个
+顺序渲染表单的，但是你可以通过改变 :meth:`__iter__()` 来改变这个顺序。
 
-Using initial data with a formset
+在表单集中使用初始化数据
 ---------------------------------
 
-Initial data is what drives the main usability of a formset. As shown above
-you can define the number of extra forms. What this means is that you are
-telling the formset how many additional forms to show in addition to the
-number of forms it generates from the initial data. Lets take a look at an
-example::
+初始化数据是表单集的一个主要用途。上面我们定义了表单的数据，这里我们再定义一下
+初始化数据::
 
     >>> ArticleFormSet = formset_factory(ArticleForm, extra=2)
     >>> formset = ArticleFormSet(initial=[
@@ -73,21 +64,19 @@ example::
     <tr><th><label for="id_form-2-title">Title:</label></th><td><input type="text" name="form-2-title" id="id_form-2-title" /></td></tr>
     <tr><th><label for="id_form-2-pub_date">Pub date:</label></th><td><input type="text" name="form-2-pub_date" id="id_form-2-pub_date" /></td></tr>
 
-There are now a total of three forms showing above. One for the initial data
-that was passed in and two extra forms. Also note that we are passing in a
-list of dictionaries as the initial data.
+这个例子一共显示了三个表单，第一个表单包含了初始化数据。请注意，传递初始化数据
+的参数是一个由字典组成的列表。
 
 .. seealso::
 
-    :ref:`Creating formsets from models with model formsets <model-formsets>`.
+    :ref:`使用模型表单集创建表单集 <model-formsets>` 。
 
 .. _formsets-max-num:
 
-Limiting the maximum number of forms
+限制表单的最大数量
 ------------------------------------
 
-The ``max_num`` parameter to ``formset_factory`` gives you the ability to
-limit the maximum number of empty forms the formset will display::
+``formset_factory`` 的 ``max_num`` 参数用于限制表单的最大数量::
 
     >>> ArticleFormSet = formset_factory(ArticleForm, extra=2, max_num=1)
     >>> formset = ArticleFormset()
@@ -98,20 +87,17 @@ limit the maximum number of empty forms the formset will display::
 
 .. versionchanged:: 1.2
 
-If the value of ``max_num`` is greater than the number of existing
-objects, up to ``extra`` additional blank forms will be added to the formset,
-so long as the total number of forms does not exceed ``max_num``.
+如果 ``max_num`` 的值大于已存在对象的数量，那么最多会有 ``extra`` 个额外的表单
+被添加，只要表单总数不超过 ``max_num`` 。
 
-A ``max_num`` value of ``None`` (the default) puts no limit on the number of
-forms displayed. Please note that the default value of ``max_num`` was changed
-from ``0`` to ``None`` in version 1.2 to allow ``0`` as a valid value.
+从 Django 1.2 版开始 ``max_num`` 缺省由 ``0`` 改为 ``None`` 。请注意，现在
+``max_num`` 的值也可以是 ``0`` 了。
 
-Formset validation
+表单集的验证
 ------------------
 
-Validation with a formset is almost identical to a regular ``Form``. There is
-an ``is_valid`` method on the formset to provide a convenient way to validate
-all forms in the formset::
+表单集的验证大致与表单验证一样。可以通过一个 ``is_valid`` 方法方便的验证表单集
+中的所有表单::
 
     >>> ArticleFormSet = formset_factory(ArticleForm)
     >>> data = {
