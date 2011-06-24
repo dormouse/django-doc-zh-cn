@@ -315,15 +315,13 @@ include
 
 注意前缀后面不要加点（ ``"."`` ）。 Django 会自动为你加上。
 
-Multiple view prefixes
+多重视图前缀
 ----------------------
 
-In practice, you'll probably end up mixing and matching views to the point
-where the views in your ``urlpatterns`` won't have a common prefix. However,
-you can still take advantage of the view prefix shortcut to remove duplication.
-Just add multiple ``patterns()`` objects together, like this:
+在实践中，可能多个视图使用不同的前缀，在这种情况下可以通过把多个 ``patterns()``
+对象叠加的方式来解决问题：
 
-Old::
+旧的::
 
     from django.conf.urls.defaults import *
 
@@ -333,7 +331,7 @@ Old::
         (r'^tag/(?P<tag>\w+)/$', 'weblog.views.tag'),
     )
 
-New::
+新的::
 
     from django.conf.urls.defaults import *
 
@@ -349,11 +347,10 @@ New::
 包括其他 URLconf
 ========================
 
-At any point, your ``urlpatterns`` can "include" other URLconf modules. This
-essentially "roots" a set of URLs below other ones.
+在任何时候，你的 ``urlpatterns`` 都可以包含其他 URLconf 模块，这相当于固定另一
+套 URLs 模式。
 
-For example, here's the URLconf for the `Django Web site`_ itself. It includes a
-number of other URLconfs::
+例如，以下是 `Django Web site`_ 的 URLconf 。它包含许多其他 URLconf::
 
     from django.conf.urls.defaults import *
 
@@ -363,11 +360,9 @@ number of other URLconfs::
         (r'^comments/',      include('django.contrib.comments.urls')),
     )
 
-Note that the regular expressions in this example don't have a ``$``
-(end-of-string match character) but do include a trailing slash. Whenever
-Django encounters ``include()``, it chops off whatever part of the URL matched
-up to that point and sends the remaining string to the included URLconf for
-further processing.
+注意，例子中的正则表达式没有 ``$`` （匹配字符串结尾的字符），但是包含一个斜杠。
+当 Django 遇到 ``include()`` 时，会把已匹配的部分去除并把剩余的部分传递给
+包含的 URLconf 作进一步的处理。
 
 Another possibility is to include additional URL patterns not by specifying the
 URLconf Python module defining them as the `include`_ argument but by using
