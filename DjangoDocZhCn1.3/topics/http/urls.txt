@@ -218,57 +218,50 @@ url
 
 .. data:: handler404
 
-A callable, or a string representing the full Python import path to the view
-that should be called if none of the URL patterns match.
+一个可调用的视图或一个表示完整 Python 导入路径的字符串，在没有可匹配的 URL 模式
+时调用。
 
-By default, this is ``'django.views.defaults.page_not_found'``. That default
-value should suffice.
+缺省情况下，值为 ``'django.views.defaults.page_not_found'`` 。缺省值一般够用了。
 
 .. versionchanged:: 1.2
-    Previous versions of Django only accepted strings representing import paths.
+    以前版本的 Django 只接受代表路径的字符串。
 
-handler500
+处理 500
 ----------
 
 .. data:: handler500
 
-A callable, or a string representing the full Python import path to the view
-that should be called in case of server errors. Server errors happen when you
-have runtime errors in view code.
+一个可调用的视图或一个表示完整 Python 导入路径的字符串，在发生服务器错误时调用。
+当视图代码运行出错时会发生服务器错误。
 
-By default, this is ``'django.views.defaults.server_error'``. That default
-value should suffice.
+缺省情况下，值为 ``'django.views.defaults.server_error'`` 。缺省值一般够用了。
 
 .. versionchanged:: 1.2
-    Previous versions of Django only accepted strings representing import paths.
+    以前版本的 Django 只接受代表路径的字符串。
 
 include
 -------
 
 .. function:: include(<module or pattern_list>)
 
-A function that takes a full Python import path to another URLconf module that
-should be "included" in this place.
+一个包含另一个 URLconf 模式的完整 Python 导入路径的函数。
 
-:func:`include` also accepts as an argument an iterable that returns URL
-patterns.
+:func:`include` 也可以用作一个返回 URL 模式的参数。
 
-See `Including other URLconfs`_ below.
+参见下文 `包括其他 URLconf`_ 。
 
-Notes on capturing text in URLs
+捕获 URL 中的文本的注意点
 ===============================
 
-Each captured argument is sent to the view as a plain Python string, regardless
-of what sort of match the regular expression makes. For example, in this
-URLconf line::
+不管哪种正则表达式，在 URL 中捕获的参数都会作为纯 Python 字符串传递给视图。
+例如::
 
     (r'^articles/(?P<year>\d{4})/$', 'news.views.year_archive'),
 
-...the ``year`` argument to ``news.views.year_archive()`` will be a string, not
-an integer, even though the ``\d{4}`` will only match integer strings.
+...传递给 ``news.views.year_archive()`` 的 ``year`` 参数将会是一个字符串，而
+不是一个整数。即使 ``\d{4}`` 只匹配整数字符串，传递的参数也只会是一个字符串。
 
-A convenient trick is to specify default parameters for your views' arguments.
-Here's an example URLconf and view::
+为视图参数定义缺省值有一个小技巧，请看下面的示例 URLconf 和视图::
 
     # URLconf
     urlpatterns = patterns('',
@@ -278,27 +271,25 @@ Here's an example URLconf and view::
 
     # View (in blog/views.py)
     def page(request, num="1"):
-        # Output the appropriate page of blog entries, according to num.
+        # 根据 num 输出恰当的博客页面。
 
-In the above example, both URL patterns point to the same view --
-``blog.views.page`` -- but the first pattern doesn't capture anything from the
-URL. If the first pattern matches, the ``page()`` function will use its
-default argument for ``num``, ``"1"``. If the second pattern matches,
-``page()`` will use whatever ``num`` value was captured by the regex.
+在上面的例子中，两个 URL 模式都指向同一个视图 ``blog.views.page`` 。但是第一个
+模式不捕获 URL 中的任何东西。如果匹配到第一个模式，那么 ``page()`` 函数会使用
+缺省的 ``num`` 参数—— ``"1"`` 。如果匹配到第二个模式，那么 ``page()`` 会使用
+通过正则表达式捕获的 ``num`` 值。
 
-Performance
+性能
 ===========
 
-Each regular expression in a ``urlpatterns`` is compiled the first time it's
-accessed. This makes the system blazingly fast.
+第个 ``urlpatterns`` 中的正则表达式在第一次调用时都会被编译，因此系统运行速度
+非常快。
 
 视图前缀
 ===============
 
-You can specify a common prefix in your ``patterns()`` call, to cut down on
-code duplication.
+你可以在 ``patterns()`` 中指定一个公用前缀，以减少代码的重复。
 
-Here's the example URLconf from the :doc:`Django overview </intro/overview>`::
+以下是一个 :doc:`Django 概述</intro/overview>` 中的示例 URLconf:: 
 
     from django.conf.urls.defaults import *
 
@@ -308,12 +299,11 @@ Here's the example URLconf from the :doc:`Django overview </intro/overview>`::
         (r'^articles/(\d{4})/(\d{2})/(\d+)/$', 'news.views.article_detail'),
     )
 
-In this example, each view has a common prefix -- ``'news.views'``.
-Instead of typing that out for each entry in ``urlpatterns``, you can use the
-first argument to the ``patterns()`` function to specify a prefix to apply to
-each view function.
+在这个例子中，每个视图都有一个共同的前缀 ``'news.views'`` 。可以使用
+``patterns()`` 的第一个参数来指定一个公用的前缀来代替重复输入。这个前缀会应用到
+每一个视图函数。
 
-With this in mind, the above example can be written more concisely as::
+上例可简化如下::
 
     from django.conf.urls.defaults import *
 
@@ -323,8 +313,7 @@ With this in mind, the above example can be written more concisely as::
         (r'^articles/(\d{4})/(\d{2})/(\d+)/$', 'article_detail'),
     )
 
-Note that you don't put a trailing dot (``"."``) in the prefix. Django puts
-that in automatically.
+注意前缀后面不要加点（ ``"."`` ）。 Django 会自动为你加上。
 
 Multiple view prefixes
 ----------------------
@@ -357,7 +346,7 @@ New::
         (r'^tag/(?P<tag>\w+)/$', 'tag'),
     )
 
-Including other URLconfs
+包括其他 URLconf
 ========================
 
 At any point, your ``urlpatterns`` can "include" other URLconf modules. This
