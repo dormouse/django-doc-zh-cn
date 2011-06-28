@@ -159,7 +159,7 @@ URL 模式变量的语法
 
 .. module:: django.conf.urls.defaults
 
-模式
+patterns
 --------
 
 .. function:: patterns(prefix, pattern_description, ...)
@@ -221,7 +221,7 @@ url
 一个可调用的视图或一个表示完整 Python 导入路径的字符串，在没有可匹配的 URL 模式
 时调用。
 
-缺省情况下，值为 ``'django.views.defaults.page_not_found'`` 。缺省值一般够用了。
+省情况下，值为 ``'django.views.defaults.page_not_found'`` 。缺省值一般够用了。
 
 .. versionchanged:: 1.2
     以前版本的 Django 只接受代表路径的字符串。
@@ -364,9 +364,8 @@ include
 当 Django 遇到 ``include()`` 时，会把已匹配的部分去除并把剩余的部分传递给
 包含的 URLconf 作进一步的处理。
 
-Another possibility is to include additional URL patterns not by specifying the
-URLconf Python module defining them as the `include`_ argument but by using
-directly the pattern list as returned by `patterns`_ instead. For example::
+包含额外的 URL 模式还有一种方法：不把 URLconf Python 模块定义为 `include`_ 参数
+而是直接使用 `patterns`_ 返回的模式列表。例如::
 
     from django.conf.urls.defaults import *
 
@@ -381,21 +380,18 @@ directly the pattern list as returned by `patterns`_ instead. For example::
         (r'^credit/', include(extra_patterns)),
     )
 
-This approach can be seen in use when you deploy an instance of the Django
-Admin application. The Django Admin is deployed as instances of a
-:class:`~django.contrib.admin.AdminSite`; each
-:class:`~django.contrib.admin.AdminSite` instance has an attribute ``urls``
-that returns the url patterns available to that instance. It is this attribute
-that you ``include()`` into your projects ``urlpatterns`` when you deploy the
-admin instance.
+这种用法见于部署 Django 管理站点时。 Django 管理站点是一个
+:class:`~django.contrib.admin.AdminSite` 的实例，每个
+:class:`~django.contrib.admin.AdminSite` 实例都有一个 ``urls`` 属性，这个属性
+返回实例所用的 url 模式。当你部署管理站点时可以把这个属性 ``include()`` 进你的
+项目的 ``urlpatterns`` 中。
 
 .. _`Django Web site`: http://www.djangoproject.com/
 
-Captured parameters
+已捕获的参数
 -------------------
 
-An included URLconf receives any captured parameters from parent URLconfs, so
-the following example is valid::
+一个被包含的 URLconf 会从父 URLconf 接收所有已捕获的参数，请看下例::
 
     # In settings/urls/main.py
     urlpatterns = patterns('',
@@ -408,35 +404,29 @@ the following example is valid::
         (r'^archive/$', 'blog.archive'),
     )
 
-In the above example, the captured ``"username"`` variable is passed to the
-included URLconf, as expected.
+在上面的例子中，已捕获的 ``"username"`` 变量会传递给被包含的的 URLconf 。
 
 .. _topics-http-defining-url-namespaces:
 
-Defining URL namespaces
+定义 URL 命名空间
 -----------------------
 
-When you need to deploy multiple instances of a single application, it can be
-helpful to be able to differentiate between instances. This is especially
-important when using :ref:`named URL patterns <naming-url-patterns>`, since
-multiple instances of a single application will share named URLs. Namespaces
-provide a way to tell these named URLs apart.
+当你需要部署一个应用的多个实例时，就会需要 URL 命名空间来区分不同的实例。因为
+一个应用的多个实例会共享命名 URL ，所以当使用 :ref:`命名 URL 模式
+<naming-url-patterns>` 时，这种区分尤其重要。
 
-A URL namespace comes in two parts, both of which are strings:
+一个 URL 命名空间由两个字符串组成：
 
-    * An **application namespace**. This describes the name of the application
-      that is being deployed. Every instance of a single application will have
-      the same application namespace. For example, Django's admin application
-      has the somewhat predictable application namespace of ``admin``.
+    * 一个是 **应用命名空间** ，用于描述部署的应用名称。一个应用的每个实例都有
+      相同的应用命名空间。例如 Django 的管理站点应用的应用命名空间一般为
+      ``admin`` 。
 
-    * An **instance namespace**. This identifies a specific instance of an
-      application. Instance namespaces should be unique across your entire
-      project. However, an instance namespace can be the same as the
-      application namespace. This is used to specify a default instance of an
-      application. For example, the default Django Admin instance has an
-      instance namespace of ``admin``.
+    * 另一个是 **实例命名空间** ，用于区分应用的实例。在你的整个项目中实例命名
+      空间应当是唯一的。但是，实例命名空间可以和应用命名空间相同。如果相同，
+      那么这个实例就是应用的缺省实例。例如，实例命名空间为 ``admin`` 的实例是
+      Django 管理站点的缺省实例。
 
-URL Namespaces can be specified in two ways.
+URL 命名空间有两种定义方式。
 
 Firstly, you can provide the application and instance namespace as arguments
 to ``include()`` when you construct your URL patterns. For example,::
