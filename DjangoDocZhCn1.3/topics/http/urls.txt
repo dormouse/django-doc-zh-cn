@@ -428,72 +428,63 @@ include
 
 URL 命名空间有两种定义方式。
 
-Firstly, you can provide the application and instance namespace as arguments
-to ``include()`` when you construct your URL patterns. For example,::
+第一种方法，当构建 URL 模式时你可以把应用命名空间和实例命名空间传递给
+``include()`` 。例如::
 
     (r'^help/', include('apps.help.urls', namespace='foo', app_name='bar')),
 
-This will include the URLs defined in ``apps.help.urls`` into the application
-namespace ``bar``, with the instance namespace ``foo``.
+这样就会把在 ``apps.help.urls`` 中定义的 URL 包括进来，应用命名空间为 ``bar`` ，
+实例命名空间为 ``foo`` 。
 
-Secondly, you can include an object that contains embedded namespace data. If
-you ``include()`` a ``patterns`` object, that object will be added to the
-global namespace. However, you can also ``include()`` an object that contains
-a 3-tuple containing::
+第二种方法，可以包括内置命名空间数据的对象。如果 ``include()`` 了一个
+``patterns`` 对象，那么这个对象就会被添加到全局命名空间中。但是，你也可以
+``include()`` 一个包含元组的对象::
 
     (<patterns object>, <application namespace>, <instance namespace>)
 
-This will include the nominated URL patterns into the given application and
-instance namespace. For example, the ``urls`` attribute of Django's
-:class:`~django.contrib.admin.AdminSite` object returns a 3-tuple that contains
-all the patterns in an admin site, plus the name of the admin instance, and the
-application namespace ``admin``.
+这样会把已命名的 URL 模式放到指定的应用命名空间和实例命名空间中。例如，Django
+的 :class:`~django.contrib.admin.AdminSite` 对象的 ``urls`` 属性返回一个包含
+管理站点中所有模式、管理站点实例的实例命名空间和应用命名空间的 3 元组。
 
-Once you have defined namespaced URLs, you can reverse them. For details on
-reversing namespaced urls, see the documentation on :ref:`reversing namespaced
-URLs <topics-http-reversing-url-namespaces>`.
+一旦定义了命名 URL ，就可以反解析它们。详见 :ref:`反解析 URL
+<topics-http-reversing-url-namespaces>`.
 
 传递额外参数给视图函数
 =======================================
 
-URLconfs have a hook that lets you pass extra arguments to your view functions,
-as a Python dictionary.
+URLconfs 有一个钩子，可以让你用一个 Python 字典向视图函数传递额外的参数。
 
-Any URLconf tuple can have an optional third element, which should be a
-dictionary of extra keyword arguments to pass to the view function.
+每个 URLconf 元组都有一个可选的第三参数。这个参数应当是一个字典，用于向视图传递
+额外参数。
 
-For example::
+例如::
 
     urlpatterns = patterns('blog.views',
         (r'^blog/(?P<year>\d{4})/$', 'year_archive', {'foo': 'bar'}),
     )
 
-In this example, for a request to ``/blog/2005/``, Django will call the
-``blog.views.year_archive()`` view, passing it these keyword arguments::
+在上例中，如果请求为 ``/blog/2005/`` ，那么 Django 会调用
+``blog.views.year_archive()`` 视图，并向这个视图传递以下参数::
 
     year='2005', foo='bar'
 
-This technique is used in :doc:`generic views </ref/generic-views>` and in the
-:doc:`syndication framework </ref/contrib/syndication>` to pass metadata and
-options to views.
+这个功能可见于在 :doc:`通用视图 </ref/generic-views>` 和
+:doc:`联合框架 </ref/contrib/syndication>` 中向视图传递元数据和选项。
 
-.. admonition:: Dealing with conflicts
+.. admonition:: 处理冲突
 
-    It's possible to have a URL pattern which captures named keyword arguments,
-    and also passes arguments with the same names in its dictionary of extra
-    arguments. When this happens, the arguments in the dictionary will be used
-    instead of the arguments captured in the URL.
+    当在 URL 中捕获的命名关键字参数与元组第三个数据中要传递的参数同名时会使用
+    后者。
 
-Passing extra options to ``include()``
+向 ``include()`` 传递额外参数
 --------------------------------------
 
-Similarly, you can pass extra options to ``include()``. When you pass extra
-options to ``include()``, *each* line in the included URLconf will be passed
-the extra options.
+同理，可以向 ``include()`` 传递额外参数。当这样做时，被包含的 URLconf 中的
+*每一行* 都会被传递这个额外参数。
 
-For example, these two URLconf sets are functionally identical:
+例如，以下两种设置作用是一样的：
 
-Set one::
+第一种::
 
     # main.py
     urlpatterns = patterns('',
@@ -506,7 +497,7 @@ Set one::
         (r'^about/$', 'mysite.views.about'),
     )
 
-Set two::
+第二种::
 
     # main.py
     urlpatterns = patterns('',
@@ -519,19 +510,16 @@ Set two::
         (r'^about/$', 'mysite.views.about', {'blogid': 3}),
     )
 
-Note that extra options will *always* be passed to *every* line in the included
-URLconf, regardless of whether the line's view actually accepts those options
-as valid. For this reason, this technique is only useful if you're certain that
-every view in the included URLconf accepts the extra options you're passing.
+注意，被包含的 URL 中的 *每一行* *都会* 被传递额外参数，不管这个视图实际是不是
+可以接受这个额外参数。因此你要确保每个视图都可以接受这个额外参数。
 
-Passing callable objects instead of strings
+传递可调用的对象代替字符串
 ===========================================
 
-Some developers find it more natural to pass the actual Python function object
-rather than a string containing the path to its module. This alternative is
-supported -- you can pass any callable object as the view.
+一些开发者喜欢传递实际 Python 函数对象而不是包含指向模型路径的字符串。这是可行
+的，你可以直接传递视图对象。
 
-For example, given this URLconf in "string" notation::
+例如，有以下以字符串形式定义的 URLconf::
 
     urlpatterns = patterns('',
         (r'^archive/$', 'mysite.views.archive'),
@@ -539,8 +527,7 @@ For example, given this URLconf in "string" notation::
         (r'^contact/$', 'mysite.views.contact'),
     )
 
-You can accomplish the same thing by passing objects rather than strings. Just
-be sure to import the objects::
+可以以传递对象的方法完成上例中的相同功能。不要忘了导入这些对象::
 
     from mysite.views import archive, about, contact
 
@@ -550,9 +537,8 @@ be sure to import the objects::
         (r'^contact/$', contact),
     )
 
-The following example is functionally identical. It's just a bit more compact
-because it imports the module that contains the views, rather than importing
-each view individually::
+下例和上两例作用相同，但是较简洁一点，因为它导入了包含视图的模型而不是一个一个
+地导入视图::
 
     from mysite import views
 
@@ -562,10 +548,9 @@ each view individually::
         (r'^contact/$', views.contact),
     )
 
-The style you use is up to you.
+使用哪种方法由你决定。
 
-Note that if you use this technique -- passing objects rather than strings --
-the view prefix (as explained in "视图前缀" above) will have no effect.
+如果你决定使用传递对象的方式，那么上文所述的视图前缀就不能使用了。
 
 .. _naming-url-patterns:
 
