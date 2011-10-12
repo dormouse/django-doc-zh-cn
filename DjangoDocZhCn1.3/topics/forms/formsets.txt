@@ -109,9 +109,8 @@ Django 1.3 版本之前，表单集实例是不能迭代的。要渲染表单集
     >>> formset.is_valid()
     True
 
-We passed in no data to the formset which is resulting in a valid form. The
-formset is smart enough to ignore extra forms that were not changed. If we
-provide an invalid article::
+当我们没有向表单集传递数据时，表单集的验证是合法的。下例中我们提供了一个非法的
+文档::
 
     >>> data = {
     ...     'form-TOTAL_FORMS': u'2',
@@ -120,7 +119,7 @@ provide an invalid article::
     ...     'form-0-title': u'Test',
     ...     'form-0-pub_date': u'1904-06-16',
     ...     'form-1-title': u'Test',
-    ...     'form-1-pub_date': u'', # <-- this date is missing but required
+    ...     'form-1-pub_date': u'', # <-- 日期缺失了，但是这是必填的
     ... }
     >>> formset = ArticleFormSet(data)
     >>> formset.is_valid()
@@ -128,21 +127,18 @@ provide an invalid article::
     >>> formset.errors
     [{}, {'pub_date': [u'This field is required.']}]
 
-As we can see, ``formset.errors`` is a list whose entries correspond to the
-forms in the formset. Validation was performed for each of the two forms, and
-the expected error message appears for the second item.
+就像我们在例子中看到的， ``formset.errors`` 是与表单集的表单相对应的。两个表单
+都被验证了，第二个表单出现了出错信息。
 
 .. _understanding-the-managementform:
 
-Understanding the ManagementForm
+理解什么是管理表单
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You may have noticed the additional data (``form-TOTAL_FORMS``,
-``form-INITIAL_FORMS`` and ``form-MAX_NUM_FORMS``) that was required
-in the formset's data above. This data is required for the
-``ManagementForm``. This form is used by the formset to manage the
-collection of forms contained in the formset. If you don't provide
-this management data, an exception will be raised::
+你可以已经注意到了上面例子的一些额外数据（ ``form-TOTAL_FORMS`` 、
+``form-INITIAL_FORMS`` 和 ``form-MAX_NUM_FORMS`` ）。这些数据是供 ``管理表单``
+使用的。管理表单是表单集中用于管理表单的表单。如果不提供这些管理数据，那么就会
+引发异常::
 
     >>> data = {
     ...     'form-0-title': u'Test',
@@ -153,26 +149,22 @@ this management data, an exception will be raised::
     ...
     django.forms.util.ValidationError: [u'ManagementForm data is missing or has been tampered with']
 
-It is used to keep track of how many form instances are being displayed. If
-you are adding new forms via JavaScript, you should increment the count fields
-in this form as well.
+管理表单与显示多少表单实例相关联的。如果你通过 JavaScript 增加了新的表单，那么
+应当在管理表单中增加相应的数量。
 
-The management form is available as an attribute of the formset
-itself. When rendering a formset in a template, you can include all
-the management data by rendering ``{{ my_formset.management_form }}``
-(substituting the name of your formset as appropriate).
+管理表单是表单集的一个属性。在模板中，你可以通过使用
+``{{ my_formset.management_form }}`` （请根据你的表单集名称来替换相应内容）获得
+所有管理数据。
 
-``total_form_count`` and ``initial_form_count``
+``total_form_count`` 和 ``initial_form_count``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``BaseFormSet`` has a couple of methods that are closely related to the
-``ManagementForm``, ``total_form_count`` and ``initial_form_count``.
+``BaseFormSet`` 有许多与 ``ManagementForm`` 、 ``total_form_count`` 和
+``initial_form_count`` 密切相关的方法。
 
-``total_form_count`` returns the total number of forms in this formset.
-``initial_form_count`` returns the number of forms in the formset that were
-pre-filled, and is also used to determine how many forms are required. You
-will probably never need to override either of these methods, so please be
-sure you understand what they do before doing so.
+``total_form_count`` 返回表单集中表单的总数。 ``initial_form_count`` 返回预先
+填充的表单数，同时也决定至少要有多少个表单。你可以没有必要重载任何一个方法，
+所以当你要重载时请三思。
 
 .. versionadded:: 1.2
 
