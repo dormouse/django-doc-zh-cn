@@ -171,23 +171,22 @@ Django 1.3 版本之前，表单集实例是不能迭代的。要渲染表单集
 ``empty_form``
 ~~~~~~~~~~~~~~
 
-``BaseFormSet`` provides an additional attribute ``empty_form`` which returns
-a form instance with a prefix of ``__prefix__`` for easier use in dynamic
-forms with JavaScript.
+``BaseFormSet`` 提供一个额外的 ``empty_form`` 属性。这个属性返回一个有
+``__prefix__`` 前缀的表单实例，以便于通过 JavaScript 使用动态表单。
 
-Custom formset validation
+自定义表单集验证
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A formset has a ``clean`` method similar to the one on a ``Form`` class. This
-is where you define your own validation that works at the formset level::
+表单集有一个 ``clean`` 方法，类似于 ``Form`` 类。通过这个方法可以定义表单集级别
+的验证::
 
     >>> from django.forms.formsets import BaseFormSet
 
     >>> class BaseArticleFormSet(BaseFormSet):
     ...     def clean(self):
-    ...         """Checks that no two articles have the same title."""
+    ...         """验证没有同名文档。"""
     ...         if any(self.errors):
-    ...             # Don't bother validating the formset unless each form is valid on its own
+    ...             # 如果单个表单自身有问题就不用验证表单集了
     ...             return
     ...         titles = []
     ...         for i in range(0, self.total_form_count()):
@@ -215,25 +214,21 @@ is where you define your own validation that works at the formset level::
     >>> formset.non_form_errors()
     [u'Articles in a set must have distinct titles.']
 
-The formset ``clean`` method is called after all the ``Form.clean`` methods
-have been called. The errors will be found using the ``non_form_errors()``
-method on the formset.
+表单集的 ``clean`` 方法在所有 ``Form.clean`` 方法完成后调用。使用表单集的
+``non_form_errors()`` 方法可以查询错误。
 
-Dealing with ordering and deletion of forms
+处理表单集的排序和删除
 -------------------------------------------
 
-Common use cases with a formset is dealing with ordering and deletion of the
-form instances. This has been dealt with for you. The ``formset_factory``
-provides two optional parameters ``can_order`` and ``can_delete`` that will do
-the extra work of adding the extra fields and providing simpler ways of
-getting to that data.
+表单集中表单实例的排序和删除是常用操作。 ``formset_factory`` 提供 ``can_order``
+和 ``can_delete`` 这两个可选参数来实现相关操作。
 
 ``can_order``
 ~~~~~~~~~~~~~
 
-Default: ``False``
+缺省值： ``False``
 
-Lets create a formset with the ability to order::
+让我们来创建一个可以排序的表单集::
 
     >>> ArticleFormSet = formset_factory(ArticleForm, can_order=True)
     >>> formset = ArticleFormSet(initial=[
@@ -252,10 +247,8 @@ Lets create a formset with the ability to order::
     <tr><th><label for="id_form-2-pub_date">Pub date:</label></th><td><input type="text" name="form-2-pub_date" id="id_form-2-pub_date" /></td></tr>
     <tr><th><label for="id_form-2-ORDER">Order:</label></th><td><input type="text" name="form-2-ORDER" id="id_form-2-ORDER" /></td></tr>
 
-This adds an additional field to each form. This new field is named ``ORDER``
-and is an ``forms.IntegerField``. For the forms that came from the initial
-data it automatically assigned them a numeric value. Lets look at what will
-happen when the user changes these values::
+每个表单都增加了一个名为 ``ORDER`` 的 ``forms.IntegerField`` 类型的新字段。这个
+字段会根据初始化数据自动赋值。让我们来看看当用户改变数据时会发生什么::
 
     >>> data = {
     ...     'form-TOTAL_FORMS': u'3',
@@ -287,9 +280,9 @@ happen when the user changes these values::
 ``can_delete``
 ~~~~~~~~~~~~~~
 
-Default: ``False``
+缺省值： ``False``
 
-Lets create a formset with the ability to delete::
+让我们来创建一个可以删除的表单集::
 
     >>> ArticleFormSet = formset_factory(ArticleForm, can_delete=True)
     >>> formset = ArticleFormSet(initial=[
@@ -309,9 +302,9 @@ Lets create a formset with the ability to delete::
     <tr><th><label for="id_form-2-pub_date">Pub date:</label></th><td><input type="text" name="form-2-pub_date" id="id_form-2-pub_date" /></td></tr>
     <tr><th><label for="id_form-2-DELETE">Delete:</label></th><td><input type="checkbox" name="form-2-DELETE" id="id_form-2-DELETE" /></td></tr>
 
-Similar to ``can_order`` this adds a new field to each form named ``DELETE``
-and is a ``forms.BooleanField``. When data comes through marking any of the
-delete fields you can access them with ``deleted_forms``::
+与使用 ``can_order`` 参数类似，表单中会增加一个名为 ``DELETE`` 的
+``forms.BooleanField`` 类型字段。当删除字段被标记时你可以使用
+``deleted_forms``::
 
     >>> data = {
     ...     'form-TOTAL_FORMS': u'3',
@@ -335,13 +328,11 @@ delete fields you can access them with ``deleted_forms``::
     >>> [form.cleaned_data for form in formset.deleted_forms]
     [{'DELETE': True, 'pub_date': datetime.date(2008, 5, 10), 'title': u'Article #1'}]
 
-Adding additional fields to a formset
+向表单集添加额外的字段
 -------------------------------------
 
-If you need to add additional fields to the formset this can be easily
-accomplished. The formset base class provides an ``add_fields`` method. You
-can simply override this method to add your own fields or even redefine the
-default fields/attributes of the order and deletion fields::
+可以很方便的向表单集添加额外的字段。表单集基类提供一个 ``add_fields`` 方法，
+可以通过重载这个方法方便地添加字段，甚至重定义排序和删除字段的缺省值。
 
     >>> class BaseArticleFormSet(BaseFormSet):
     ...     def add_fields(self, form, index):
@@ -356,12 +347,11 @@ default fields/attributes of the order and deletion fields::
     <tr><th><label for="id_form-0-pub_date">Pub date:</label></th><td><input type="text" name="form-0-pub_date" id="id_form-0-pub_date" /></td></tr>
     <tr><th><label for="id_form-0-my_field">My field:</label></th><td><input type="text" name="form-0-my_field" id="id_form-0-my_field" /></td></tr>
 
-Using a formset in views and templates
+在视图和模板中使用表单集
 --------------------------------------
 
-Using a formset inside a view is as easy as using a regular ``Form`` class.
-The only thing you will want to be aware of is making sure to use the
-management form inside the template. Let's look at a sample view:
+在视图中使用表单集与使用一般的 ``Form`` 类同样方便。唯一要注意的是确保在模板中
+使用管理表单。让我们来看一个简单的视图：
 
 .. code-block:: python
 
@@ -376,7 +366,7 @@ management form inside the template. Let's look at a sample view:
             formset = ArticleFormSet()
         return render_to_response('manage_articles.html', {'formset': formset})
 
-The ``manage_articles.html`` template might look like this:
+``manage_articles.html`` 模板如下：
 
 .. code-block:: html+django
 
@@ -389,8 +379,7 @@ The ``manage_articles.html`` template might look like this:
         </table>
     </form>
 
-However the above can be slightly shortcutted and let the formset itself deal
-with the management form:
+但是，上面的代码可以更简略一点，让表单集自己来处理管理表单：
 
 .. code-block:: html+django
 
@@ -400,16 +389,13 @@ with the management form:
         </table>
     </form>
 
-The above ends up calling the ``as_table`` method on the formset class.
+上面的代码最后会调用表单集类的 ``as_table`` 方法。
 
-Using more than one formset in a view
+在视图中使用多个表单集
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You are able to use more than one formset in a view if you like. Formsets
-borrow much of its behavior from forms. With that said you are able to use
-``prefix`` to prefix formset form field names with a given value to allow
-more than one formset to be sent to a view without name clashing. Lets take
-a look at how this might be accomplished:
+你可以在一个视图中使用多个表单集。表单集类从表单类那里借用了许多行为，也就是说
+在同一个视图中你可以给某个表单集指定前缀以避免同名冲突。让我们来看个例子：
 
 .. code-block:: python
 
@@ -430,6 +416,5 @@ a look at how this might be accomplished:
             'book_formset': book_formset,
         })
 
-You would then render the formsets as normal. It is important to point out
-that you need to pass ``prefix`` on both the POST and non-POST cases so that
-it is rendered and processed correctly.
+上例中我们在同一个视图中使用了两个表单集。重点要指出的是无论是在 POST 还是非
+POST 情形下你都需要传递  ``prefix`` 参数。
