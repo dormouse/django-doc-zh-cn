@@ -1,5 +1,5 @@
 ==========================
-Creating forms from models
+根据模型创建表单
 ==========================
 
 .. module:: django.forms.models
@@ -11,53 +11,50 @@ Creating forms from models
 =============
 .. class:: ModelForm
 
-If you're building a database-driven app, chances are you'll have forms that
-map closely to Django models. For instance, you might have a ``BlogComment``
-model, and you want to create a form that lets people submit comments. In this
-case, it would be redundant to define the field types in your form, because
-you've already defined the fields in your model.
+如果你正在编写一个数据库驱动的应用，那么你很可能需要一个与模型紧密联系的表单。
+例如，假设你有一个 ``博客评论`` 模型，那么你就可能需要创建一个用于填写用户评论
+的表单。在这种情况下，在表单中定义字段类型就显得多余了，因为在模型中已经对字段
+作了定义。
 
-For this reason, Django provides a helper class that let you create a ``Form``
-class from a Django model.
+因此， Django 提供一个可以根据模型来创建 ``表单`` 类的辅助类。
 
-For example::
+例如::
 
     >>> from django.forms import ModelForm
 
-    # Create the form class.
+    # 创建表单类。
     >>> class ArticleForm(ModelForm):
     ...     class Meta:
     ...         model = Article
 
-    # Creating a form to add an article.
+    # 创建一个表单来添加一篇文章。
     >>> form = ArticleForm()
 
-    # Creating a form to change an existing article.
+    # 创建一个表单来修改一篇已存在的文章。
     >>> article = Article.objects.get(pk=1)
     >>> form = ArticleForm(instance=article)
 
-Field types
+字段类型
 -----------
 
-The generated ``Form`` class will have a form field for every model field. Each
-model field has a corresponding default form field. For example, a
-``CharField`` on a model is represented as a ``CharField`` on a form. A
-model ``ManyToManyField`` is represented as a ``MultipleChoiceField``. Here is
-the full list of conversions:
+被创建的 ``表单`` 类会根据每个模型字段创建相应的表单字段。每种模型字段都有相应
+缺省的表单字段。例如，模型中的 ``CharField`` 字段对应于表单中的 ``CharField``
+字段，模型中的 ``ManyToManyField`` 字段对应表单中的 ``MultipleChoiceField``
+字段。以下是字段对应的列表：
 
     ===============================  ========================================
-    Model field                      Form field
+    模型字段                         表单字段
     ===============================  ========================================
-    ``AutoField``                    Not represented in the form
+    ``AutoField``                    在表单中不出现
 
-    ``BigIntegerField``              ``IntegerField`` with ``min_value`` set
-                                     to -9223372036854775808 and ``max_value``
-                                     set to 9223372036854775807.
+    ``BigIntegerField``              ``IntegerField`` ， ``min_value`` 为
+                                     -9223372036854775808 且 ``max_value``
+                                     为 9223372036854775807 。
 
     ``BooleanField``                 ``BooleanField``
 
-    ``CharField``                    ``CharField`` with ``max_length`` set to
-                                     the model field's ``max_length``
+    ``CharField``                    ``CharField`` ， ``max_length`` 设置为
+                                     模型字段的 ``max_length``
 
     ``CommaSeparatedIntegerField``   ``CharField``
 
@@ -75,7 +72,7 @@ the full list of conversions:
 
     ``FloatField``                   ``FloatField``
 
-    ``ForeignKey``                   ``ModelChoiceField`` (see below)
+    ``ForeignKey``                   ``ModelChoiceField`` （参见下文）
 
     ``ImageField``                   ``ImageField``
 
@@ -83,13 +80,12 @@ the full list of conversions:
 
     ``IPAddressField``               ``IPAddressField``
 
-    ``ManyToManyField``              ``ModelMultipleChoiceField`` (see
-                                     below)
+    ``ManyToManyField``              ``ModelMultipleChoiceField`` （参见下文）
 
     ``NullBooleanField``             ``CharField``
 
     ``PhoneNumberField``             ``USPhoneNumberField``
-                                     (from ``django.contrib.localflavor.us``)
+                                     （源于 ``django.contrib.localflavor.us`` ）
 
     ``PositiveIntegerField``         ``IntegerField``
 
@@ -99,55 +95,49 @@ the full list of conversions:
 
     ``SmallIntegerField``            ``IntegerField``
 
-    ``TextField``                    ``CharField`` with
-                                     ``widget=forms.Textarea``
+    ``TextField``                    ``CharField`` ， ``widget=forms.Textarea``
 
     ``TimeField``                    ``TimeField``
 
-    ``URLField``                     ``URLField`` with ``verify_exists`` set
-                                     to the model field's ``verify_exists``
+    ``URLField``                     ``URLField`` ， ``verify_exists`` 与
+                                     模型字段的 ``verify_exists`` 相同
     ===============================  ========================================
 
 .. versionadded:: 1.2
-    The ``BigIntegerField`` is new in Django 1.2.
+    ``BigIntegerField`` 是 Django 1.2 中新增的。
 
 
-As you might expect, the ``ForeignKey`` and ``ManyToManyField`` model field
-types are special cases:
+正如你所期待的， ``ForeignKey`` 和 ``ManyToManyField`` 模型字段是特殊的::
 
-    * ``ForeignKey`` is represented by ``django.forms.ModelChoiceField``,
-      which is a ``ChoiceField`` whose choices are a model ``QuerySet``.
+    * ``ForeignKey`` 对应 ``django.forms.ModelChoiceField`` ，是一个选项为模型
+      ``查询集`` 的 ``ChoiceField`` 。
 
-    * ``ManyToManyField`` is represented by
-      ``django.forms.ModelMultipleChoiceField``, which is a
-      ``MultipleChoiceField`` whose choices are a model ``QuerySet``.
+    * ``ManyToManyField`` 对应 ``django.forms.ModelMultipleChoiceField`` ，是
+      一个选项为模型 ``查询集`` 的 ``MultipleChoiceField`` 。
 
-In addition, each generated form field has attributes set as follows:
+另外，每个被创建的表单字段都包含按下列方式设置的属性：
 
-    * If the model field has ``blank=True``, then ``required`` is set to
-      ``False`` on the form field. Otherwise, ``required=True``.
+    * 如果模型字段有 ``blank=True`` ，那么表单字段的 ``required`` 设置为
+      ``False`` ，否则设置为 ``required=True`` 。
 
-    * The form field's ``label`` is set to the ``verbose_name`` of the model
-      field, with the first character capitalized.
+    * 表单字段的 ``label`` 设置为模型字段的 ``verbose_name`` ，且首字母大写。
 
-    * The form field's ``help_text`` is set to the ``help_text`` of the model
-      field.
+    * 表单字段的 ``help_text`` 设置为模型字段的 ``help_text`` 。
 
-    * If the model field has ``choices`` set, then the form field's ``widget``
-      will be set to ``Select``, with choices coming from the model field's
-      ``choices``. The choices will normally include the blank choice which is
-      selected by default. If the field is required, this forces the user to
-      make a selection. The blank choice will not be included if the model
-      field has ``blank=False`` and an explicit ``default`` value (the
-      ``default`` value will be initially selected instead).
+    * 如果模型字段有 ``choices`` 集，那么表单字段的 ``widget`` 会被设置为
+      ``Select`` ，选项来自于模型字段的 ``choices`` 。选项一般会包含一个空白
+      选项，并把这个空白选项作为缺省值。如果这个字段是必填项，那么就会限制用户
+      必须选择一个选项。如果模型字段有 ``blank=False`` 属性并且有一个显示定义
+      的 ``缺省值`` ，那么选项中就不会包含空白选项。（ ``缺省值`` 会在初始化时
+      被选中。）
 
-Finally, note that you can override the form field used for a given model
-field. See `Overriding the default field types or widgets`_ below.
+最后，请注意你可以重载给定模型字段相对应的表单字段。参见下面
+`重载缺省的字段类型和控件`_ 。
 
-A full example
+一个完整的例子
 --------------
 
-Consider this set of models::
+假设有如下的模型::
 
     from django.db import models
     from django.forms import ModelForm
@@ -178,9 +168,8 @@ Consider this set of models::
         class Meta:
             model = Book
 
-With these models, the ``ModelForm`` subclasses above would be roughly
-equivalent to this (the only difference being the ``save()`` method, which
-we'll discuss in a moment.)::
+依据以上模型，其中的 ``ModelForm`` 子类大致与以下的类相等。（唯一的区别在于
+``save()`` 方法，这点稍后再谈）::
 
     class AuthorForm(forms.Form):
         name = forms.CharField(max_length=100)
@@ -355,13 +344,13 @@ Since the Author model has only 3 fields, 'name', 'title', and
 
 .. _section on saving forms: `The save() method`_
 
-Overriding the default field types or widgets
+重载缺省的字段类型和控件
 ---------------------------------------------
 
 .. versionadded:: 1.2
  	The ``widgets`` attribute is new in Django 1.2.
 
-The default field types, as described in the `Field types`_ table above, are
+The default field types, as described in the `字段类型`_ table above, are
 sensible defaults. If you have a ``DateField`` in your model, chances are you'd
 want that to be represented as a ``DateField`` in your form. But
 ``ModelForm`` gives you the flexibility of changing the form field type and
