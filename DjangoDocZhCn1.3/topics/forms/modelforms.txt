@@ -181,7 +181,7 @@
         name = forms.CharField(max_length=100)
         authors = forms.ModelMultipleChoiceField(queryset=Author.objects.all())
 
-The ``is_valid()`` method and ``errors``
+``is_valid()`` 方法和 ``errors``
 ----------------------------------------
 
 .. versionchanged:: 1.2
