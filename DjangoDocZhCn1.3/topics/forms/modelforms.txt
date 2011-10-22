@@ -186,122 +186,104 @@
 
 .. versionchanged:: 1.2
 
-The first time you call ``is_valid()`` or access the ``errors`` attribute of a
-``ModelForm`` has always triggered form validation, but as of Django 1.2, it
-will also trigger :ref:`model validation <validating-objects>`. This has the
-side-effect of cleaning the model you pass to the ``ModelForm`` constructor.
-For instance, calling ``is_valid()`` on your form will convert any date fields
-on your model to actual date objects.
+第一次调用 ``is_valid()`` 或操作一个 ``ModelForm`` 的 ``errors`` 属性时总是会
+触发表单验证，但是在 Django 1.2 版本中还会触发
+:ref:`模型验证 <validating-objects>` 。这样会产生副作用：清理传递给
+``ModelForm`` 构造器的模型。例如，在表单中调用 ``is_valid()`` 会把模型中所有
+日期字段转换为真正在日期对象。
 
-
-The ``save()`` method
+``save()`` 方法
 ---------------------
 
-Every form produced by ``ModelForm`` also has a ``save()``
-method. This method creates and saves a database object from the data
-bound to the form. A subclass of ``ModelForm`` can accept an existing
-model instance as the keyword argument ``instance``; if this is
-supplied, ``save()`` will update that instance. If it's not supplied,
-``save()`` will create a new instance of the specified model::
+每个由 ``ModelForm`` 产生的表单都有一个 ``save()`` 方法，这个方法根据绑定到表单
+的数据创建和保存数据库对象。一个 ``ModelForm`` 子类可以接受一个已存在的模型实例
+作为关键字参数 ``instance`` 。如果实例存在，那么 ``save()`` 方法会更新这个实例；
+否则会创建一个新的指定模型的实例::
 
-    # Create a form instance from POST data.
+    # 根据 POST 数据创建一个表单实例。
     >>> f = ArticleForm(request.POST)
 
-    # Save a new Article object from the form's data.
+    # 根据表单数据保存一个新文章对象。
     >>> new_article = f.save()
 
-    # Create a form to edit an existing Article.
+    # 创建一个表单来编辑已存在的文章。
     >>> a = Article.objects.get(pk=1)
     >>> f = ArticleForm(instance=a)
     >>> f.save()
 
-    # Create a form to edit an existing Article, but use
-    # POST data to populate the form.
+    # 创建一个表单来编辑已存在的文章，但是使用 POST 数据来生成表单。
     >>> a = Article.objects.get(pk=1)
     >>> f = ArticleForm(request.POST, instance=a)
     >>> f.save()
 
-Note that ``save()`` will raise a ``ValueError`` if the data in the form
-doesn't validate -- i.e., if form.errors evaluates to True.
+注意，如果表单数据未通过验证，那么 ``save()`` 会引发一个 ``ValueError`` 。例如，
+如果 form.errors 为 True ，那么就会引发。
 
-This ``save()`` method accepts an optional ``commit`` keyword argument, which
-accepts either ``True`` or ``False``. If you call ``save()`` with
-``commit=False``, then it will return an object that hasn't yet been saved to
-the database. In this case, it's up to you to call ``save()`` on the resulting
-model instance. This is useful if you want to do custom processing on the
-object before saving it, or if you want to use one of the specialized
-:ref:`model saving options <ref-models-force-insert>`. ``commit`` is ``True``
-by default.
+``save()`` 方法接受一个可选关键字参数 ``commit`` ，这个参数要么是 ``True`` ，
+要么是 ``False`` 。如果使用 ``commit=False`` 来调用 ``save()`` ，那么会返回一个
+还没有被保存到数据库的对象。在这种情况下你可以自由决定如何调用 ``save()`` 方法。
+这种情况主要用于在保存数据之前需要作一些处理的场合下，或者需要使用特殊的
+:ref:`模型保存选项 <ref-models-force-insert>` 的场合下。 ``commit`` 缺省为
+``True`` 。
 
-Another side effect of using ``commit=False`` is seen when your model has
-a many-to-many relation with another model. If your model has a many-to-many
-relation and you specify ``commit=False`` when you save a form, Django cannot
-immediately save the form data for the many-to-many relation. This is because
-it isn't possible to save many-to-many data for an instance until the instance
-exists in the database.
+当模型与另一个模型有多对多关系时，使用 ``commit=False`` 会产生副作用。在这种
+情况下，当保存表单时， Django 不会立即保存为多对多关系的表单数据。这是因为当
+数据没有保存进数据时是不可能为实例保存多对多数据的。
 
-To work around this problem, every time you save a form using ``commit=False``,
-Django adds a ``save_m2m()`` method to your ``ModelForm`` subclass. After
-you've manually saved the instance produced by the form, you can invoke
-``save_m2m()`` to save the many-to-many form data. For example::
+为了解决这个问题，每次当使用 ``commit=False`` 保存表单时， Django 会为
+``ModelForm`` 子类增加一个 ``save_m2m()`` 方法。当手动保存表单产生的实例之后，
+可以执行 ``save_m2m()`` 来保存多对多表单数据。例如::
 
-    # Create a form instance with POST data.
+    # 根据 POST 数据创建一个表单实例。
     >>> f = AuthorForm(request.POST)
 
-    # Create, but don't save the new author instance.
+    # 创建，但不保存新的作者实例。
     >>> new_author = f.save(commit=False)
 
-    # Modify the author in some way.
+    # 对作者作一定的修改。
     >>> new_author.some_field = 'some_value'
 
-    # Save the new instance.
+    # 保存新的实例。
     >>> new_author.save()
 
-    # Now, save the many-to-many data for the form.
+    # 现在，保存表单的多对多数据。
     >>> f.save_m2m()
 
-Calling ``save_m2m()`` is only required if you use ``save(commit=False)``.
-When you use a simple ``save()`` on a form, all data -- including
-many-to-many data -- is saved without the need for any additional method calls.
-For example::
+只有当你使用 ``save(commit=False)`` 时才需要调用 ``save_m2m()`` 。如果你只是
+使用一个简单的 ``save()`` ，那么表单的所有数据，包括多对多数据都会被保存，不
+需要额外的调用其他方法。例如::
 
-    # Create a form instance with POST data.
+    # 根据 POST 数据创建一个表单实例。
     >>> a = Author()
     >>> f = AuthorForm(request.POST, instance=a)
 
-    # Create and save the new author instance. There's no need to do anything else.
+    # 创建并保存新的作者实例。万事大吉。
     >>> new_author = f.save()
 
-Other than the ``save()`` and ``save_m2m()`` methods, a ``ModelForm`` works
-exactly the same way as any other ``forms`` form. For example, the
-``is_valid()`` method is used to check for validity, the ``is_multipart()``
-method is used to determine whether a form requires multipart file upload (and
-hence whether ``request.FILES`` must be passed to the form), etc. See
-:ref:`binding-uploaded-files` for more information.
+除子 ``save()`` 和 ``save_m2m()`` 方法， ``ModelForm`` 与其他表单完全一样。
+例如， ``is_valid()`` 方法用于表单验证， ``is_multipart()`` 方法用于决定表单
+是否需要多部分文件上传（亦决定是否必须向表单传递 ``request.FILES`` ），等等。
+详见 :ref:`binding-uploaded-files` 。 
 
-Using a subset of fields on the form
+使用表单字段的子集
 ------------------------------------
 
-In some cases, you may not want all the model fields to appear on the generated
-form. There are three ways of telling ``ModelForm`` to use only a subset of the
-model fields:
+在某些情况下，在表单中你可能只要使用所有模型字段中的一部分，即模型字段的子集。
+有三种方法可以告诉 ``ModelForm`` 只使用模型字段的子集：
 
-1. Set ``editable=False`` on the model field. As a result, *any* form
-   created from the model via ``ModelForm`` will not include that
-   field.
+1. 在模型字段上设置 ``editable=False`` ，这样任何由 ``ModelForm`` 创建的表单都
+   不会包含这个字段。
 
-2. Use the ``fields`` attribute of the ``ModelForm``'s inner ``Meta``
-   class.  This attribute, if given, should be a list of field names
-   to include in the form. The order in which the fields names are specified
-   in that list is respected when the form renders them.
+2. 使用 ``ModelForm`` 的内部 ``Meta`` 类的 ``fields`` 属性。这个属性应当是一个
+   表单中要包含的字段的列表。这个列表决定表单中要出现哪些字段和这些字段的出场
+   顺序。
 
-3. Use the ``exclude`` attribute of the ``ModelForm``'s inner ``Meta``
-   class.  This attribute, if given, should be a list of field names
-   to exclude from the form.
+3. 使用 ``ModelForm`` 的内部 ``Meta`` 类的 ``exclude`` 属性。这个属性应当是
+   一个表单中要包含的字段的列表。如果定义了这个属性，那么列表中的字段就会被表单
+   排除。
 
-For example, if you want a form for the ``Author`` model (defined
-above) that includes only the ``name`` and ``title`` fields, you would
-specify ``fields`` or ``exclude`` like this::
+例如，你要一个 ``Author`` 模型（前文已定义）的相关表单，但是只包含 ``name`` 和
+``title`` ，那么可以这样定义 ``fields`` 或 ``exclude`` ::
 
     class PartialAuthorForm(ModelForm):
         class Meta:
@@ -313,57 +295,47 @@ specify ``fields`` or ``exclude`` like this::
             model = Author
             exclude = ('birth_date',)
 
-Since the Author model has only 3 fields, 'name', 'title', and
-'birth_date', the forms above will contain exactly the same fields.
+因为作者模型只有三个字段： 'name' 、 'title' 和 'birth_date' ，所以上述两个表单
+包含完全相同的字段。
 
 .. note::
 
-    If you specify ``fields`` or ``exclude`` when creating a form with
-    ``ModelForm``, then the fields that are not in the resulting form will not
-    be set by the form's ``save()`` method. Django will prevent any attempt to
-    save an incomplete model, so if the model does not allow the missing fields
-    to be empty, and does not provide a default value for the missing fields,
-    any attempt to ``save()`` a ``ModelForm`` with missing fields will fail.
-    To avoid this failure, you must instantiate your model with initial values
-    for the missing, but required fields::
+    当你用 ``ModelForm`` 创建一个表单时，如果定义了 ``fields`` 和 ``exclude`` ，
+    那么在被创建的表单中没有出现的字段就不会被表单的 ``save()`` 保存。 Django
+    不允许保存一个不完整的模型，因此如果模型有字段不允许为空，但是又没有为这个
+    字段设置缺省值，当试图 ``save()`` 一个 ``ModelForm`` 时就会失败。为避免这种
+    情况发生，模型中的必填字段应当在初始化时赋值::
 
         author = Author(title='Mr')
         form = PartialAuthorForm(request.POST, instance=author)
         form.save()
 
-    Alternatively, you can use ``save(commit=False)`` and manually set
-    any extra required fields::
+    或者你可以使用 ``save(commit=False)`` 并手动设置额外的必填字段::
 
         form = PartialAuthorForm(request.POST)
         author = form.save(commit=False)
         author.title = 'Mr'
         author.save()
 
-    See the `section on saving forms`_ for more details on using
-    ``save(commit=False)``.
+    关于如何使用 ``save(commit=False)`` ，详见本文 `保存表单一节`_ 。
 
-.. _section on saving forms: `The save() method`_
+.. _保存表单一节: `save() 方法`_
 
 重载缺省的字段类型和控件
 ---------------------------------------------
 
 .. versionadded:: 1.2
- 	The ``widgets`` attribute is new in Django 1.2.
+ 	``widgets`` 属性是 Django 1.2 版本新增的。
 
-The default field types, as described in the `字段类型`_ table above, are
-sensible defaults. If you have a ``DateField`` in your model, chances are you'd
-want that to be represented as a ``DateField`` in your form. But
-``ModelForm`` gives you the flexibility of changing the form field type and
-widget for a given model field.
+前文中提到缺省的 `字段类型`_ 一般是比较明智的。如果在模型有一个字段是
+``DateField`` 那么一般在表单中就应该对应 ``DateField`` 。但是，
+``ModelForm`` 是非常灵活的，你可以自己改变模型字段对应的表单字段类型和控件。
 
-To specify a custom widget for a field, use the ``widgets`` attribute of the
-inner ``Meta`` class. This should be a dictionary mapping field names to widget
-classes or instances.
+使用表单类内置的 ``Meta`` 类的 ``widgets`` 属性可以自定义表单控件。这个属性应当
+是一个字段名和控件类或实例相对应的字典。
 
-For example, if you want the a ``CharField`` for the ``name``
-attribute of ``Author`` to be represented by a ``<textarea>`` instead
-of its default ``<input type="text">``, you can override the field's
-widget::
+例如，假设 ``Author`` 的 ``name`` 是一个 ``CharField`` ，你想要把原来缺省对应的
+``<input type="text">`` 改变为 ``<textarea>`` ，可以这样来重载控件::
 
     from django.forms import ModelForm, Textarea
 
@@ -375,16 +347,13 @@ widget::
                 'name': Textarea(attrs={'cols': 80, 'rows': 20}),
             }
 
-The ``widgets`` dictionary accepts either widget instances (e.g.,
-``Textarea(...)``) or classes (e.g., ``Textarea``).
+``widgets`` 字典可以接受控件实例（如： ``Textarea(...)`` ），也可以接受类（如：
+``Textarea`` ）。
 
-If you want to further customize a field -- including its type, label, etc. --
-you can do this by declaratively specifying fields like you would in a regular
-``Form``. Declared fields will override the default ones generated by using the
-``model`` attribute.
+如果你想要更进一步自定义一个字段，包括它的类型或标签等等，那么可以像一般的
+表单类一样声明指定字段。声明的字段会重载 ``model`` 属性产生的缺省的字段。
 
-For example, if you wanted to use ``MyDateFormField`` for the ``pub_date``
-field, you could do the following::
+例如，假设想要对 ``pub_date`` 使用 ``MyDateFormField`` ，可以如下操作::
 
     class ArticleForm(ModelForm):
         pub_date = MyDateFormField()
@@ -392,8 +361,7 @@ field, you could do the following::
         class Meta:
             model = Article
 
-If you want to override a field's default label, then specify the ``label``
-parameter when declaring the form field::
+如何想要重载一个字段的缺省标签，可以在声明表单字段时指定 ``label`` 参数::
 
    >>> class ArticleForm(ModelForm):
    ...     pub_date = DateField(label='Publication date')
@@ -403,22 +371,20 @@ parameter when declaring the form field::
 
 .. note::
 
-    If you explicitly instantiate a form field like this, Django assumes that you
-    want to completely define its behavior; therefore, default attributes (such as
-    ``max_length`` or ``required``) are not drawn from the corresponding model. If
-    you want to maintain the behavior specified in the model, you must set the
-    relevant arguments explicitly when declaring the form field.
+    如果你象这样显示地初始化一个表单字段，那么 Django 会假定你想要完全自定义其
+    行为，因此该字段的缺省属性（如 ``max_length`` 和 ``require`` ）就不会从模型
+    中转移过来。如果你想要获得模型中定义的相关行为，那么就必须在声明表单字段时
+    显示地定义。
 
-    For example, if the ``Article`` model looks like this::
+    例如，有如下 ``Article`` 模型::
 
         class Article(models.Model):
             headline = models.CharField(max_length=200, null=True, blank=True,
                                         help_text="Use puns liberally")
             content = models.TextField()
 
-    and you want to do some custom validation for ``headline``, while keeping
-    the ``blank`` and ``help_text`` values as specified, you might define
-    ``ArticleForm`` like this::
+    你要对 ``headline`` 做一些自定义的验证，同时又想保持 ``blank`` 和
+    ``help_text`` 和模型中定义的一致，就应当这样定义 ``ArticleForm``::
 
         class ArticleForm(ModelForm):
             headline = MyFormField(max_length=200, required=False,
@@ -427,10 +393,9 @@ parameter when declaring the form field::
             class Meta:
                 model = Article
 
-    See the :doc:`form field documentation </ref/forms/fields>` for more information
-    on fields and their arguments.
+    关于字段及其参数详见 :doc:`表单字段文档 </ref/forms/fields>` 。
 
-Changing the order of fields
+改变字段的顺序
 ----------------------------
 
 By default, a ``ModelForm`` will render fields in the same order that they are
