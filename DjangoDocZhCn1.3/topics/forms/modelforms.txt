@@ -398,21 +398,19 @@
 改变字段的顺序
 ----------------------------
 
-By default, a ``ModelForm`` will render fields in the same order that they are
-defined on the model, with ``ManyToManyField`` instances appearing last. If
-you want to change the order in which fields are rendered, you can use the
-``fields`` attribute on the ``Meta`` class.
+缺省情况下 ``ModelForm`` 会按模型中的字段顺序来排列表单字段，并且把
+``多对多字段`` 放在最后面。如果你想要改变表单字段的顺序，可以使用 ``Meta`` 的
+``fields`` 属性。
 
-The ``fields`` attribute defines the subset of model fields that will be
-rendered, and the order in which they will be rendered. For example given this
-model::
+``fields`` 属性定义要显示的字段，并且可以定义字段显示的顺序。例如，有如下的
+模型::
 
     class Book(models.Model):
         author = models.ForeignKey(Author)
         title = models.CharField(max_length=100)
 
-the ``author`` field would be rendered first. If we wanted the title field
-to be rendered first, we could specify the following ``ModelForm``::
+``author`` 字段会第一个显示。如果要把它放在标题字段后面显示，那么可以按如下方式
+使用 ``ModelForm``::
 
     >>> class BookForm(ModelForm):
     ...     class Meta:
@@ -421,89 +419,73 @@ to be rendered first, we could specify the following ``ModelForm``::
 
 .. _overriding-modelform-clean-method:
 
-Overriding the clean() method
+重载 clean() 方法
 -----------------------------
 
-You can override the ``clean()`` method on a model form to provide additional
-validation in the same way you can on a normal form.
+和普通表单一样，模型表单可以重载 ``clean()`` 方法来提供额外的验证。
 
-In this regard, model forms have two specific characteristics when compared to
-forms:
+就这点而言，模型表单与普通表单相比有两个特性：
 
-By default the ``clean()`` method validates the uniqueness of fields that are
-marked as ``unique``, ``unique_together`` or ``unique_for_date|month|year`` on
-the model.  Therefore, if you would like to override the ``clean()`` method and
-maintain the default validation, you must call the parent class's ``clean()``
-method.
+缺省情况下， ``clean()`` 方法会验证标记 ``unique`` 、 ``unique_together`` 或
+``unique_for_date|month|year`` 的字段的唯一性。因此，如果在重载 ``clean()``
+方法后仍要维持缺省的验证，那么就必须调用父类的 ``clean()`` 方法。
 
-Also, a model form instance bound to a model object will contain a
-``self.instance`` attribute that gives model form methods access to that
-specific model instance.
+同时，一个绑定模型对象的模型表单会包含一个
+``self.instance`` 属性，这个属性用于给模型表单操作绑定的模型实例。
 
-Form inheritance
+表单继承
 ----------------
 
-As with basic forms, you can extend and reuse ``ModelForms`` by inheriting
-them. This is useful if you need to declare extra fields or extra methods on a
-parent class for use in a number of forms derived from models. For example,
-using the previous ``ArticleForm`` class::
+和普通表单一样，可以通过继承来扩展和重用 ``ModelForm`` 。继承的好处是可以不
+改变父类而添加额外的字段或方法。例如，我们使用前面的 ``ArticleForm`` 类::
 
     >>> class EnhancedArticleForm(ArticleForm):
     ...     def clean_pub_date(self):
     ...         ...
 
-This creates a form that behaves identically to ``ArticleForm``, except there's
-some extra validation and cleaning for the ``pub_date`` field.
+这样可以创建一个与 ``ArticleForm`` 一致的表单，并给 ``pub_date`` 字段添加一些
+验证和清理。
 
-You can also subclass the parent's ``Meta`` inner class if you want to change
-the ``Meta.fields`` or ``Meta.excludes`` lists::
+如果要改变 ``Meta.fields`` 或 ``Meta.excludes`` 列表，那么还可以继承父类内置的
+``Meta`` 类::
 
     >>> class RestrictedArticleForm(EnhancedArticleForm):
     ...     class Meta(ArticleForm.Meta):
     ...         exclude = ('body',)
 
-This adds the extra method from the ``EnhancedArticleForm`` and modifies
-the original ``ArticleForm.Meta`` to remove one field.
+这样为 ``EnhancedArticleForm`` 添加了额外的方法，并且修改了原来的
+``ArticleForm.Meta`` ，去除了一个字段。
 
-There are a couple of things to note, however.
+但是有许多东西要注意。
 
- * Normal Python name resolution rules apply. If you have multiple base
-   classes that declare a ``Meta`` inner class, only the first one will be
-   used. This means the child's ``Meta``, if it exists, otherwise the
-   ``Meta`` of the first parent, etc.
+ * 这里适用变通的 Python 命名规则。如果有多个基类声明了 ``Meta`` ，那么只有第一
+   个有效。也就是说子类如果声明了，子类的有效。否则第一个父类的有效。以此类推。
 
- * For technical reasons, a subclass cannot inherit from both a ``ModelForm``
-   and a ``Form`` simultaneously.
+ * 因为技术原因，一个子类不能同时继承自一个 ``ModelForm`` 和一个 ``Form`` 。
 
-Chances are these notes won't affect you unless you're trying to do something
-tricky with subclassing.
+如果不是非常复杂的继承，以上注意点可能和你无关。
 
-Interaction with model validation
+与模型验证互动
 ---------------------------------
 
-As part of its validation process, ``ModelForm`` will call the ``clean()``
-method of each field on your model that has a corresponding field on your form.
-If you have excluded any model fields, validation will not be run on those
-fields. See the :doc:`form validation </ref/forms/validation>` documentation
-for more on how field cleaning and validation work. Also, your model's
-``clean()`` method will be called before any uniqueness checks are made. See
-:ref:`Validating objects <validating-objects>` for more information on the
-model's ``clean()`` hook.
+作为验证进程的一部分， ``ModelForm`` 会调用每个模型表单中出现的表单字段相对应的
+模型字段的  ``clean()`` 方法。也就是说，表单中没有出现的字段那么就不同进行验证。
+关于字段的清理和验证详见 :doc:`表单验证 </ref/forms/validation>` 文档。同时，
+模型的 ``clean()`` 方法调用会先于唯一性检验。关于模型的 ``clean()`` 钩子详见
+:ref:`验证对象 <validating-objects>` 。
 
 .. _model-formsets:
 
-Model formsets
+模型表单集
 ==============
 
-Like :doc:`regular formsets </topics/forms/formsets>`, Django provides a couple
-of enhanced formset classes that make it easy to work with Django models. Let's
-reuse the ``Author`` model from above::
+象 :doc:`普通表单集 </topics/forms/formsets>` 一样， Django 提供了一堆强大的
+表单集类来更方便地使用模型。让我们继续使用前面的 ``Author`` 模型::
 
     >>> from django.forms.models import modelformset_factory
     >>> AuthorFormSet = modelformset_factory(Author)
 
-This will create a formset that is capable of working with the data associated
-with the ``Author`` model. It works just like a regular formset::
+和普通的表单集一样，这样就可以创建 ``Author`` 相关联的模型表单集了::
 
     >>> formset = AuthorFormSet()
     >>> print formset
@@ -518,11 +500,10 @@ with the ``Author`` model. It works just like a regular formset::
     <tr><th><label for="id_form-0-birth_date">Birth date:</label></th><td><input type="text" name="form-0-birth_date" id="id_form-0-birth_date" /><input type="hidden" name="form-0-id" id="id_form-0-id" /></td></tr>
 
 .. note::
-    ``modelformset_factory`` uses ``formset_factory`` to generate formsets.
-    This means that a model formset is just an extension of a basic formset
-    that knows how to interact with a particular model.
+    ``modelformset_factory`` 使用 ``formset_factory`` 来生成表单集。也就是说
+    模型表单集是普通表单集的针对某个特定模型的扩展。
 
-Changing the queryset
+改变查询集
 ---------------------
 
 By default, when you create a formset from a model, the formset will use a
