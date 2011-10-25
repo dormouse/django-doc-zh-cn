@@ -506,15 +506,13 @@
 改变查询集
 ---------------------
 
-By default, when you create a formset from a model, the formset will use a
-queryset that includes all objects in the model (e.g.,
-``Author.objects.all()``). You can override this behavior by using the
-``queryset`` argument::
+缺省情况下，当你从一个模型创建一个表单集时，表单集会使用一个包括所有模型对象的
+查询集（如 ``Author.objects.all()`` ）。可以通过使用 ``queryset`` 参数来重载这
+个行为::
 
     >>> formset = AuthorFormSet(queryset=Author.objects.filter(name__startswith='O'))
 
-Alternatively, you can create a subclass that sets ``self.queryset`` in
-``__init__``::
+另外，可以创建一个子类，在 ``__init__`` 中设置 ``self.queryset``::
 
     from django.forms.models import BaseModelFormSet
 
@@ -523,73 +521,68 @@ Alternatively, you can create a subclass that sets ``self.queryset`` in
             super(BaseAuthorFormSet, self).__init__(*args, **kwargs)
             self.queryset = Author.objects.filter(name__startswith='O')
 
-Then, pass your ``BaseAuthorFormSet`` class to the factory function::
+然后，把 ``BaseAuthorFormSet`` 类传递给工厂函数::
 
     >>> AuthorFormSet = modelformset_factory(Author, formset=BaseAuthorFormSet)
 
-If you want to return a formset that doesn't include *any* pre-existing
-instances of the model, you can specify an empty QuerySet::
+如果想要返回一个不包括 *任何* 既存模型实例的表单集，那么可以定义一个空查询集::
 
    >>> AuthorFormSet(queryset=Author.objects.none())
 
 
-Controlling which fields are used with ``fields`` and ``exclude``
+使用 ``fields`` 和 ``exclude`` 来控制使用哪些字段
 -----------------------------------------------------------------
 
-By default, a model formset uses all fields in the model that are not marked
-with ``editable=False``. However, this can be overridden at the formset level::
+缺省情况下，一个模型表单集使用模型中的所有字段，标记有 ``editable=False`` 的
+字段除外。但是这种方式可以在表单集级别重载::
 
     >>> AuthorFormSet = modelformset_factory(Author, fields=('name', 'title'))
 
-Using ``fields`` restricts the formset to use only the given fields.
-Alternatively, you can take an "opt-out" approach, specifying which fields to
-exclude::
+使用 ``fields`` 可以设置只使用哪些字段。另一方面也可以使用“排除”机制来设置不
+需要哪些字段::
 
     >>> AuthorFormSet = modelformset_factory(Author, exclude=('birth_date',))
 
 .. _saving-objects-in-the-formset:
 
-Saving objects in the formset
+在表单集中保存对象
 -----------------------------
 
-As with a ``ModelForm``, you can save the data as a model object. This is done
-with the formset's ``save()`` method::
+和 ``ModelForm`` 一样，你可以用表单集的 ``save()`` 方法来保存数据::
 
-    # Create a formset instance with POST data.
+    # 通过 POST 数据创建一个表单集实例。
     >>> formset = AuthorFormSet(request.POST)
 
-    # Assuming all is valid, save the data.
+    # 假设验证通过，保存数据。
     >>> instances = formset.save()
 
-The ``save()`` method returns the instances that have been saved to the
-database. If a given instance's data didn't change in the bound data, the
-instance won't be saved to the database and won't be included in the return
-value (``instances``, in the above example).
+``save()`` 方法返回已保存到数据库中的实例。如果一个给定的实例的数据没有因为绑定
+的数据改变而改变，那么这个实例不会保存到数据库中，并且也不会包含在返回值中（上
+面的例子中返回值是 ``instances`` ）。
 
-Pass ``commit=False`` to return the unsaved model instances::
+传递 ``commit=False`` 参数会返回未保存的模型实例::
 
-    # don't save to the database
+    # 不保存到数据库
     >>> instances = formset.save(commit=False)
     >>> for instance in instances:
-    ...     # do something with instance
+    ...     # 对实例作一些操作
     ...     instance.save()
 
-This gives you the ability to attach data to the instances before saving them
-to the database. If your formset contains a ``ManyToManyField``, you'll also
-need to call ``formset.save_m2m()`` to ensure the many-to-many relationships
-are saved properly.
+这样可以在实例保存到数据库前作一些额外的操作。如果表单集包含一个
+``多对多字段`` ，那么需要调用 ``formset.save_m2m()`` 来确保多对多关系被正确地
+保存。
 
 .. _model-formsets-max-num:
 
-Limiting the number of editable objects
+限制可编辑对象的数量
 ---------------------------------------
 
 .. versionchanged:: 1.2
 
-As with regular formsets, you can use the ``max_num`` and ``extra`` parameters
-to ``modelformset_factory`` to limit the number of extra forms displayed.
+和普通的表单集一样，可以在 ``modelformset_factory`` 中使用 ``max_num`` 和
+``extra`` 参数来限制表单显示的数量。
 
-``max_num`` does not prevent existing objects from being displayed::
+``max_num`` 不会阻止显示已存在的对象::
 
     >>> Author.objects.order_by('name')
     [<Author: Charles Baudelaire>, <Author: Paul Verlaine>, <Author: Walt Whitman>]
@@ -599,9 +592,8 @@ to ``modelformset_factory`` to limit the number of extra forms displayed.
     >>> [x.name for x in formset.get_queryset()]
     [u'Charles Baudelaire', u'Paul Verlaine', u'Walt Whitman']
 
-If the value of ``max_num`` is greater than the number of existing related
-objects, up to ``extra`` additional blank forms will be added to the formset,
-so long as the total number of forms does not exceed ``max_num``::
+如果 ``max_num`` 的值大于已存在的对象数量，那么最多会有 ``extra`` 数量的空表单
+被添加到表单集中，但是所有表单总数不能超过 ``max_num`` 的值::
 
     >>> AuthorFormSet = modelformset_factory(Author, max_num=4, extra=2)
     >>> formset = AuthorFormSet(queryset=Author.objects.order_by('name'))
@@ -614,14 +606,13 @@ so long as the total number of forms does not exceed ``max_num``::
 
 .. versionchanged:: 1.2
 
-A ``max_num`` value of ``None`` (the default) puts no limit on the number of
-forms displayed.
+``max_num`` 的值若为 ``None`` （缺省值），则表示表单显示数量没有限制。
 
-Using a model formset in a view
+在视图中使用模型表单集
 -------------------------------
 
-Model formsets are very similar to formsets. Let's say we want to present a
-formset to edit ``Author`` model instances::
+模型表单集与普通表单集非常相似。假设我们要一个编辑 ``Author`` 模型实例的模型
+表单集::
 
     def manage_authors(request):
         AuthorFormSet = modelformset_factory(Author)
@@ -636,20 +627,16 @@ formset to edit ``Author`` model instances::
             "formset": formset,
         })
 
-As you can see, the view logic of a model formset isn't drastically different
-than that of a "normal" formset. The only difference is that we call
-``formset.save()`` to save the data into the database. (This was described
-above, in :ref:`saving-objects-in-the-formset`.)
+正如你所见，一个模型表单集的视图逻辑与一个普通表单集没有什么大的区别。唯一的
+不同之处在于我们调用 ``formset.save()`` 来保存数据。
+（前文已提到这点： :ref:`saving-objects-in-the-formset` 。）
 
-Overiding ``clean()`` on a ``model_formset``
+在 ``model_formset`` 中重载 ``clean()``
 --------------------------------------------
 
-Just like with ``ModelForms``, by default the ``clean()`` method of a
-``model_formset`` will validate that none of the items in the formset violate
-the unique constraints on your model (either ``unique``, ``unique_together`` or
-``unique_for_date|month|year``).  If you want to overide the ``clean()`` method
-on a ``model_formset`` and maintain this validation, you must call the parent
-class's ``clean`` method::
+和 ``ModelForms`` 一样，缺省情况下一个 ``model_formset`` 的 ``clean()`` 方法会
+验证模型字段的唯一性。如果你重载了 ``clean()`` 方法，并且仍要维持相关的验证，
+那么只能调用父类的 ``clean()`` 方法::
 
     class MyModelFormSet(BaseModelFormSet):
         def clean(self):
@@ -658,11 +645,10 @@ class's ``clean`` method::
             for form in self.forms:
                 # your custom formset validation
 
-Using a custom queryset
+使用自定义的查询集
 -----------------------
 
-As stated earlier, you can override the default queryset used by the model
-formset::
+如前所述，可以重载缺省的模型表单集所使用的查询集::
 
     def manage_authors(request):
         AuthorFormSet = modelformset_factory(Author)
@@ -678,24 +664,23 @@ formset::
             "formset": formset,
         })
 
-Note that we pass the ``queryset`` argument in both the ``POST`` and ``GET``
-cases in this example.
+注意，在这个例子中，我们在 ``POST`` 和 ``GET`` 两种情况下都传递了 ``queryset``
+参数。
 
-Using the formset in the template
+在模板中使用表单集
 ---------------------------------
 
 .. highlight:: html+django
 
-There are three ways to render a formset in a Django template.
+在 Django 模板中有三种方法使用表单集。
 
-First, you can let the formset do most of the work::
+第一，你可以使用表单集在完成大多数工作::
 
     <form method="post" action="">
         {{ formset }}
     </form>
 
-Second, you can manually render the formset, but let the form deal with
-itself::
+第二，你可以手动使用表单集，但是让表单自己管理自己::
 
     <form method="post" action="">
         {{ formset.management_form }}
@@ -704,11 +689,10 @@ itself::
         {% endfor %}
     </form>
 
-When you manually render the forms yourself, be sure to render the management
-form as shown above. See the :ref:`management form documentation
-<understanding-the-managementform>`.
+当你手动渲染表单时，如前文所述，要确定渲染管理表单。参见
+:ref:`管理表单文档 <understanding-the-managementform>` 。
 
-Third, you can manually render each field::
+第三，你可以手动渲染每一个字段::
 
     <form method="post" action="">
         {{ formset.management_form }}
@@ -719,9 +703,8 @@ Third, you can manually render each field::
         {% endfor %}
     </form>
 
-If you opt to use this third method and you don't iterate over the fields with
-a ``{% for %}`` loop, you'll need to render the primary key field. For example,
-if you were rendering the ``name`` and ``age`` fields of a model::
+如果你选择第三种方法，并且没有使用 ``{% for %}`` 循环来遍历字段，那么就必须渲染
+主键字段。例如，假设你要渲染模型的 ``name`` 和 ``age`` 字段::
 
     <form method="post" action="">
         {{ formset.management_form }}
@@ -734,19 +717,17 @@ if you were rendering the ``name`` and ``age`` fields of a model::
         {% endfor %}
     </form>
 
-Notice how we need to explicitly render ``{{ form.id }}``. This ensures that
-the model formset, in the ``POST`` case, will work correctly. (This example
-assumes a primary key named ``id``. If you've explicitly defined your own
-primary key that isn't called ``id``, make sure it gets rendered.)
+注意，上例中我们必须显式地渲染 ``{{ form.id }}`` 。这样是为了保证模型表单集在
+``POST`` 情况下能够正常工作。（上例假设主键的名字是 ``id`` 。如果你自己定义的
+主键不是 ``id`` ，那么请确保使用你所定义的主键名称。）
 
 .. highlight:: python
 
-Inline formsets
+内联表单集
 ===============
 
-Inline formsets is a small abstraction layer on top of model formsets. These
-simplify the case of working with related objects via a foreign key. Suppose
-you have these two models::
+内联表单集是一个在模型表单集之上的小的抽象层，用于简化通过外键关联对象的工作。
+假设有如下两个模型::
 
     class Author(models.Model):
         name = models.CharField(max_length=100)
@@ -755,8 +736,7 @@ you have these two models::
         author = models.ForeignKey(Author)
         title = models.CharField(max_length=100)
 
-If you want to create a formset that allows you to edit books belonging to
-a particular author, you could do this::
+如果要创建一个表单集，允许你编辑属于某个特定作者的书籍，可以这样::
 
     >>> from django.forms.models import inlineformset_factory
     >>> BookFormSet = inlineformset_factory(Author, Book)
@@ -764,30 +744,28 @@ a particular author, you could do this::
     >>> formset = BookFormSet(instance=author)
 
 .. note::
-    ``inlineformset_factory`` uses ``modelformset_factory`` and marks
-    ``can_delete=True``.
+    ``inlineformset_factory`` 使用 ``modelformset_factory`` 并且标记
+    ``can_delete=True`` 。
 
-More than one foreign key to the same model
+多个外键指向同一个模型
 -------------------------------------------
 
-If your model contains more than one foreign key to the same model, you'll
-need to resolve the ambiguity manually using ``fk_name``. For example, consider
-the following model::
+如果你的模型包含多个指向同一个模型的外键，那么需要使用 ``fk_name`` 来手动解决
+二义性问题。例如，假设有如下模型::
 
     class Friendship(models.Model):
         from_friend = models.ForeignKey(Friend)
         to_friend = models.ForeignKey(Friend)
         length_in_months = models.IntegerField()
 
-To resolve this, you can use ``fk_name`` to ``inlineformset_factory``::
+要解决问题，可以在``inlineformset_factory`` 中使用 ``fk_name`` ::
 
     >>> FriendshipFormSet = inlineformset_factory(Friend, Friendship, fk_name="from_friend")
 
-Using an inline formset in a view
+在视图中使用内联表单集
 ---------------------------------
 
-You may want to provide a view that allows a user to edit the related objects
-of a model. Here's how you can do that::
+你可能会需要一个允许用户编辑一个模型相关对象的视图，可以这样做::
 
     def manage_books(request, author_id):
         author = Author.objects.get(pk=author_id)
@@ -803,4 +781,4 @@ of a model. Here's how you can do that::
             "formset": formset,
         })
 
-Notice how we pass ``instance`` in both the ``POST`` and ``GET`` cases.
+注意，我们在 ``POST`` 和 ``GET`` 情况下都传递了 ``instance`` 。
