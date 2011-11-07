@@ -557,58 +557,51 @@ URLconfs 有一个钩子，可以让你用一个 Python 字典向视图函数传
 命名 URL 模式
 ===================
 
-It's fairly common to use the same view function in multiple URL patterns in
-your URLconf. For example, these two URL patterns both point to the ``archive``
-view::
+在 URLconf 中多个 URL 模式指向同一个视图是很常见的。例如以下两个 URL 模式都指向
+``archive`` 视图::
 
     urlpatterns = patterns('',
         (r'^archive/(\d{4})/$', archive),
         (r'^archive-summary/(\d{4})/$', archive, {'summary': True}),
     )
 
-This is completely valid, but it leads to problems when you try to do reverse
-URL matching (through the ``permalink()`` decorator or the :ttag:`url` template
-tag). Continuing this example, if you wanted to retrieve the URL for the
-``archive`` view, Django's reverse URL matcher would get confused, because *two*
-URLpatterns point at that view.
+上例是完全合法的，但是当你反向 URL 匹配（通过 ``permalink()`` 装饰器或
+:ttag:`url` 模板标记）时会出现问题。就上例来说，当你需要获得 ``archive`` 视图的
+URL 时， Django 的 URL 匹配器就会迷惑，因为有 *两个* URL 模式指向了同一个视图。
 
-To solve this problem, Django supports **named URL patterns**. That is, you can
-give a name to a URL pattern in order to distinguish it from other patterns
-using the same view and parameters. Then, you can use this name in reverse URL
-matching.
+为了解决这个问题， Django 支持 **命名 URL 模式** 。即你可以给 URL 模式命名，
+用以区分使用相同视图和参数的 URL 模式。这样，就进行 URL 匹配时我们使用命名来
+匹配就可以了。
 
-Here's the above example, rewritten to use named URL patterns::
+上例以命名 URL 模式可以必定如下::
 
     urlpatterns = patterns('',
         url(r'^archive/(\d{4})/$', archive, name="full-archive"),
         url(r'^archive-summary/(\d{4})/$', archive, {'summary': True}, "arch-summary"),
     )
 
-With these names in place (``full-archive`` and ``arch-summary``), you can
-target each pattern individually by using its name:
+有了命名之后 （ ``full-archive`` 和 ``arch-summary`` ），你可以通过名称来区分
+它们：
 
 .. code-block:: html+django
 
     {% url arch-summary 1945 %}
     {% url full-archive 2007 %}
 
-Even though both URL patterns refer to the ``archive`` view here, using the
-``name`` parameter to ``url()`` allows you to tell them apart in templates.
+虽然两个 URL 模式都指向 ``archive`` 视图，但是在模板中可以通过 ``url()`` 的
+``name`` 参数来区分它们。
 
-The string used for the URL name can contain any characters you like. You are
-not restricted to valid Python names.
+URL 名称可以使用任意字符，不必遵循 Python 命名规则。
 
 .. note::
 
-    When you name your URL patterns, make sure you use names that are unlikely
-    to clash with any other application's choice of names. If you call your URL
-    pattern ``comment``, and another application does the same thing, there's
-    no guarantee which URL will be inserted into your template when you use
-    this name.
+    当你命名 URL 模式时，请确保你的命名不要与其他应用的命名冲突。假设你把一个
+    URL 模式命名为 ``comment`` ，同时另一个应用也同名的 URL 模式，那么就在使用
+    这个命名时就不一定会正确匹配到你相要的 URL 模式。
 
-    Putting a prefix on your URL names, perhaps derived from the application
-    name, will decrease the chances of collision. We recommend something like
-    ``myapp-comment`` instead of ``comment``.
+    
+    在你的 URL 命名前加上一个前缀可能会降低冲突的风险。我们建议使用
+    ``myapp-comment`` 来代替 ``comment`` 。
 
 .. _topics-http-reversing-url-namespaces:
 
