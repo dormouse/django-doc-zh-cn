@@ -605,16 +605,15 @@ URL 名称可以使用任意字符，不必遵循 Python 命名规则。
 
 .. _topics-http-reversing-url-namespaces:
 
-URL namespaces
+URL 命名空间
 --------------
 
-Namespaced URLs are specified using the ``:`` operator. For example, the main
-index page of the admin application is referenced using ``admin:index``. This
-indicates a namespace of ``admin``, and a named URL of ``index``.
+URL 命名空间使用 ``:`` 操作符来表示。例如， admin 应用的 index 页面可以使用
+``admin:index`` 来引用。 ``admin:index`` 表示命名空间为 ``admin`` ，命名的 URL
+为 ``index`` 。
 
-Namespaces can also be nested. The named URL ``foo:bar:whiz`` would look for
-a pattern named ``whiz`` in the namespace ``bar`` that is itself defined within
-the top-level namespace ``foo``.
+命名空间可以嵌套。命名的 URL ``foo:bar:whiz`` 会寻找在命名空间 ``bar`` 中的名为
+``whiz`` 的模式，而 ``bar`` 本身在最高级别的命名空间 ``foo`` 中定义。
 
 When given a namespaced URL (e.g. ``myapp:index``) to resolve, Django splits
 the fully qualified name into parts, and then tries the following lookup:
