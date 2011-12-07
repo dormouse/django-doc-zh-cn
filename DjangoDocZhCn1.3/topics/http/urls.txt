@@ -615,72 +615,57 @@ URL 命名空间使用 ``:`` 操作符来表示。例如， admin 应用的 inde
 命名空间可以嵌套。命名的 URL ``foo:bar:whiz`` 会寻找在命名空间 ``bar`` 中的名为
 ``whiz`` 的模式，而 ``bar`` 本身在最高级别的命名空间 ``foo`` 中定义。
 
-When given a namespaced URL (e.g. ``myapp:index``) to resolve, Django splits
-the fully qualified name into parts, and then tries the following lookup:
+当需要解析一个有命名空间的 URL （如 ``myapp:index`` ）时， Django 会拆分这个
+URL ，然后尝试以下搜索：
 
-    1. First, Django looks for a matching application namespace (in this
-       example, ``myapp``). This will yield a list of instances of that
-       application.
+    1. 首先， Django 搜索一个匹配的应用命名空间（本例中为 ``myapp`` ）。这样会
+       产生一个该应用的实例列表。
 
-    2. If there is a *current* application defined, Django finds and returns
-       the URL resolver for that instance. The *current* application can be
-       specified as an attribute on the template context - applications that
-       expect to have multiple deployments should set the ``current_app``
-       attribute on any ``Context`` or ``RequestContext`` that is used to
-       render a template.
+    2. 如果定义了一个 *当前* 应用， Django 会为那个应用搜索并返回 URL 分解器。
+       *当前* 应用可以被定义为一个模板环境的属性。需要多方部署的应用应当要么在
+       ``Context`` 要么在 ``RequestContext`` 上设置用于渲染模板的
+       ``current_app`` 属性。
 
-       The current application can also be specified manually as an argument
-       to the :func:`reverse()` function.
+       当前应用也可以作为 :func:`reverse()` 函数的一个参数来手动定义。
 
-    3. If there is no current application. Django looks for a default
-       application instance. The default application instance is the instance
-       that has an instance namespace matching the application namespace (in
-       this example, an instance of the ``myapp`` called ``myapp``).
+    3. 如果没有当前应用，那么 Django 会搜索一个缺省应用实例。缺省应用实例是命名
+       空间也应用命名空间相同的实例（本例中为名为 ``myapp`` 的实例）。
 
-    4. If there is no default application instance, Django will pick the last
-       deployed instance of the application, whatever its instance name may be.
+    4. 如果没有找到缺省应用实例， Django 会选取最后一个被部署的应用实例，不管这
+       个实例的名称是什么。
 
-    5. If the provided namespace doesn't match an application namespace in
-       step 1, Django will attempt a direct lookup of the namespace as an
-       instance namespace.
+    5. 如果在第一步中，没有找到匹配的应用命名空间， Django 会尝试直接在实例命名
+       空间中搜索。
 
-If there are nested namespaces, these steps are repeated for each part of the
-namespace until only the view name is unresolved. The view name will then be
-resolved into a URL in the namespace that has been found.
+如果存在嵌套的命名空间，以上步骤会不断在每个部分的命名空间中重复，直到视图名称
+不可解析，然后视图名称会作为 URL 进行解析。
 
-To show this resolution strategy in action, consider an example of two instances
-of ``myapp``: one called ``foo``, and one called ``bar``. ``myapp`` has a main
-index page with a URL named `index`. Using this setup, the following lookups are
-possible:
+为了直观地说明以上解析策略，我们来举例说明：假设 ``myapp`` 有两个实例，一个是
+``foo`` ，另一个是 ``bar`` 。 ``myapp`` 有一个主索引页， 其 URL 为 `index` 。
+根据以上策略可能会进行以下搜索：
 
-    * If one of the instances is current - say, if we were rendering a utility page
-      in the instance ``bar`` - ``myapp:index`` will resolve to the index page of
-      the instance ``bar``.
+    * 如果有一个当前实例，即假设我们在实例 ``bar`` 中渲染一个工具页面，那么
+      ``myapp:index`` 会解析为实例 ``bar`` 的索引页。
 
-    * If there is no current instance - say, if we were rendering a page
-      somewhere else on the site - ``myapp:index`` will resolve to the last
-      registered instance of ``myapp``. Since there is no default instance,
-      the last instance of ``myapp`` that is registered will be used. This could
-      be ``foo`` or ``bar``, depending on the order they are introduced into the
-      urlpatterns of the project.
+    * 如果没有当前实例，即假设我们在站点的其他地方渲染一个页面，那么
+      ``myapp:index`` 会解析为最后一个注册的 ``myapp`` 的实例。因为如果没有缺省
+      实例，那么就会使用 ``myapp`` 最后一个注册的实例。解析的结果可能是
+      ``foo`` ，也可能是 ``bar`` ，取决于它们注册的先后。
 
-    * ``foo:index`` will always resolve to the index page of the instance ``foo``.
+    * ``foo:index`` 总是解析为实例 ``foo`` 的索引页。
 
-If there was also a default instance - i.e., an instance named `myapp` - the
-following would happen:
+如果存在一个缺省实例，例如一个名为 `myapp` 的实例，那么会按以下方式进行解析：
 
-    * If one of the instances is current - say, if we were rendering a utility page
-      in the instance ``bar`` - ``myapp:index`` will resolve to the index page of
-      the instance ``bar``.
+    * 如果有一个当前实例，即假设我们在实例 ``bar`` 中渲染一个工具页面，那么
+      ``myapp:index`` 会解析为实例 ``bar`` 的索引页。
 
-    * If there is no current instance - say, if we were rendering a page somewhere
-      else on the site - ``myapp:index`` will resolve to the index page of the
-      default instance.
+    * 如果没有当前实例，即假设我们在站点的其他地方渲染一个页面，那么
+      ``myapp:index`` 会解析为缺省实例的索引页。
 
-    * ``foo:index`` will again resolve to the index page of the instance ``foo``.
+    * ``foo:index`` 总是解析为实例 ``foo`` 的索引页。
 
 
-Utility methods
+工具方法
 ===============
 
 .. currentmodule:: django.core.urlresolvers
