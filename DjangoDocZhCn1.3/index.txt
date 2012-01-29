@@ -31,18 +31,18 @@ Having trouble? We'd like to help!
 .. _IRC logs: http://botland.oebfare.com/logger/django/
 .. _ticket tracker: http://code.djangoproject.com/
 
-First steps
-===========
+第一步
+======
 
-    * **From scratch:**
-      :doc:`Overview <intro/overview>` |
-      :doc:`Installation <intro/install>`
+    * **入门：**
+      :doc:`概述 <intro/overview>` |
+      :doc:`安装 <intro/install>`
 
-    * **Tutorial:**
-      :doc:`Part 1 <intro/tutorial01>` |
-      :doc:`Part 2 <intro/tutorial02>` |
-      :doc:`Part 3 <intro/tutorial03>` |
-      :doc:`Part 4 <intro/tutorial04>`
+    * **教程：**
+      :doc:`第一部分 <intro/tutorial01>` |
+      :doc:`第二部分 <intro/tutorial02>` |
+      :doc:`第三部分 <intro/tutorial03>` |
+      :doc:`第四部分 <intro/tutorial04>`
 
 The model layer
 ===============
