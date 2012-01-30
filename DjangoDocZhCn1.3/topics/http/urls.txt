@@ -673,17 +673,14 @@ URL ，然后尝试以下搜索：
 reverse()
 ---------
 
-If you need to use something similar to the :ttag:`url` template tag in
-your code, Django provides the following method (in the
-``django.core.urlresolvers`` module):
+如果在代码中需要使用类似 :ttag:`url` 模板标记的东西， Django 提供下列方法（在
+``django.core.urlresolvers`` 模块中）：
 
 .. function:: reverse(viewname, urlconf=None, args=None, kwargs=None, current_app=None)
 
-``viewname`` is either the function name (either a function reference, or the
-string version of the name, if you used that form in ``urlpatterns``) or the
-`URL pattern name`_.  Normally, you won't need to worry about the
-``urlconf`` parameter and will only pass in the positional and keyword
-arguments to use in the URL matching. For example::
+``viewname`` 要么是函数名称（如果在 ``urlpatterns`` 中使用表单，那么要么是一个
+函数的引用，要么是一个字符串形式的函数名称），要么是 `命名 URL 模式`_ 。通常，
+不必理会 ``urlconf`` 参数，只要传递用于 URL 匹配的参数。例如::
 
     from django.core.urlresolvers import reverse
 

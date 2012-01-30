@@ -37,7 +37,7 @@ __ irc://irc.freenode.net/django
 .. admonition:: 代码名称可能因发行包不同而不同
 
    如果你是通过 Linux 包管理器（例如 apt-get 或 yum ）来安装 Django 的，那么
-   ``django-admin.py`` 可以会改名为 ``django-admin`` 。在这种情况下本教程中的
+   ``django-admin.py`` 可能被改名为 ``django-admin`` 。在这种情况下本教程中的
    每个命令都要略去 ``.py`` 。
 
 .. admonition:: Mac OS X 权限问题
