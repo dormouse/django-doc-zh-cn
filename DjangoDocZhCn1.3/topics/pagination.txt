@@ -1,20 +1,18 @@
 ==========
-Pagination
+分页
 ==========
 
 .. module:: django.core.paginator
    :synopsis: Classes to help you easily manage paginated data.
 
-Django provides a few classes that help you manage paginated data -- that is,
-data that's split across several pages, with "Previous/Next" links. These
-classes live in :file:`django/core/paginator.py`.
+Django 提供了一些类来帮助你对数据进行分页，即使用“上一页、下一页”链接，把数据
+显示在不同的页面上。这些类都位于 :file:`django/core/paginator.py` 中。
 
-Example
+例子
 =======
 
-Give :class:`Paginator` a list of objects, plus the number of items you'd like to
-have on each page, and it gives you methods for accessing the items for each
-page::
+把一个对象列表和每页要显示的对象个数传递给 :class:`Paginator` ，就可以使用分页
+的相关方法了::
 
     >>> from django.core.paginator import Paginator
     >>> objects = ['john', 'paul', 'george', 'ringo']
@@ -46,9 +44,9 @@ page::
     3
     >>> page2.previous_page_number()
     1
-    >>> page2.start_index() # The 1-based index of the first item on this page
+    >>> page2.start_index() # 本页第一个条目的索引值，索引值由 1 开始。
     3
-    >>> page2.end_index() # The 1-based index of the last item on this page
+    >>> page2.end_index() # 本页最后一个条目的索引值，索引值由 1 开始。
     4
 
     >>> p.page(0)
@@ -62,38 +60,35 @@ page::
 
 .. note::
 
-    Note that you can give ``Paginator`` a list/tuple, a Django ``QuerySet``, or
-    any other object with a ``count()`` or ``__len__()`` method. When
-    determining the number of objects contained in the passed object,
-    ``Paginator`` will first try calling ``count()``, then fallback to using
-    ``len()`` if the passed object has no ``count()`` method. This allows
-    objects such as Django's ``QuerySet`` to use a more efficient ``count()``
-    method when available.
+    注意，传递给 ``Paginator`` 的可以是一个列表、元组、 Djanog ``查询集`` 或者
+    任何有 ``count()`` 或 ``__len__()`` 方法的对象。当需要计算对象的数量时，
+    ``Paginator`` 会首先尝试调用 ``count()`` ，如果没有 ``count()`` 方法可调用
+    就会调用 ``__len__()`` 方法。这样，就可以优先使用效率更高的 ``count()``
+    方法。
 
 
-Using ``Paginator`` in a view
+在视图中使用 ``Paginator``
 ==============================
 
-Here's a slightly more complex example using :class:`Paginator` in a view to
-paginate a queryset. We give both the view and the accompanying template to
-show how you can display the results. This example assumes you have a
-``Contacts`` model that has already been imported.
+下面是一个稍微复杂一点的例子，我们在视图中使用 :class:`Paginator` 来对查询集
+进行分页。我们同时给出了视图和相应的模板来演示如何显示数据。这个例子假设有一个
+已经导入的 ``Contacts`` 模型。
 
-The view function looks like this::
+视图模型如下::
 
     from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
     def listing(request):
         contact_list = Contacts.objects.all()
-        paginator = Paginator(contact_list, 25) # Show 25 contacts per page
+        paginator = Paginator(contact_list, 25) # 每页显示 25 个联系人
 
-        # Make sure page request is an int. If not, deliver first page.
+        # 确保请求显示的页码是一个整数。否则使用第 1 页。
         try:
             page = int(request.GET.get('page', '1'))
         except ValueError:
             page = 1
 
-        # If page request (9999) is out of range, deliver last page of results.
+        # 如果页码超出了范围，则使用最后一页。
         try:
             contacts = paginator.page(page)
         except (EmptyPage, InvalidPage):
@@ -101,8 +96,7 @@ The view function looks like this::
 
         return render_to_response('list.html', {"contacts": contacts})
 
-In the template :file:`list.html`, you'll want to include navigation between
-pages along with any interesting information from the objects themselves::
+在模板 :file:`list.html` 中需要加入相应的导航代码::
 
     {% for contact in contacts.object_list %}
         {# Each "contact" is a Contact model object. #}
@@ -127,42 +121,38 @@ pages along with any interesting information from the objects themselves::
     </div>
 
 
-``Paginator`` objects
+``Paginator`` 对象
 =====================
 
-The :class:`Paginator` class has this constructor:
+:class:`Paginator` 类构造器如下：
 
 .. class:: Paginator(object_list, per_page, orphans=0, allow_empty_first_page=True)
 
-Required arguments
+必填参数
 ------------------
 
 ``object_list``
-    A list, tuple, Django ``QuerySet``, or other sliceable object with a
-    ``count()`` or ``__len__()`` method.
+    一个列表、元组、 Djanog ``查询集`` 或者任何有 ``count()`` 或 ``__len__()``
+    方法的对象。
 
 ``per_page``
-    The maximum number of items to include on a page, not including orphans
-    (see the ``orphans`` optional argument below).
+    每页最大条目数，不包含孤儿条目（ ``orphans`` 参数说明见下）。
 
-Optional arguments
+可选参数
 ------------------
 
 ``orphans``
-    The minimum number of items allowed on the last page, defaults to zero.
-    Use this when you don't want to have a last page with very few items.
-    If the last page would normally have a number of items less than or equal
-    to ``orphans``, then those items will be added to the previous page (which
-    becomes the last page) instead of leaving the items on a page by
-    themselves. For example, with 23 items, ``per_page=10``, and
-    ``orphans=3``, there will be two pages; the first page with 10 items and
-    the  second (and last) page with 13 items.
+    最后一页的最小条目值，缺省值为零。当你不希望最后一页只有很少的条目时可以
+    使用这个参数。如果最后一页的条目数量小于等于 ``orphans`` 时，最后一页的条目
+    就会与倒数第二页的条目合并显示，原来的倒数第二页就会变成最后一页。假设有
+    23 个条目， ``per_page=10`` 且 ``orphans=3`` ，那么就会分成两页，第一页有十
+    个条目，第二页（也是最后一页）有十三个条目。
 
 ``allow_empty_first_page``
-    Whether or not the first page is allowed to be empty.  If ``False`` and
-    ``object_list`` is  empty, then an ``EmptyPage`` error will be raised.
+    第一页是否可以为空。如果本参数值为 ``False`` 且 ``object_list`` 为空，那么
+    就会引发一个 ``EmptyPage`` 错误。
 
-Methods
+方法
 -------
 
 .. method:: Paginator.page(number)
