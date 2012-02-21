@@ -1,41 +1,35 @@
 =====================
-The Django admin site
+The Django 管理站点
 =====================
 
 .. module:: django.contrib.admin
    :synopsis: Django's admin site.
 
-One of the most powerful parts of Django is the automatic admin interface. It
-reads metadata in your model to provide a powerful and production-ready
-interface that content producers can immediately use to start adding content to
-the site. In this document, we discuss how to activate, use and customize
-Django's admin interface.
+管理站点是 Django 最有力的武器之一。它能够根据模型中的元数据生成功能强大的、
+立马可以使用的接口，编辑可以当即使用这个接口为网站添加内容。本文档中我们将讨论
+如何生成、使用和定制管理接口。
 
-Overview
+概览
 ========
 
-There are six steps in activating the Django admin site:
+生成管理站点分六步走：
 
-    1. Add ``'django.contrib.admin'`` to your :setting:`INSTALLED_APPS`
-       setting.
+    1. 把 ``'django.contrib.admin'`` 加入到 :setting:`INSTALLED_APPS` 中。
 
-    2. Admin has two dependencies - :mod:`django.contrib.auth` and
-       :mod:`django.contrib.contenttypes`. If these applications are not
-       in your :setting:`INSTALLED_APPS` list, add them.
+    2. 管理类依赖于 :mod:`django.contrib.auth` 和
+       :mod:`django.contrib.contenttypes` 。请确保 :setting:`INSTALLED_APPS` 中
+       包含这两个应用。
 
-    3. Determine which of your application's models should be editable in the
-       admin interface.
+    3. 决定哪些应用的模型需要在管理接口中编辑。
 
-    4. For each of those models, optionally create a ``ModelAdmin`` class that
-       encapsulates the customized admin functionality and options for that
-       particular model.
+    4. 针对每个所选的模型创建一个 ``ModelAdmin`` 类，用于封装定制的管理功能和
+       选项。这一步是可选的。
 
-    5. Instantiate an ``AdminSite`` and tell it about each of your models and
-       ``ModelAdmin`` classes.
+    5. 实例化一个 ``AdminSite`` ，引入每个模型和相应的 ``ModelAdmin`` 类。
 
-    6. Hook the ``AdminSite`` instance into your URLconf.
+    6. 把 ``AdminSite`` 和 URLconf 挂钩。
 
-Other topics
+其他内容
 ------------
 
 .. toctree::
@@ -46,18 +40,16 @@ Other topics
 
 .. seealso::
 
-    For information about serving the media files (images, JavaScript, and CSS)
-    associated with the admin in production, see :ref:`serving-media-files`.
+    关于在管理站点使用媒体文件（图像、 JavaScript 和 CSS ），参见
+    :ref:`serving-media-files` 。
 
-``ModelAdmin`` objects
+``ModelAdmin`` 对象
 ======================
 
 .. class:: ModelAdmin
 
-    The ``ModelAdmin`` class is the representation of a model in the admin
-    interface. These are stored in a file named ``admin.py`` in your
-    application. Let's take a look at a very simple example of
-    the ``ModelAdmin``::
+    ``ModelAdmin`` 类用于在管理站点展现模型。这个类应该位于应用的 ``admin.py``
+    文件中。先来看看一个 ``ModelAdmin`` 类的简单例子::
 
         from django.contrib import admin
         from myproject.myapp.models import Author
@@ -66,26 +58,23 @@ Other topics
             pass
         admin.site.register(Author, AuthorAdmin)
 
-    .. admonition:: Do you need a ``ModelAdmin`` object at all?
+    .. admonition:: 究竟需不需要一个 ``ModelAdmin`` 对象？
 
-        In the preceding example, the ``ModelAdmin`` class doesn't define any
-        custom values (yet). As a result, the default admin interface will be
-        provided. If you are happy with the default admin interface, you don't
-        need to define a ``ModelAdmin`` object at all -- you can register the
-        model class without providing a ``ModelAdmin`` description. The
-        preceding example could be simplified to::
+        在上述的例子中 ``ModelAdmin`` 类没有定义任何自定义的值，这样的结果是
+        形成一个缺省的管理接口。如果你对缺省的接口已经满意了，那么你完全不需要
+        定义 ``ModelAdmin`` 对象。即可以把上述例子中关于 ``ModelAdmin`` 定义
+        去掉，简化为::
 
             from django.contrib import admin
             from myproject.myapp.models import Author
 
             admin.site.register(Author)
 
-``ModelAdmin`` options
+``ModelAdmin`` 选项
 ----------------------
 
-The ``ModelAdmin`` is very flexible. It has several options for dealing with
-customizing the interface. All options are defined on the ``ModelAdmin``
-subclass::
+``ModelAdmin`` 提供许多选项，定制非常方便。所有选项都在 ``ModelAdmin`` 的子类中
+定义::
 
     class AuthorAdmin(admin.ModelAdmin):
         date_hierarchy = 'pub_date'
