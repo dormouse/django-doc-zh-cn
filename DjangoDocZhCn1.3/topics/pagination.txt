@@ -157,112 +157,102 @@ Django 提供了一些类来帮助你对数据进行分页，即使用“上一�
 
 .. method:: Paginator.page(number)
 
-    Returns a :class:`Page` object with the given 1-based index. Raises
-    :exc:`InvalidPage` if the given page number doesn't exist.
+    根据给出的页码（一基索引），返回一个 :class:`Page` 对象。如果给出的页码不
+    存在，就会引发 :exc:`InvalidPage` 。
 
-Attributes
+属性
 ----------
 
 .. attribute:: Paginator.count
 
-    The total number of objects, across all pages.
+    对象总数，包括所有页面。
 
     .. note::
 
-        When determining the number of objects contained in ``object_list``,
-        ``Paginator`` will first try calling ``object_list.count()``. If
-        ``object_list`` has no ``count()`` method, then ``Paginator`` will
-        fallback to using ``object_list.__len__()``. This allows objects, such
-        as Django's ``QuerySet``, to use a more efficient ``count()`` method
-        when available.
+        当判断 ``object_list`` 中对象的总数时， ``Paginator`` 会首先尝试调用
+        ``object_list.count()`` 。如果 ``object_list`` 没有 ``count()`` 方法，
+        那么 ``Paginator`` 会退而调用 ``object_list.__len__()`` 。这样可以保证
+        优先使用效率较高的 ``count()`` 方法。
 
 .. attribute:: Paginator.num_pages
 
-    The total number of pages.
+    总页数。
 
 .. attribute:: Paginator.page_range
 
-    A 1-based range of page numbers, e.g., ``[1, 2, 3, 4]``.
+    一基索引的页码范围，如 ``[1, 2, 3, 4]`` 。
 
-``InvalidPage`` exceptions
+``InvalidPage`` 例外
 ==========================
 
-The ``page()`` method raises ``InvalidPage`` if the requested page is invalid
-(i.e., not an integer) or contains no objects. Generally, it's enough to trap
-the ``InvalidPage`` exception, but if you'd like more granularity, you can trap
-either of the following exceptions:
+如果请求的页面非法（例如页码不是一个整数）或页面为空，那么 ``page()`` 方法会
+引发 ``InvalidPage`` 。通常捕捉这个例外就够用了，但是如果你要更精确一点，那么
+可以捕捉以下两个例外：
 
 ``PageNotAnInteger``
-    Raised when ``page()`` is given a value that isn't an integer.
+    给 ``page()`` 的值不是一个整数时引发。
 
 ``EmptyPage``
-    Raised when ``page()`` is given a valid value but no objects exist on that
-    page.
+    给 ``page()`` 的值合法，但是页面为空。
 
-Both of the exceptions are subclasses of ``InvalidPage``, so you can handle
-them both with a simple ``except InvalidPage``.
+以上两个例外都是 ``InvalidPage`` 子类，因此只需要使用一个简单的
+``except InvalidPage`` 就可以同时处理上述两个例外了。
 
 
-``Page`` objects
+``Page`` 对象
 ================
 
 .. class:: Page(object_list, number, paginator)
 
-You usually won't construct :class:`Pages <Page>` by hand -- you'll get them
-using :meth:`Paginator.page`.
+通常你会通过使用 :meth:`Paginator.page` 方法来得到 :class:`Pages <Page>` ，
+不需要手动构造。
 
-
-Methods
+方法
 -------
 
 .. method:: Page.has_next()
 
-    Returns ``True`` if there's a next page.
+    如果有下一页则返回 ``True`` 。
 
 .. method:: Page.has_previous()
 
-    Returns ``True`` if there's a previous page.
+    如果有上一页则返回 ``True`` 。
 
 .. method:: Page.has_other_pages()
 
-    Returns ``True`` if there's a next *or* previous page.
+    如果有上一页 *或* 下一页则返回 ``True`` 。
 
 .. method:: Page.next_page_number()
 
-    Returns the next page number. Note that this is "dumb" and will return the
-    next page number regardless of whether a subsequent page exists.
+    返回下一页的页码。注意不管下一页是否存在这个方法都会“笨笨地”返回下一页的
+    页码。
 
 .. method:: Page.previous_page_number()
 
-    Returns the previous page number. Note that this is "dumb" and will return
-    the previous page number regardless of whether a previous page exists.
+    返回上一页的页码。注意不管上一页是否存在这个方法都会“笨笨地”返回上一页的
+    页码。
 
 .. method:: Page.start_index()
 
-    Returns the 1-based index of the first object on the page, relative to all
-    of the objects in the paginator's list. For example, when paginating a list
-    of 5 objects with 2 objects per page, the second page's :meth:`~Page.start_index`
-    would return ``3``.
+    返回本页第一个对象的一基索引。假设列表中共有五个对象，每页显示两个对象，
+    那么每二页的 :meth:`~Page.start_index` 就会返回 ``3`` 。
 
 .. method:: Page.end_index()
 
-    Returns the 1-based index of the last object on the page, relative to all of
-    the objects in the paginator's list. For example, when paginating a list of
-    5 objects with 2 objects per page, the second page's :meth:`~Page.end_index`
-    would return ``4``.
+    返回本页最后一个对象的一基索引。假设列表中共有五个对象，每页显示两个对象，
+    那么每二页的 :meth:`~Page.end_index` 就会返回 ``4`` 。
 
-Attributes
+属性
 ----------
 
 .. attribute:: Page.object_list
 
-    The list of objects on this page.
+    本页的对象列表。
 
 .. attribute:: Page.number
 
-    The 1-based page number for this page.
+    本页的页码（一基索引）。
 
 .. attribute:: Page.paginator
 
-    The associated :class:`Paginator` object.
-
+    相对应的 :class:`Paginator` 对象。
